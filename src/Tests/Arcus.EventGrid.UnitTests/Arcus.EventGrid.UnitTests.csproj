@@ -13,7 +13,28 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Arcus.EventGrid.IoTHub\Arcus.EventGrid.IoTHub.csproj" />
     <ProjectReference Include="..\..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
+    <ProjectReference Include="..\..\Arcus.EventGrid.Storage\Arcus.EventGrid.Storage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="TestArtifacts.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TestArtifacts.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="TestArtifacts.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestArtifacts.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
