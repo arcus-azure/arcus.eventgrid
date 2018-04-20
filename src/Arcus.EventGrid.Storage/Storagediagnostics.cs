@@ -1,4 +1,4 @@
-﻿namespace Codit.EventGrid.Blobs
+﻿namespace Arcus.EventGrid.Storage
 {
     public class Storagediagnostics
     {
