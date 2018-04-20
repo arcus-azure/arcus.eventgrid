@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using Flurl.Http;
 
 namespace Arcus.EventGrid.Publishing
 {
@@ -15,6 +13,9 @@ namespace Arcus.EventGrid.Publishing
 
         public static EventGridPublisher Create(string topicEndpoint, string authorizationKey)
         {
+            //TODO: should be replaced by Guard package call
+            Guard.AgainstNullOrEmptyValue(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
+            Guard.AgainstNullOrEmptyValue(authorizationKey, nameof(authorizationKey), "The authorization key must not be empty and is required");
             return new EventGridPublisher
             {
                 TopicEndpoint = topicEndpoint,
@@ -24,8 +25,6 @@ namespace Arcus.EventGrid.Publishing
 
         public async Task Publish<T>(string subject, string eventType, IEnumerable<T> data, string id = null) where T : class
         {
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("aeg-sas-key", AuthorizationKey);
             var eventList = data.Select(eventData => new Event<T>
             {
                 Subject = subject,
@@ -35,13 +34,10 @@ namespace Arcus.EventGrid.Publishing
                 Data = eventData
             }).ToList();
 
-            var json = JsonConvert.SerializeObject(eventList);
-            var request = new HttpRequestMessage(HttpMethod.Post, TopicEndpoint)
-            {
-                Content = new StringContent(json, Encoding.UTF8, "application/json")
-            };
+            var response = await TopicEndpoint
+                .WithHeader("aeg-sas-key", AuthorizationKey)
+                .PostJsonAsync(eventList);
 
-            var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
                 throw new ApplicationException($"Event grid publishing failed with status {response.StatusCode} and content {await response.Content.ReadAsStringAsync()}");

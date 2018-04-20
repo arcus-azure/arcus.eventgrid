@@ -15,6 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Azure", "Ar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arcus.EventGrid.Publishing", "Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj", "{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9A28129D-EE46-43AB-BA44-E1F546F3B3DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arcus.EventGrid.UnitTests", "Tests\Arcus.EventGrid.UnitTests\Arcus.EventGrid.UnitTests.csproj", "{DB3BA38D-CE98-4C20-A437-756D250FEE24}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,9 +49,16 @@ Global
 		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB3BA38D-CE98-4C20-A437-756D250FEE24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB3BA38D-CE98-4C20-A437-756D250FEE24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB3BA38D-CE98-4C20-A437-756D250FEE24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB3BA38D-CE98-4C20-A437-756D250FEE24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DB3BA38D-CE98-4C20-A437-756D250FEE24} = {9A28129D-EE46-43AB-BA44-E1F546F3B3DA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {77183A37-CB69-413E-A7EE-1DDFDCD078AD}
