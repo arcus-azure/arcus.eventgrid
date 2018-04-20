@@ -1,6 +1,4 @@
-﻿using Codit.EventGrid.Blobs;
-
-namespace Arcus.EventGrid.Storage
+﻿namespace Arcus.EventGrid.Storage
 {
     public class BlobEventData
     {
