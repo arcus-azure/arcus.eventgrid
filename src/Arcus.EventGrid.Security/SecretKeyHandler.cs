@@ -11,10 +11,14 @@ using System.Web.Http.Results;
 
 namespace Arcus.EventGrid.Security
 {
+    /// <inheritdoc cref="IAuthenticationFilter"/>
+    /// <summary>
+    /// SecretKey handler attribute to use on Api operations for querystring & header validation
+    /// </summary>
     public class SecretKeyHandler : Attribute, IAuthenticationFilter
     {
         private  string _secretKey;
-        private  string _secretKeyName;
+        private readonly string _secretKeyName;
         public bool AllowMultiple => false;
 
         public static Func<string> SecretKeyRetriever
@@ -23,12 +27,22 @@ namespace Arcus.EventGrid.Security
             set;
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Attribute configuration
+        /// </summary>
+        /// <param name="secretKeyName">The unique name of the security querystring or header parameter</param>
+        /// <param name="secretKeyValue">The hardcoded/compiled value of the security querystring or header parameter, it is advised to leverage the <see cref="P:Arcus.EventGrid.Security.SecretKeyHandler.SecretKeyRetriever" /> however</param>
         public SecretKeyHandler(string secretKeyName = "x-api-key", string secretKeyValue = null)
         {
             _secretKeyName = secretKeyName;
             _secretKey = secretKeyValue;
         }
 
+
+        /// <summary>
+        /// Validates the configured attribute
+        /// </summary>
         public void ValidateConfiguration()
         {
             Guard.ForCondition(() => _secretKey != null || SecretKeyRetriever != null, "The secret key validation or value should be provided");
@@ -36,23 +50,27 @@ namespace Arcus.EventGrid.Security
             Guard.AgainstNullOrEmptyValue(_secretKey, "secretKey", "The secret key for the API was empty");
             Guard.AgainstNullOrEmptyValue(_secretKeyName, "secretKeyName", "The secret key name for the API was empty");
         }
-
+        /// <inheritdoc cref="IAuthenticationFilter"/>
         public Task AuthenticateAsync(HttpAuthenticationContext context, CancellationToken cancellationToken)
         {
             try
             {
+                // First validate the configuration of the Attribute
                 ValidateConfiguration();
                 if (ValidateQueryStringKey(context) || ValidateHeaderKey(context))
                 {
+                    // Either querystring or header validation succeeded, so setting a GenericIdentity and continuing
                     var currentPrincipal = new GenericPrincipal(new GenericIdentity("EventGrid"), null);
                     context.Principal = currentPrincipal;
                     return Task.CompletedTask;
                 }
+                // Unauthorized result
                 context.ErrorResult = new UnauthorizedResult(new AuthenticationHeaderValue[0], context.Request);
                 return Task.CompletedTask;
             }
-            catch (Exception e)
+            catch (Exception)
             {
+                //TODO: add logging here
                 context.ErrorResult = new UnauthorizedResult(new AuthenticationHeaderValue[0], context.Request);
                 return Task.CompletedTask;
             }
@@ -60,12 +78,14 @@ namespace Arcus.EventGrid.Security
 
         private bool ValidateHeaderKey(HttpAuthenticationContext context)
         {
+            // Check for a header that matches and is valid
             return context.Request.Headers.TryGetValues(_secretKeyName, out var headerValues) 
                    && headerValues.Contains(_secretKey);
         }
 
         private bool ValidateQueryStringKey(HttpAuthenticationContext context)
         {
+            // Check for a query string value that matches and is valid
             var queryStringParameters = context.Request.GetQueryNameValuePairs();
             if (queryStringParameters.Count(kvp => kvp.Key == _secretKeyName) > 0)
             {
@@ -76,6 +96,7 @@ namespace Arcus.EventGrid.Security
             return false;
         }
 
+        /// <inheritdoc cref="IAuthenticationFilter"/>
         public Task ChallengeAsync(HttpAuthenticationChallengeContext context, CancellationToken cancellationToken)
         {
             context.Result = new ResultWithChallenge(context.Result);

@@ -1,6 +1,8 @@
 ﻿namespace Arcus.EventGrid.Azure
 {
-
+    /// <summary>
+    /// Contract for Event Data of Azure resource events
+    /// </summary>
     public class AzureResourceEventData
     {
         public string Authorization { get; set; }

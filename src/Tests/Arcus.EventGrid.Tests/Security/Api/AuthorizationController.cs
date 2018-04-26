@@ -11,7 +11,7 @@ namespace Arcus.EventGrid.Tests.Security.Api
         [HttpPost]
         [Route("authz/keyname")]
         [SecretKeyHandler("key-name")]
-        public async Task<IHttpActionResult> TestConfiguredKey(HttpRequestMessage message)
+        public IHttpActionResult TestConfiguredKey(HttpRequestMessage message)
         {
             try
             {
@@ -26,7 +26,7 @@ namespace Arcus.EventGrid.Tests.Security.Api
         [HttpPost]
         [Route("authz/keynamevalue")]
         [SecretKeyHandler("key-name", "key-value")]
-        public async Task<IHttpActionResult> TestConfiguredKeyValue(HttpRequestMessage message)
+        public IHttpActionResult TestConfiguredKeyValue(HttpRequestMessage message)
         {
             try
             {

@@ -12,7 +12,7 @@ namespace Arcus.EventGrid.Tests.Security.Api
         [Route("events/test")]
         [EventGridSubscriptionValidator]
         [SecretKeyHandler("x-api-key", "event-grid")]
-        public async Task<IHttpActionResult> TestHandshake(HttpRequestMessage message)
+        public IHttpActionResult TestHandshake(HttpRequestMessage message)
         {
             try
             {

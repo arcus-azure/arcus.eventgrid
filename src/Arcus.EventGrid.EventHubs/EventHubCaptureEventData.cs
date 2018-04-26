@@ -2,7 +2,9 @@
 
 namespace Arcus.EventGrid.EventHubs
 {
-
+    /// <summary>
+    /// Contract for Event Data of Event Hub Capture file
+    /// </summary>
     public class EventHubCaptureEventData
     {
         public string FileUrl { get; set; }

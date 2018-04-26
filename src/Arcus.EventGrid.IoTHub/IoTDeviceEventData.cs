@@ -2,6 +2,9 @@
 
 namespace Arcus.EventGrid.IoTHub
 {
+    /// <summary>
+    /// Contract for IoT Hub device event
+    /// </summary>
     public class IoTDeviceEventData
     {
         public Twin Twin { get; set; }

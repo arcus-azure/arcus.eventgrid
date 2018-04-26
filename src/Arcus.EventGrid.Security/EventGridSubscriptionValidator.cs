@@ -12,18 +12,24 @@ using System.Configuration;
 
 namespace Arcus.EventGrid.Security
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Event grid web hook validation attribute
+    /// </summary>
     public class EventGridSubscriptionValidator : ActionFilterAttribute
     {
         public override async Task OnActionExecutingAsync(HttpActionContext actionContext, CancellationToken cancellationToken)
         {
             try
             {
-                if (actionContext.Request.Headers.TryGetValues("Aeg-Event-Type", out IEnumerable<string> headerValues))
+                // This action only has to be executed, when the incoming contains a Header Aeg-Event-Type with value SubscriptionValidation
+                if (actionContext.Request.Headers.TryGetValues("Aeg-Event-Type", out var headerValues))
                 {
                     //TODO : add logging
                     //Log.Logger.Information("Subscription validation message received by Action Filter");
                     if (headerValues.Contains("SubscriptionValidation"))
                     {
+                        // Parsing the incoming message to a typed EventGrid message
                         var gridMessage = EventGridMessage<SubscriptionEventData>.Parse(await actionContext.Request.Content.ReadAsStringAsync());
                         var validationCode = gridMessage?.Events?[0]?.Data?.ValidationCode;
                         if (validationCode != null)
@@ -50,11 +56,6 @@ namespace Arcus.EventGrid.Security
                 //Log.Logger.Error(e, "error in filter");
                 await base.OnActionExecutingAsync(actionContext, cancellationToken);
             }
-        }
-
-        public override void OnActionExecuted(HttpActionExecutedContext actionExecutedContext)
-        {
-
         }
     }
 }

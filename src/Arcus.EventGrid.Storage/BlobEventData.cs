@@ -1,5 +1,8 @@
 ﻿namespace Arcus.EventGrid.Storage
 {
+    /// <summary>
+    /// Contract for Event Data of Azure blob events
+    /// </summary>
     public class BlobEventData
     {
         public string Api { get; set; }
