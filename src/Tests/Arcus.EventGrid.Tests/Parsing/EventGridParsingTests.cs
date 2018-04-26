@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Arcus.EventGrid.UnitTests.Parsing
+namespace Arcus.EventGrid.Tests.Parsing
 {
     public class EventGridParsingTests
     {

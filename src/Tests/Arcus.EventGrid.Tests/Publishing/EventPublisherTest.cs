@@ -2,7 +2,7 @@
 using Arcus.EventGrid.Publishing;
 using Xunit;
 
-namespace Arcus.EventGrid.UnitTests.Publishing
+namespace Arcus.EventGrid.Tests.Publishing
 {
     public class EventPublisherTest
     {
