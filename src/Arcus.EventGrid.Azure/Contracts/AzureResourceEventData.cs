@@ -1,7 +1,7 @@
-﻿namespace Arcus.EventGrid.Azure
+﻿namespace Arcus.EventGrid.Azure.Contracts
 {
     /// <summary>
-    /// Contract for Event Data of Azure resource events
+    ///     Event data contract for Azure resource events
     /// </summary>
     public class AzureResourceEventData
     {
@@ -9,13 +9,11 @@
         public string Claims { get; set; }
         public string CorrelationId { get; set; }
         public string HttpRequest { get; set; }
+        public string OperationName { get; set; }
         public string ResourceProvider { get; set; }
         public string ResourceUri { get; set; }
-        public string OperationName { get; set; }
         public string Status { get; set; }
         public string SubscriptionId { get; set; }
         public string TenantId { get; set; }
     }
-
-
 }

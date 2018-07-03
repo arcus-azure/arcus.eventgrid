@@ -23,7 +23,8 @@ namespace Arcus.EventGrid.Security
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                response.Headers.WwwAuthenticate.Add(new AuthenticationHeaderValue(AuthenticationScheme));
+                var authenticationHeader = new AuthenticationHeaderValue(AuthenticationScheme);
+                response.Headers.WwwAuthenticate.Add(authenticationHeader);
             }
 
             return response;

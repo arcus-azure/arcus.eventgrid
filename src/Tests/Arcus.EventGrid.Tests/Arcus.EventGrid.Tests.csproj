@@ -21,7 +21,24 @@
     <ProjectReference Include="..\..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
     <ProjectReference Include="..\..\Arcus.EventGrid.Security\Arcus.EventGrid.Security.csproj" />
     <ProjectReference Include="..\..\Arcus.EventGrid.Storage\Arcus.EventGrid.Storage.csproj" />
+    <ProjectReference Include="..\..\Arcus.EventGrid.Tests.InMemoryApi\Arcus.EventGrid.Tests.InMemoryApi.csproj" />
     <ProjectReference Include="..\..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Artifacts\Events.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Events.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Artifacts\Events.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <LastGenOutput>Events.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

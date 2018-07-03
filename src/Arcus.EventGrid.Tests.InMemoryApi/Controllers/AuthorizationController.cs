@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Net.Http;
-using System.Threading.Tasks;
 using System.Web.Http;
-using Arcus.EventGrid.Security;
-namespace Arcus.EventGrid.Tests.Security.Api
+using Arcus.EventGrid.Security.Attributes;
+
+namespace Arcus.EventGrid.Tests.InMemoryApi.Controllers
 {
     public class AuthorizationController : ApiController
     {
-
         [HttpPost]
-        [Route("authz/keyname")]
-        [SecretKeyHandler("key-name")]
-        public IHttpActionResult TestConfiguredKey(HttpRequestMessage message)
+        [Route("authz/hardcoded")]
+        [EventGridAuthorization("x-auth", "auth-key")]
+        public IHttpActionResult TestConfiguredKeyWithHardcodedKey(HttpRequestMessage message)
         {
             try
             {
@@ -24,9 +23,9 @@ namespace Arcus.EventGrid.Tests.Security.Api
         }
 
         [HttpPost]
-        [Route("authz/keynamevalue")]
-        [SecretKeyHandler("key-name", "key-value")]
-        public IHttpActionResult TestConfiguredKeyValue(HttpRequestMessage message)
+        [Route("authz/dynamic")]
+        [DynamicEventGridAuthorization("x-auth")]
+        public IHttpActionResult TestConfiguredKeyWithDynamicKey(HttpRequestMessage message)
         {
             try
             {

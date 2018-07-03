@@ -1,4 +1,7 @@
-﻿using Arcus.EventGrid.Storage;
+﻿using System;
+using System.Linq;
+using Arcus.EventGrid.Storage.Contracts;
+using Arcus.EventGrid.Tests.Artifacts;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Parsing
@@ -6,40 +9,73 @@ namespace Arcus.EventGrid.Tests.Parsing
     public class EventGridBlobParsingTests
     {
         [Fact]
-        public void TestBlobCreateEvent()
+        public void Parse_ValidBlobCreatedEvent_ShouldSucceed()
         {
-            var eventGridMessage = EventGridMessage<BlobEventData>.Parse(TestArtifacts.BlobCreateEvent);
+            // Arrange
+            const string topic = "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+            const string subject = "/blobServices/default/containers/event-container/blobs/finnishjpeg";
+            const string eventType = "Microsoft.Storage.BlobCreated";
+            const string id = "5647b67c-b01e-002d-6a47-bc01ac063360";
+            const string dataVersion = "1";
+            const string metadataVersion = "1";
+            const string api = "PutBlockList";
+            const string clientRequestId = "5c24a322-35c9-4b46-8ef5-245a81af7037";
+            const string requestId = "5647b67c-b01e-002d-6a47-bc01ac000000";
+            const string eTag = "0x8D58A5F0C6722F9";
+            const string contentType = "image/jpeg";
+            const int contentLength = 29342;
+            const string blobType = "BlockBlob";
+            const string url = "https://sample.blob.core.windows.net/event-container/finnish.jpeg";
+            const string sequencer = "00000000000000000000000000000094000000000017d503";
+            const string batchId = "69cd1576-e430-4aff-8153-570934a1f6e1";
+            string rawEvent = Events.BlobCreateEvent;
+            var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274Z");
+
+            // Act
+            var eventGridMessage = EventGridMessage<BlobEventData>.Parse(rawEvent);
+
+            // Assert
             Assert.NotNull(eventGridMessage);
-            Assert.True(eventGridMessage.Events.Count > 0);
-            Assert.NotNull(eventGridMessage.Events[0].Data.Api);
+            Assert.NotNull(eventGridMessage.Events);
+            Assert.Single(eventGridMessage.Events);
+            var eventGridEvent = eventGridMessage.Events.Single();
+            Assert.Equal(topic, eventGridEvent.Topic);
+            Assert.Equal(subject, eventGridEvent.Subject);
+            Assert.Equal(eventType, eventGridEvent.EventType);
+            Assert.Equal(eventTime, eventGridEvent.EventTime);
+            Assert.Equal(id, eventGridEvent.Id);
+            Assert.Equal(dataVersion, eventGridEvent.DataVersion);
+            Assert.Equal(metadataVersion, eventGridEvent.MetadataVersion);
+            Assert.NotNull(eventGridEvent.Data);
+            Assert.Equal(api, eventGridEvent.Data.Api);
+            Assert.Equal(clientRequestId, eventGridEvent.Data.ClientRequestId);
+            Assert.Equal(requestId, eventGridEvent.Data.RequestId);
+            Assert.Equal(eTag, eventGridEvent.Data.ETag);
+            Assert.Equal(contentType, eventGridEvent.Data.ContentType);
+            Assert.Equal(contentLength, eventGridEvent.Data.ContentLength);
+            Assert.Equal(blobType, eventGridEvent.Data.BlobType);
+            Assert.Equal(url, eventGridEvent.Data.Url);
+            Assert.Equal(sequencer, eventGridEvent.Data.Sequencer);
+            Assert.NotNull(eventGridEvent.Data.StorageDiagnostics);
+            Assert.Equal(batchId, eventGridEvent.Data.StorageDiagnostics.BatchId);
         }
 
-        //[Fact]
-        //public void TestBlobGetFilename()
-        //{
-        //    var eventGridMessage = EventGridMessage<BlobEventData>.Parse(TestArtifacts.BlobCreateEvent);
-        //    Assert.NotNull(eventGridMessage);
-        //    Assert.True(eventGridMessage.Events.Count > 0);
-        //    Assert.Equal("finnish.jpeg", eventGridMessage.Events[0].GetFileName());
-        //}
-
-        //[Fact]
-        //public void TestBlobGetExtension()
-        //{
-        //    var eventGridMessage = EventGridMessage<BlobEventData>.Parse(TestArtifacts.BlobCreateEvent);
-        //    Assert.NotNull(eventGridMessage);
-        //    Assert.True(eventGridMessage.Events.Count > 0);
-        //    Assert.Equal("jpeg", eventGridMessage.Events[0].GetExtension());
-        //}
-
-        //[Fact]
-        //public void TestBlobGetWithoutExtension()
-        //{
-        //    var eventGridMessage = EventGridMessage<BlobEventData>.Parse(TestArtifacts.BlobCreateEvent);
-        //    Assert.NotNull(eventGridMessage);
-        //    Assert.True(eventGridMessage.Events.Count > 0);
-        //    Assert.Equal("finnish", eventGridMessage.Events[0].GetFileNameWithoutExtension());
-        //}
-
+        /*
+         * 
+  "data": {
+    "api": "PutBlockList",
+    "clientRequestId": "5c24a322-35c9-4b46-8ef5-245a81af7037",
+    "requestId": "5647b67c-b01e-002d-6a47-bc01ac000000",
+    "eTag": "0x8D58A5F0C6722F9",
+    "contentType": "image/jpeg",
+    "contentLength": 29342,
+    "blobType": "BlockBlob",
+    "url": "https://sample.blob.core.windows.net/event-container/finnish.jpeg",
+    "sequencer": "00000000000000000000000000000094000000000017d503",
+    "storageDiagnostics": {
+      "batchId": "69cd1576-e430-4aff-8153-570934a1f6e1"
+    }
+  }
+         */
     }
 }

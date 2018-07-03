@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Text;
 using Microsoft.Owin.Testing;
 using Xunit;
-using System.Threading;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Security;
+using Arcus.EventGrid.Security.Contracts;
+using Arcus.EventGrid.Tests.Artifacts;
 using Newtonsoft.Json.Linq;
+using Arcus.EventGrid.Tests.InMemoryApi;
 
 namespace Arcus.EventGrid.Tests.Security
 {
@@ -16,22 +15,27 @@ namespace Arcus.EventGrid.Tests.Security
     public class WebhookValidationTests
     {
         [Fact]
-        public async Task TestWebhookValidationResponse()
+        public async Task Validate_HasValidEvent_ShouldSucceed()
         {
-            using (var server = TestServer.Create<TestStartup>())
+            // Arrange
+            var gridMessage = EventGridMessage<SubscriptionEventData>.Parse(Events.SubscriptionValidationEvent);
+
+            // Act
+            using (var server = TestServer.Create<InMemoryTestApiStartup>())
             {
-                var gridMessage = EventGridMessage<SubscriptionEventData>.Parse(TestArtifacts.SubscriptionValidationEvent);
                 var response = await server.CreateRequest($"/events/test")
                     .And(message =>
                     {
-                        message.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(TestArtifacts.SubscriptionValidationEvent));
+                        message.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(Events.SubscriptionValidationEvent));
                     })
                     .AddHeader("x-api-key", "event-grid")
                     .AddHeader("Aeg-Event-Type", "SubscriptionValidation")
                     .PostAsync();
+
+                // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-                if (response.IsSuccessStatusCode )
+                if (response.IsSuccessStatusCode)
                 {
                     var responseObject = JObject.Parse(await response.Content.ReadAsStringAsync());
                     Assert.NotNull(responseObject["validationResponse"]);

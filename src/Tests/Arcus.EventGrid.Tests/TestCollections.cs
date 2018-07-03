@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Arcus.EventGrid.Tests
+﻿namespace Arcus.EventGrid.Tests
 {
     internal class TestCollections
     {

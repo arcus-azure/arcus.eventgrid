@@ -1,4 +1,4 @@
-﻿namespace Arcus.EventGrid.IoTHub
+﻿namespace Arcus.EventGrid.IoTHub.Contracts
 {
     public class X509Thumbprint
     {

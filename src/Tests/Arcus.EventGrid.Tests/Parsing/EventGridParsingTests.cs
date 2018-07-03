@@ -1,23 +1,40 @@
-﻿using Xunit;
+﻿using System;
+using System.Linq;
+using Arcus.EventGrid.Security.Contracts;
+using Arcus.EventGrid.Tests.Artifacts;
+using Xunit;
 
 namespace Arcus.EventGrid.Tests.Parsing
 {
     public class EventGridParsingTests
     {
         [Fact]
-        public void TestSubscriptionEvent()
+        public void Parse_ValidSubscriptionValidationEvent_ShouldSucceed()
         {
-            var eventGridMessage = EventGridMessage<dynamic>.Parse(TestArtifacts.SubscriptionValidationEvent);
-            Assert.NotNull(eventGridMessage);
-            Assert.True(eventGridMessage.Events.Count > 0);
-        }
+            // Arrange
+            string rawEvent = Events.SubscriptionValidationEvent;
+            const string eventId = "2d1781af-3a4c-4d7c-bd0c-e34b19da4e66";
+            const string topic = "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+            const string subject = "Sample.Subject";
+            const string eventType = "Microsoft.EventGrid.SubscriptionValidationEvent";
+            const string validationCode = "512d38b6-c7b8-40c8-89fe-f46f9e9622b6";
+            var eventTime = DateTimeOffset.Parse("2017-08-06T22:09:30.740323Z");
 
-        [Fact]
-        public void TestBlobCreateEvent()
-        {
-            var eventGridMessage = EventGridMessage<dynamic>.Parse(TestArtifacts.BlobCreateEvent);
+            // Act
+            var eventGridMessage = EventGridMessage<SubscriptionEventData>.Parse(rawEvent);
+
+            // Assert
             Assert.NotNull(eventGridMessage);
-            Assert.True(eventGridMessage.Events.Count > 0);
+            Assert.NotNull(eventGridMessage.Events);
+            Assert.Single(eventGridMessage.Events);
+            var eventPayload = eventGridMessage.Events.Single();
+            Assert.Equal(eventId, eventPayload.Id);
+            Assert.Equal(topic, eventPayload.Topic);
+            Assert.Equal(subject, eventPayload.Subject);
+            Assert.Equal(eventType, eventPayload.EventType);
+            Assert.Equal(eventTime, eventPayload.EventTime);
+            Assert.NotNull(eventPayload.Data);
+            Assert.Equal(validationCode, eventPayload.Data.ValidationCode);
         }
     }
 }
