@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Copyright>Copyright (c) Arcus</Copyright>
+    <PackageLicenseUrl>https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/arcus-azure/arcus.eventgrid</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
+    <PackageTags>Azure;Event Grid</PackageTags>
+    <Authors>Arcus</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Provides capabilities to easily integrate with Azure Event Grid such as pushing events, endpoint authentication &amp; handshake, contracts and more</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Arcus.EventGrid.Azure\Arcus.EventGrid.Azure.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.EventHubs\Arcus.EventGrid.EventHubs.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.IoTHub\Arcus.EventGrid.IoTHub.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Security\Arcus.EventGrid.Security.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Storage\Arcus.EventGrid.Storage.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
+  </ItemGroup>
+
+</Project>

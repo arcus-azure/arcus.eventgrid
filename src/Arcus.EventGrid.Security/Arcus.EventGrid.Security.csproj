@@ -4,6 +4,14 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Arcus.EventGrid.snk</AssemblyOriginatorKeyFile>
+    <Copyright>Copyright (c) Arcus</Copyright>
+    <PackageLicenseUrl>https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/arcus-azure/arcus.eventgrid</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
+    <PackageTags>Azure;Event Grid</PackageTags>
+    <Company>Arcus</Company>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Provides capability to simplify the authentication and endpoint handshake for Azure Event Grid</Description>
   </PropertyGroup>
 
   <ItemGroup>
