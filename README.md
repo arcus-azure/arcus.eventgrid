@@ -1,8 +1,8 @@
 
 ![Logo of the project](media/logo/arcus-logo.png)
 
-# Arcus EventGrid
-> A library to kick start Azure Event Grid development
+# Arcus - Azure Event Grid
+> Azure Event Grid development in a breeze
 
 This library provides Azure Event Grid functionality that can be used to build reliable cloud projects.
 
@@ -11,7 +11,7 @@ This library provides Azure Event Grid functionality that can be used to build r
 Just leverage the Nuget package
 
 ```shell
-packagemanager install Arcus.EventGrid
+> Install-Package Arcus.EventGrid.All -Version 0.0.1-preview  
 ```
 
 This downloads the lates nuget package and add the references in your project
@@ -21,26 +21,17 @@ This downloads the lates nuget package and add the references in your project
 What can you perform with the library?
 * Handling Azure events
 * Publishing custom Event Grid events
-* Securing Event Grid custom webhook API's 
-
-## Configuration
-
-Here you should write what are all of the configurations a user can enter when
-using the project.
+* Securing Event Grid custom webhook API's
 
 ## Links
 
-- Project homepage: https://your.github.com/arcus/
-- Repository: https://github.com/your/awesome-project/
-- Issue tracker: https://github.com/your/awesome-project/issues
+- Repository: https://github.com/arcus-azure/arcus.eventgrid
+- Issue tracker: https://github.com/arcus-azure/arcus.eventgrid/issues
   - In case of sensitive bugs like security vulnerabilities, please contact
-    my@email.com directly instead of using issue tracker. We value your effort
+    info@codit.eu directly instead of using issue tracker. We value your effort
     to improve the security and privacy of this project!
-- Related projects:
-  - Your other project: https://github.com/your/other-project/
-  - Someone else's project: https://github.com/someones/awesome-project/
 
 
 ## Licensing
 
-"The code in this repository is licensed under MIT license."
+This is licensed under The MIT License (MIT). Which means that you can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the web application. But you always need to state that Codit is the original author of this web application.
