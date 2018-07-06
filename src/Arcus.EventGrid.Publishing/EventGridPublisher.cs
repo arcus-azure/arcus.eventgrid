@@ -64,6 +64,7 @@ namespace Arcus.EventGrid.Publishing
         {
             Guard.AgainstNullOrEmptyValue(subject, nameof(subject), errorMessage: "No subject was specified");
             Guard.AgainstNullOrEmptyValue(eventType, nameof(eventType), errorMessage: "No event type was specified");
+            Guard.AgainstNull(data, nameof(data), errorMessage: "No events were specified");
             Guard.ForCondition(() => data == null || data.Any() == false, errorMessage: "No events were specified");
 
             List<Event<TData>> eventList = ComposeEventList(subject, eventType, data, id);

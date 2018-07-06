@@ -16,13 +16,26 @@ namespace Arcus.EventGrid
         /// <exception cref="ArgumentNullException">Exception thrown, when <paramref name="argumentValue" /> is null</exception>
         public static void AgainstNullOrEmptyValue(string argumentValue, string argumentName, string errorMessage = null)
         {
-            if (argumentValue == null)
-            {
-                throw new ArgumentNullException(argumentName, errorMessage ?? $"The argument {argumentName} was null");
-            }
+            AgainstNull(argumentValue, argumentName, errorMessage);
+
             if (string.IsNullOrWhiteSpace(argumentValue))
             {
                 throw new ArgumentException(errorMessage ?? $"The argument {argumentName} was empty or null");
+            }
+        }
+
+        /// <summary>
+        ///     Validates the argument to make sure the object is not null
+        /// </summary>
+        /// <param name="argumentValue">Object to validate</param>
+        /// <param name="argumentName">Name of the argument</param>
+        /// <param name="errorMessage">Optional custom error message</param>
+        /// <exception cref="ArgumentNullException">Exception thrown, when <paramref name="argumentValue" /> is null</exception>
+        public static void AgainstNull(object argumentValue, string argumentName, string errorMessage = null)
+        {
+            if (argumentValue == null)
+            {
+                throw new ArgumentNullException(argumentName, errorMessage ?? $"The argument {argumentName} was null");
             }
         }
 
@@ -34,7 +47,7 @@ namespace Arcus.EventGrid
         /// <exception cref="Exception">Exception thrown, when <paramref name="condition" /> evalutes to false</exception>
         public static void ForCondition(Func<bool> condition, string errorMessage)
         {
-            if (!condition())
+            if (condition())
             {
                 throw new Exception(errorMessage);
             }
