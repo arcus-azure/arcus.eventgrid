@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -17,28 +17,28 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Arcus.EventGrid.IoTHub\Arcus.EventGrid.IoTHub.csproj" />
-    <ProjectReference Include="..\..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
-    <ProjectReference Include="..\..\Arcus.EventGrid.Security\Arcus.EventGrid.Security.csproj" />
-    <ProjectReference Include="..\..\Arcus.EventGrid.Storage\Arcus.EventGrid.Storage.csproj" />
-    <ProjectReference Include="..\..\Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj" />
-    <ProjectReference Include="..\..\Arcus.EventGrid.Tests.InMemoryApi\Arcus.EventGrid.Tests.InMemoryApi.csproj" />
-    <ProjectReference Include="..\..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Azure\Arcus.EventGrid.Azure.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.EventHubs\Arcus.EventGrid.EventHubs.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.IoTHub\Arcus.EventGrid.IoTHub.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Security\Arcus.EventGrid.Security.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Storage\Arcus.EventGrid.Storage.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Tests.InMemoryApi\Arcus.EventGrid.Tests.InMemoryApi.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Artifacts\Events.Designer.cs">
+    <Compile Update="Artifacts\EventSamples.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Events.resx</DependentUpon>
+      <DependentUpon>EventSamples.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Artifacts\Events.resx">
+    <EmbeddedResource Update="Artifacts\EventSamples.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <LastGenOutput>Events.Designer.cs</LastGenOutput>
+      <LastGenOutput>EventSamples.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

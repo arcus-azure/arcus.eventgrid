@@ -1,4 +1,4 @@
-﻿namespace Arcus.EventGrid.Tests
+﻿namespace Arcus.EventGrid.Tests.Unit
 {
     internal class TestCollections
     {

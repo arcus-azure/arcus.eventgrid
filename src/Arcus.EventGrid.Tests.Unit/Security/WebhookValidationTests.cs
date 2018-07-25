@@ -1,15 +1,15 @@
 ﻿using System.Net;
 using System.Net.Http;
 using System.Text;
-using Microsoft.Owin.Testing;
-using Xunit;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Security.Contracts;
-using Arcus.EventGrid.Tests.Artifacts;
-using Newtonsoft.Json.Linq;
 using Arcus.EventGrid.Tests.InMemoryApi;
+using Arcus.EventGrid.Tests.Unit.Artifacts;
+using Microsoft.Owin.Testing;
+using Newtonsoft.Json.Linq;
+using Xunit;
 
-namespace Arcus.EventGrid.Tests.Security
+namespace Arcus.EventGrid.Tests.Unit.Security
 {
     [Collection(TestCollections.ApiTests)]
     public class WebhookValidationTests
@@ -18,7 +18,7 @@ namespace Arcus.EventGrid.Tests.Security
         public async Task Validate_HasValidEvent_ShouldSucceed()
         {
             // Arrange
-            var gridMessage = EventGridMessage<SubscriptionEventData>.Parse(Events.SubscriptionValidationEvent);
+            var gridMessage = EventGridMessage<SubscriptionEventData>.Parse(EventSamples.SubscriptionValidationEvent);
 
             // Act
             using (var server = TestServer.Create<InMemoryTestApiStartup>())
@@ -26,7 +26,7 @@ namespace Arcus.EventGrid.Tests.Security
                 var response = await server.CreateRequest("/events/test")
                     .And(message =>
                     {
-                        message.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(Events.SubscriptionValidationEvent));
+                        message.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(EventSamples.SubscriptionValidationEvent));
                     })
                     .AddHeader("x-api-key", "event-grid")
                     .AddHeader("Aeg-Event-Type", "SubscriptionValidation")

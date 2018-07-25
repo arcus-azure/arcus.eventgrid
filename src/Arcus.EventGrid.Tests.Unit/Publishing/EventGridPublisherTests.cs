@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Publishing;
-using Arcus.EventGrid.Tests.Publishing.Events;
+using Arcus.EventGrid.Tests.Unit.Publishing.Events;
 using Xunit;
 
-namespace Arcus.EventGrid.Tests.Publishing
+namespace Arcus.EventGrid.Tests.Unit.Publishing
 {
     public class EventGridPublisherTests
     {

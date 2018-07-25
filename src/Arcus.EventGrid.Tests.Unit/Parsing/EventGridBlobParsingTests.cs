@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 using Arcus.EventGrid.Storage.Contracts;
-using Arcus.EventGrid.Tests.Artifacts;
+using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Xunit;
 
-namespace Arcus.EventGrid.Tests.Parsing
+namespace Arcus.EventGrid.Tests.Unit.Parsing
 {
     public class EventGridBlobParsingTests
     {
@@ -28,7 +28,7 @@ namespace Arcus.EventGrid.Tests.Parsing
             const string url = "https://sample.blob.core.windows.net/event-container/finnish.jpeg";
             const string sequencer = "00000000000000000000000000000094000000000017d503";
             const string batchId = "69cd1576-e430-4aff-8153-570934a1f6e1";
-            string rawEvent = Events.BlobCreateEvent;
+            string rawEvent = EventSamples.BlobCreateEvent;
             var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274Z");
 
             // Act

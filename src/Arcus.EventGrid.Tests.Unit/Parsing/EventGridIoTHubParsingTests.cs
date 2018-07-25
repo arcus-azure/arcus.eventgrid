@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 using Arcus.EventGrid.IoTHub.Contracts;
-using Arcus.EventGrid.Tests.Artifacts;
+using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Xunit;
 
-namespace Arcus.EventGrid.Tests.Parsing
+namespace Arcus.EventGrid.Tests.Unit.Parsing
 {
     public class EventGridIoTHubParsingTests
     {
@@ -12,7 +12,7 @@ namespace Arcus.EventGrid.Tests.Parsing
         public void Parse_ValidDeviceCreatedEvent_ShouldSucceed()
         {
             // Arrange
-            string rawEvent = Events.IoTDeviceCreateEvent;
+            string rawEvent = EventSamples.IoTDeviceCreateEvent;
             const string id = "38a23a83-f9c2-493f-e6fb-4b57c7c43d28";
             const string topic = "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
             const string subject = "devices/grid-test-01";

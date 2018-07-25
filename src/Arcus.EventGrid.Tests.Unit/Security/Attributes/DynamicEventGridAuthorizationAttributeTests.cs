@@ -4,12 +4,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Security.Attributes;
-using Arcus.EventGrid.Tests.Artifacts;
 using Arcus.EventGrid.Tests.InMemoryApi;
+using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Microsoft.Owin.Testing;
 using Xunit;
 
-namespace Arcus.EventGrid.Tests.Security.Attributes
+namespace Arcus.EventGrid.Tests.Unit.Security.Attributes
 {
     [Collection(TestCollections.ApiTests)]
     public class DynamicEventGridAuthorizationAttributeTests
@@ -21,7 +21,7 @@ namespace Arcus.EventGrid.Tests.Security.Attributes
             const string keyName = "x-auth";
             const string apiKey = "event-grid";
             InMemoryTestApiStartup.SecretKey = "event-grid";
-            var rawMessageContent = new ByteArrayContent(Encoding.UTF8.GetBytes(Events.SubscriptionValidationEvent));
+            var rawMessageContent = new ByteArrayContent(Encoding.UTF8.GetBytes(EventSamples.SubscriptionValidationEvent));
 
             // Act
             using (var server = TestServer.Create<InMemoryTestApiStartup>())
@@ -43,7 +43,7 @@ namespace Arcus.EventGrid.Tests.Security.Attributes
         {
             // Arrange
             InMemoryTestApiStartup.SecretKey = "event-grid";
-            var rawMessageContent = new ByteArrayContent(Encoding.UTF8.GetBytes(Events.SubscriptionValidationEvent));
+            var rawMessageContent = new ByteArrayContent(Encoding.UTF8.GetBytes(EventSamples.SubscriptionValidationEvent));
 
             // Act
             using (var server = TestServer.Create<InMemoryTestApiStartup>())

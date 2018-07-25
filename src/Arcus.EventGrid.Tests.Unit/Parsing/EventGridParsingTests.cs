@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 using Arcus.EventGrid.Security.Contracts;
-using Arcus.EventGrid.Tests.Artifacts;
+using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Xunit;
 
-namespace Arcus.EventGrid.Tests.Parsing
+namespace Arcus.EventGrid.Tests.Unit.Parsing
 {
     public class EventGridParsingTests
     {
@@ -12,7 +12,7 @@ namespace Arcus.EventGrid.Tests.Parsing
         public void Parse_ValidSubscriptionValidationEvent_ShouldSucceed()
         {
             // Arrange
-            string rawEvent = Events.SubscriptionValidationEvent;
+            string rawEvent = EventSamples.SubscriptionValidationEvent;
             const string eventId = "2d1781af-3a4c-4d7c-bd0c-e34b19da4e66";
             const string topic = "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
             const string subject = "Sample.Subject";

@@ -1,4 +1,4 @@
-﻿namespace Arcus.EventGrid.Tests.Publishing.Events
+﻿namespace Arcus.EventGrid.Tests.Unit.Publishing.Events
 {
     public class NewCarRegisteredEvent
     {
