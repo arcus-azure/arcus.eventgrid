@@ -59,23 +59,5 @@ namespace Arcus.EventGrid.Tests.Parsing
             Assert.NotNull(eventGridEvent.Data.StorageDiagnostics);
             Assert.Equal(batchId, eventGridEvent.Data.StorageDiagnostics.BatchId);
         }
-
-        /*
-         * 
-  "data": {
-    "api": "PutBlockList",
-    "clientRequestId": "5c24a322-35c9-4b46-8ef5-245a81af7037",
-    "requestId": "5647b67c-b01e-002d-6a47-bc01ac000000",
-    "eTag": "0x8D58A5F0C6722F9",
-    "contentType": "image/jpeg",
-    "contentLength": 29342,
-    "blobType": "BlockBlob",
-    "url": "https://sample.blob.core.windows.net/event-container/finnish.jpeg",
-    "sequencer": "00000000000000000000000000000094000000000017d503",
-    "storageDiagnostics": {
-      "batchId": "69cd1576-e430-4aff-8153-570934a1f6e1"
-    }
-  }
-         */
     }
 }

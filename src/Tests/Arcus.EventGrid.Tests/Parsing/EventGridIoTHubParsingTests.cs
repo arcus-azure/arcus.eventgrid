@@ -88,24 +88,5 @@ namespace Arcus.EventGrid.Tests.Parsing
             var reportedLastUpdated = DateTimeOffset.Parse(rawReportedLastUpdated);
             Assert.Equal(stamp, reportedLastUpdated);
         }
-
-        /*
-         *
-      "properties": {
-        "desired": {
-          "$metadata": {
-            "$lastUpdated": "2018-03-16T05:47:28.1359543Z"
-          },
-          "$version": 1
-        },
-        "reported": {
-          "$metadata": {
-            "$lastUpdated": "2018-03-16T05:47:28.1359543Z"
-          },
-          "$version": 1
-        }
-      }
-    }
-         */
     }
 }

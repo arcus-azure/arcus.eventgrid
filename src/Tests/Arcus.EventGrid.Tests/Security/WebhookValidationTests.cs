@@ -23,7 +23,7 @@ namespace Arcus.EventGrid.Tests.Security
             // Act
             using (var server = TestServer.Create<InMemoryTestApiStartup>())
             {
-                var response = await server.CreateRequest($"/events/test")
+                var response = await server.CreateRequest("/events/test")
                     .And(message =>
                     {
                         message.Content = new ByteArrayContent(Encoding.UTF8.GetBytes(Events.SubscriptionValidationEvent));
