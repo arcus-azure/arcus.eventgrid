@@ -16,6 +16,7 @@ PM > Install-Package Arcus.EventGrid.All
 - Supports publishing events to an Event Grid Topic
 - Supports handling endpoint validation handshake
 - Provides event contracts for a subset of Azure services
+- Provides tooling for writing integration tests ([docs](https://github.com/arcus-azure/arcus.eventgrid/wiki/Running-integration-tests-with-Arcus))
 
 # License Information
 This is licensed under The MIT License (MIT). Which means that you can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the web application. But you always need to state that Codit is the original author of this web application.
