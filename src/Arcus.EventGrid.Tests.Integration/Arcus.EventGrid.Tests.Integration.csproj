@@ -1,15 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Relay" Version="2.0.0-preview1-20180523" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
-    <PackageReference Include="Polly" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
   </ItemGroup>
@@ -17,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Testing\Arcus.EventGrid.Testing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Relay;
 using Polly;
 
-namespace Arcus.EventGrid.Tests.Integration.Infrastructure
+namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
     public class HybridConnectionHost
     {

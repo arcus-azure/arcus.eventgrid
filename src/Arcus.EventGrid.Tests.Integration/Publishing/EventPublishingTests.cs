@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Publishing;
 using Arcus.EventGrid.Tests.Core.Events;
-using Arcus.EventGrid.Tests.Integration.Infrastructure;
+using Arcus.EventGrid.Testing.Infrastructure.Hosts;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 using Xunit.Abstractions;
