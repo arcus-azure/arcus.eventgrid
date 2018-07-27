@@ -15,7 +15,7 @@ PM > Install-Package Arcus.EventGrid.All
 
 - Supports publishing events to an Event Grid Topic
 - Supports handling endpoint validation handshake
-- Provides event contracts for a subset of Azure services
+- Provides event contracts for a subset of Azure services ([docs](https://github.com/arcus-azure/arcus.eventgrid/wiki/Supported-Event-Contracts))
 - Provides tooling for writing integration tests ([docs](https://github.com/arcus-azure/arcus.eventgrid/wiki/Running-integration-tests-with-Arcus))
 
 # License Information
