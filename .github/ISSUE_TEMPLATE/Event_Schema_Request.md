@@ -1,18 +1,31 @@
 ---
 name: Request an event schema
-about: Request an event schema
+about: Request support for a new event schema (version)
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**Name of the requested event**
+<!-- Please create an issuer per event -->
+`Arcus.Demo.CarRegistered`
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**Requested data version(s)**
+Requested data version(s) for the event
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**Sample Payload**
+```json
+[{
+  "topic": "/car-lot",
+  "subject": "/cars/",
+  "eventType": "Arcus.Demo.CarRegistered",
+  "eventTime": "2017-06-26T18:41:00.9584103Z",
+  "id": "831e1650-001e-001b-66ab-eeb76e069631",
+  "data": {
+    "licensePlate": "1-TOM-1337"
+  },
+  "dataVersion": "1",
+  "metadataVersion": "1"
+}]
+```
 
-**Additional context**
-Add any other context about the problem here.
- - Version
+**Link to official schema**
+https://docs.microsoft.com/en-us/azure/event-grid/event-schema-blob-storage
