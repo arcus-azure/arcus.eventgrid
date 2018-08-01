@@ -32,29 +32,29 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         }
 
         [Fact]
-        public void Create_HasNoEndpointKey_ShouldFailWithArgumentNullException()
+        public void Create_HasNoEndpointKey_ShouldFailWithArgumentException()
         {
             // Arrange
             const string topicEndpoint = "https://savanh-grid-lab.westcentralus-1.eventgrid.azure.net/api/events";
             const string authenticationKey = null;
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => EventGridPublisher.Create(topicEndpoint, authenticationKey));
+            Assert.Throws<ArgumentException>(() => EventGridPublisher.Create(topicEndpoint, authenticationKey));
         }
 
         [Fact]
-        public void Create_HasNoTopicEndpoint_ShouldFailWithArgumentNullException()
+        public void Create_HasNoTopicEndpoint_ShouldFailWithArgumentException()
         {
             // Arrange
             const string topicEndpoint = null;
             const string authenticationKey = "IvjeulNI4OzwQOAA+Ba7gefZr230oqmBQptaz6UOUMc=";
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => EventGridPublisher.Create(topicEndpoint, authenticationKey));
+            Assert.Throws<ArgumentException>(() => EventGridPublisher.Create(topicEndpoint, authenticationKey));
         }
 
         [Fact]
-        public async Task Publish_HasNoSubject_ShouldFailWithArgumentNullException()
+        public async Task Publish_HasNoSubject_ShouldFailWithArgumentException()
         {
             // Arrange
             const string topicEndpoint = "myTopic";
@@ -68,11 +68,11 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
 
             // Act
             var eventGridPublisher = EventGridPublisher.Create(topicEndpoint, authenticationKey);
-            await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.Publish(subject, eventType, eventData));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.Publish(subject, eventType, eventData));
         }
 
         [Fact]
-        public async Task Publish_HasNoEventType_ShouldFailWithArgumentNullException()
+        public async Task Publish_HasNoEventType_ShouldFailWithArgumentException()
         {
             // Arrange
             const string topicEndpoint = "myTopic";
@@ -86,7 +86,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
 
             // Act
             var eventGridPublisher = EventGridPublisher.Create(topicEndpoint, authenticationKey);
-            await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.Publish(subject, eventType, eventData));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.Publish(subject, eventType, eventData));
         }
 
         [Fact]
@@ -105,7 +105,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         }
 
         [Fact]
-        public async Task Publish_HasEmptyEventData_ShouldFailWithArgumentNullException()
+        public async Task Publish_HasEmptyEventData_ShouldFailWithArgumentException()
         {
             // Arrange
             const string topicEndpoint = "myTopic";
@@ -116,7 +116,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
 
             // Act
             var eventGridPublisher = EventGridPublisher.Create(topicEndpoint, authenticationKey);
-            await Assert.ThrowsAsync<Exception>(() => eventGridPublisher.Publish(subject, eventType, eventData));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.Publish(subject, eventType, eventData));
         }
     }
 }

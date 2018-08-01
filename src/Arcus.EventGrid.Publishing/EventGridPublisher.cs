@@ -8,6 +8,8 @@ using Flurl.Http;
 
 namespace Arcus.EventGrid.Publishing
 {
+    using Guard;
+
     /// <summary>
     ///     Event Grid publisher can be used to publish events to a custom Event Grid topic
     /// </summary>
@@ -20,8 +22,8 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
         private EventGridPublisher(string topicEndpoint, string authenticationKey)
         {
-            Guard.AgainstNullOrEmptyValue(topicEndpoint, nameof(topicEndpoint), errorMessage: "The topic endpoint must not be empty and is required");
-            Guard.AgainstNullOrEmptyValue(authenticationKey, nameof(authenticationKey), errorMessage: "The authentication key must not be empty and is required");
+            Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
+            Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
 
             TopicEndpoint = topicEndpoint;
             AuthenticationKey = authenticationKey;
@@ -44,8 +46,8 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
         public static EventGridPublisher Create(string topicEndpoint, string authenticationKey)
         {
-            Guard.AgainstNullOrEmptyValue(topicEndpoint, nameof(topicEndpoint), errorMessage: "The topic endpoint must not be empty and is required");
-            Guard.AgainstNullOrEmptyValue(authenticationKey, nameof(authenticationKey), errorMessage: "The authentication key must not be empty and is required");
+            Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
+            Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
 
             var eventGridPublisher = new EventGridPublisher(topicEndpoint, authenticationKey);
             return eventGridPublisher;
@@ -62,10 +64,10 @@ namespace Arcus.EventGrid.Publishing
         /// <returns></returns>
         public async Task Publish<TData>(string subject, string eventType, IEnumerable<TData> data, string id = null)
         {
-            Guard.AgainstNullOrEmptyValue(subject, nameof(subject), errorMessage: "No subject was specified");
-            Guard.AgainstNullOrEmptyValue(eventType, nameof(eventType), errorMessage: "No event type was specified");
-            Guard.AgainstNull(data, nameof(data), errorMessage: "No events were specified");
-            Guard.ForCondition(() => data == null || data.Any() == false, errorMessage: "No events were specified");
+            Guard.NotNullOrWhitespace(subject, nameof(subject), "No subject was specified");
+            Guard.NotNullOrWhitespace(eventType, nameof(eventType), "No event type was specified");
+            Guard.NotNull(data, nameof(data), "No events were specified");
+            Guard.For(() => data.Any() == false, new ArgumentException("No events were specified", nameof(data)));
 
             List<Event<TData>> eventList = ComposeEventList(subject, eventType, data, id);
 

@@ -6,6 +6,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Arcus.EventGrid
 {
+    using Guard;
+
     public class EventGridMessage<TData>
     {
         /// <summary>
@@ -14,7 +16,7 @@ namespace Arcus.EventGrid
         /// <param name="sessionId">Unique session id for all batched messages</param>
         public EventGridMessage(string sessionId)
         {
-            Guard.AgainstNullOrEmptyValue(sessionId, nameof(sessionId));
+            Guard.NotNullOrWhitespace(sessionId, nameof(sessionId));
 
             SessionId = sessionId;
         }
@@ -36,7 +38,7 @@ namespace Arcus.EventGrid
         /// <returns>Typed EventGridMessage</returns>
         public static EventGridMessage<TData> Parse(string rawJsonBody)
         {
-            Guard.AgainstNullOrEmptyValue(rawJsonBody, nameof(rawJsonBody));
+            Guard.NotNullOrWhitespace(rawJsonBody, nameof(rawJsonBody));
             var sessionId = Guid.NewGuid().ToString();
 
             var eventGridMessage = Parse(rawJsonBody, sessionId);

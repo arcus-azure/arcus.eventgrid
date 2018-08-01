@@ -11,6 +11,8 @@ using System.Web.Http.Results;
 
 namespace Arcus.EventGrid.Security.Attributes
 {
+    using Guard;
+
     /// <summary>
     ///     Attribute that leverages authentication validation for api operations via query string or HTTP headers
     /// </summary>
@@ -25,7 +27,7 @@ namespace Arcus.EventGrid.Security.Attributes
         /// <param name="authenticationKeySecret">The hardcoded/compiled value of the security querystring or header parameter</param>
         public EventGridAuthorizationAttribute(string authenticationKeyName, string authenticationKeySecret) : this(authenticationKeyName)
         {
-            Guard.AgainstNullOrEmptyValue(authenticationKeySecret, nameof(authenticationKeySecret));
+            Guard.NotNullOrWhitespace(authenticationKeySecret, nameof(authenticationKeySecret));
 
             _authenticationKeySecret = authenticationKeySecret;
         }
@@ -36,7 +38,7 @@ namespace Arcus.EventGrid.Security.Attributes
         /// <param name="authenticationKeyName">The unique name of the security querystring or header parameter</param>
         protected EventGridAuthorizationAttribute(string authenticationKeyName = "x-api-key")
         {
-            Guard.AgainstNullOrEmptyValue(authenticationKeyName, nameof(authenticationKeyName));
+            Guard.NotNullOrWhitespace(authenticationKeyName, nameof(authenticationKeyName));
 
             AuthenticationKeyName = authenticationKeyName;
         }

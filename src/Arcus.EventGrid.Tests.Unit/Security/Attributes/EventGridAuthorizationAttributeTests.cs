@@ -80,7 +80,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security.Attributes
         }
 
         [Fact]
-        public void Constructor_HasNoAuthenticationKeyName_ShouldFailWithArgumentNullException()
+        public void Constructor_HasNoAuthenticationKeyName_ShouldFailWithArgumentException()
         {
             // Arrange
             string authenticationKeyName = null;
@@ -88,11 +88,11 @@ namespace Arcus.EventGrid.Tests.Unit.Security.Attributes
 
             // Act & Assert
             // ReSharper disable once ExpressionIsAlwaysNull
-            Assert.Throws<ArgumentNullException>(() => new EventGridAuthorizationAttribute(authenticationKeyName, authenticationKeySecret));
+            Assert.Throws<ArgumentException>(() => new EventGridAuthorizationAttribute(authenticationKeyName, authenticationKeySecret));
         }
 
         [Fact]
-        public void Constructor_HasNoAuthenticationKeySecret_ShouldFailWithArgumentNullException()
+        public void Constructor_HasNoAuthenticationKeySecret_ShouldFailWithArgumentException()
         {
             // Arrange
             const string authenticationKeyName = "key";
@@ -100,7 +100,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security.Attributes
 
             // Act & Assert
             // ReSharper disable once ExpressionIsAlwaysNull
-            Assert.Throws<ArgumentNullException>(() => new EventGridAuthorizationAttribute(authenticationKeyName, authenticationKeySecret));
+            Assert.Throws<ArgumentException>(() => new EventGridAuthorizationAttribute(authenticationKeyName, authenticationKeySecret));
         }
     }
 }

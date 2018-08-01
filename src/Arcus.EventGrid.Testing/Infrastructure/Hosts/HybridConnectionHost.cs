@@ -8,6 +8,8 @@ using Polly;
 
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
+    using Guard;
+
     public class HybridConnectionHost
     {
         private static readonly List<string> rawReceivedEvents = new List<string>();
@@ -15,7 +17,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
         private HybridConnectionHost(HybridConnectionListener hybridConnectionListener)
         {
-            Guard.AgainstNull(hybridConnectionListener, nameof(hybridConnectionListener));
+            Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
 
             _hybridConnectionListener = hybridConnectionListener;
         }
@@ -44,10 +46,10 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// </summary>
         public static async Task<HybridConnectionHost> Start(string relayNamespaceName, string hybridConnectionName, string accessPolicyName, string accessPolicyKey)
         {
-            Guard.AgainstNullOrEmptyValue(relayNamespaceName, nameof(relayNamespaceName));
-            Guard.AgainstNullOrEmptyValue(hybridConnectionName, nameof(hybridConnectionName));
-            Guard.AgainstNullOrEmptyValue(accessPolicyName, nameof(accessPolicyName));
-            Guard.AgainstNullOrEmptyValue(accessPolicyKey, nameof(accessPolicyKey));
+            Guard.NotNullOrWhitespace(relayNamespaceName, nameof(relayNamespaceName));
+            Guard.NotNullOrWhitespace(hybridConnectionName, nameof(hybridConnectionName));
+            Guard.NotNullOrWhitespace(accessPolicyName, nameof(accessPolicyName));
+            Guard.NotNullOrWhitespace(accessPolicyKey, nameof(accessPolicyKey));
 
             var tokenProvider = TokenProvider.CreateSharedAccessSignatureTokenProvider(accessPolicyName, accessPolicyKey);
             var hybridConnectionListener = new HybridConnectionListener(new Uri(string.Format(format: "sb://{0}/{1}", arg0: relayNamespaceName, arg1: hybridConnectionName)), tokenProvider);

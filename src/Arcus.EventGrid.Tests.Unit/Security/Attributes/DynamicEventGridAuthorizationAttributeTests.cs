@@ -69,14 +69,14 @@ namespace Arcus.EventGrid.Tests.Unit.Security.Attributes
         }
 
         [Fact]
-        public void Constructor_HasNoAuthenticationKeyName_ShouldFailWithArgumentNullException()
+        public void Constructor_HasNoAuthenticationKeyName_ShouldFailWithArgumentException()
         {
             // Arrange
             string authenticationKeyName = null;
 
             // Act & Assert
             // ReSharper disable once ExpressionIsAlwaysNull
-            Assert.Throws<ArgumentNullException>(() => new DynamicEventGridAuthorizationAttribute(authenticationKeyName));
+            Assert.Throws<ArgumentException>(() => new DynamicEventGridAuthorizationAttribute(authenticationKeyName));
         }
 
         [Fact]
