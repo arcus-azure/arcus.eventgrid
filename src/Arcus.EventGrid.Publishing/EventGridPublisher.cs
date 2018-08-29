@@ -20,7 +20,7 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
-        private EventGridPublisher(string topicEndpoint, string authenticationKey)
+        internal EventGridPublisher(string topicEndpoint, string authenticationKey)
         {
             Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
@@ -44,6 +44,7 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
+        [Obsolete("Use the EventGridPublisherBuilder instead to create EventGridPublisher models")]
         public static EventGridPublisher Create(string topicEndpoint, string authenticationKey)
         {
             Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
@@ -71,7 +72,6 @@ namespace Arcus.EventGrid.Publishing
 
             List<Event<TData>> eventList = ComposeEventList(subject, eventType, data, id);
 
-            // TODO: Add resiliency here
             // Calling HTTP endpoint
             var response = await TopicEndpoint
                 .WithHeader(name: "aeg-sas-key", value: AuthenticationKey)

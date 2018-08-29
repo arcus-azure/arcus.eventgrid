@@ -67,7 +67,12 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             };
 
             // Act
-            var eventGridPublisher = EventGridPublisher.Create(topicEndpoint, authenticationKey);
+            var eventGridPublisher = 
+                EventGridPublisherBuilder
+                    .ForTopic(topicEndpoint)
+                    .UsingAuthenticationKey(authenticationKey)
+                    .Build();
+
             await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.Publish(subject, eventType, eventData));
         }
 
@@ -85,7 +90,12 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             };
 
             // Act
-            var eventGridPublisher = EventGridPublisher.Create(topicEndpoint, authenticationKey);
+            var eventGridPublisher = 
+                EventGridPublisherBuilder
+                    .ForTopic(topicEndpoint)
+                    .UsingAuthenticationKey(authenticationKey)
+                    .Build();
+
             await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.Publish(subject, eventType, eventData));
         }
 
@@ -100,7 +110,12 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             List<NewCarRegisteredEvent> eventData = null;
 
             // Act
-            var eventGridPublisher = EventGridPublisher.Create(topicEndpoint, authenticationKey);
+            var eventGridPublisher = 
+                EventGridPublisherBuilder
+                    .ForTopic(topicEndpoint)
+                    .UsingAuthenticationKey(authenticationKey)
+                    .Build();
+
             await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.Publish(subject, eventType, eventData));
         }
 
@@ -115,7 +130,12 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             List<NewCarRegisteredEvent> eventData = new List<NewCarRegisteredEvent>();
 
             // Act
-            var eventGridPublisher = EventGridPublisher.Create(topicEndpoint, authenticationKey);
+            var eventGridPublisher = 
+                EventGridPublisherBuilder
+                    .ForTopic(topicEndpoint)
+                    .UsingAuthenticationKey(authenticationKey)
+                    .Build();
+
             await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.Publish(subject, eventType, eventData));
         }
     }

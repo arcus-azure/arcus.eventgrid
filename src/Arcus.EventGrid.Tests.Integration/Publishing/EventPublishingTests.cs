@@ -46,8 +46,9 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             _hybridConnectionHost = await HybridConnectionHost.Start(relayNamespace, hybridConnectionName, accessPolicyName, accessPolicyKey);
         }
 
+        // TODO: remove the raw-duplicate of the Integration Test after the obsolete creation of the 'EventGridPublisher' is removed
         [Fact]
-        public async Task Publish_ValidParameters_Succeeds()
+        public async Task Publish_WithFactoryMethod_ValidParameters_Succeeds()
         {
             // Arrange
             var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
@@ -62,8 +63,53 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             };
 
             // Act
-            var eventGridPublisher = EventGridPublisher.Create(topicEndpoint, endpointKey);
-            await eventGridPublisher.Publish(eventSubject, eventType, events, eventId);
+#pragma warning disable CS0618 // Member is obsolete
+            await EventGridPublisher
+                  .Create(topicEndpoint, endpointKey)
+#pragma warning restore CS0618 // Member is obsolete
+                  .Publish(eventSubject, eventType, events, eventId);
+
+            _testOutput.WriteLine($"Event '{eventId}' published");
+
+            // Assert
+            var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);
+            Assert.NotEmpty(receivedEvent);
+
+            EventGridMessage<NewCarRegisteredEvent> deserializedEventGridMessage = EventGridMessage<NewCarRegisteredEvent>.Parse(receivedEvent);
+            Assert.NotNull(deserializedEventGridMessage);
+            Assert.NotEmpty(deserializedEventGridMessage.SessionId);
+            Assert.NotNull(deserializedEventGridMessage.Events);
+            Assert.Single(deserializedEventGridMessage.Events);
+            Event<NewCarRegisteredEvent> deserializedEvent = deserializedEventGridMessage.Events.First();
+            Assert.Equal(deserializedEvent.Id, eventId);
+            Assert.Equal(deserializedEvent.Subject, eventSubject);
+            Assert.Equal(deserializedEvent.EventType, eventType);
+            Assert.NotNull(deserializedEvent.Data);
+            Assert.Equal(deserializedEvent.Data.LicensePlate, licensePlate);
+        }
+
+        [Fact]
+        public async Task Publish_WithBuilder_ValidParameters_Succeeds()
+        {
+            // Arrange
+            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
+            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            const string eventSubject = "integration-test";
+            const string eventType = "integration-test-event";
+            const string licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var events = new List<NewCarRegisteredEvent>
+            {
+                new NewCarRegisteredEvent(licensePlate)
+            };
+
+            // Act
+            await EventGridPublisherBuilder
+                  .ForTopic(topicEndpoint)
+                  .UsingAuthenticationKey(endpointKey)
+                  .Build()
+                  .Publish(eventSubject, eventType, events, eventId);
+
             _testOutput.WriteLine($"Event '{eventId}' published");
 
             // Assert
