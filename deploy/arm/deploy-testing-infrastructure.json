@@ -1,0 +1,55 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "EventGrid.Topic.Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the custom Azure Event Grid topic"
+            }
+        },
+        "Relay.Namespace.Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the custom Azure Relay namespace"
+            }
+        },
+        "Relay.HybridConnection.Name": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.EventGrid/topics",
+            "name": "[parameters('EventGrid.Topic.Name')]",
+            "apiVersion": "2018-01-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Relay/namespaces",
+            "name": "[parameters('Relay.Namespace.Name')]",
+            "apiVersion": "2017-04-01",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard"
+            },
+            "tags": {},
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Relay/namespaces/hybridConnections",
+            "name": "[concat(parameters('Relay.Namespace.Name'), '/', parameters('Relay.HybridConnection.Name'))]",
+            "apiVersion": "2017-04-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "requiresClientAuthorization": "true"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Relay/namespaces', parameters('Relay.Namespace.Name'))]"
+            ]
+        }
+    ]
+}

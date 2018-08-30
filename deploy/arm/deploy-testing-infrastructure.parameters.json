@@ -1,0 +1,15 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "EventGrid.Topic.Name": {
+            "value": "arcus-testing-event-topic"
+        },
+        "Relay.Namespace.Name": {
+            "value": "arcus-testing-relay-namespace"
+        },
+        "Relay.HybridConnection.Name": {
+            "value": "hybrid-connection-integration-testing"
+        }
+    }
+}
