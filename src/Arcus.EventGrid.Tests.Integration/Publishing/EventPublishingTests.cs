@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Publishing;
-using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts;
+using Arcus.EventGrid.Tests.Core.Events;
 using Microsoft.Extensions.Configuration;
 using Xunit;
 using Xunit.Abstractions;
@@ -65,9 +65,9 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Act
 #pragma warning disable CS0618 // Member is obsolete
             await EventGridPublisher
-                  .Create(topicEndpoint, endpointKey)
+                .Create(topicEndpoint, endpointKey)
 #pragma warning restore CS0618 // Member is obsolete
-                  .Publish(eventSubject, eventType, events, eventId);
+                .Publish(eventSubject, eventType, events, eventId);
 
             _testOutput.WriteLine($"Event '{eventId}' published");
 
@@ -105,10 +105,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Act
             await EventGridPublisherBuilder
-                  .ForTopic(topicEndpoint)
-                  .UsingAuthenticationKey(endpointKey)
-                  .Build()
-                  .Publish(eventSubject, eventType, events, eventId);
+                .ForTopic(topicEndpoint)
+                .UsingAuthenticationKey(endpointKey)
+                .Build()
+                .Publish(eventSubject, eventType, events, eventId);
 
             _testOutput.WriteLine($"Event '{eventId}' published");
 
