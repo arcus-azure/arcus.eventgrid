@@ -6,7 +6,9 @@ using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Publishing;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts;
 using Arcus.EventGrid.Tests.Core.Events;
+using Arcus.EventGrid.Tests.Integration.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,13 +17,13 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
     [Trait(name: "Category", value: "Integration")]
     public class EventPublishingTests : IAsyncLifetime
     {
-        private readonly ITestOutputHelper _testOutput;
+        private readonly XunitTestLogger _testLogger;
 
         private HybridConnectionHost _hybridConnectionHost;
 
         public EventPublishingTests(ITestOutputHelper testOutput)
         {
-            _testOutput = testOutput;
+            _testLogger = new XunitTestLogger(testOutput);
 
             Configuration = new ConfigurationBuilder()
                 .AddJsonFile(path: "appsettings.json")
@@ -43,7 +45,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var accessPolicyName = Configuration.GetValue<string>("Arcus:HybridConnections:AccessPolicyName");
             var accessPolicyKey = Configuration.GetValue<string>("Arcus:HybridConnections:AccessPolicyKey");
 
-            _hybridConnectionHost = await HybridConnectionHost.Start(relayNamespace, hybridConnectionName, accessPolicyName, accessPolicyKey);
+            _hybridConnectionHost = await HybridConnectionHost.Start(relayNamespace, hybridConnectionName, accessPolicyName, accessPolicyKey, _testLogger);
         }
 
         // TODO: remove the raw-duplicate of the Integration Test after the obsolete creation of the 'EventGridPublisher' is removed
@@ -69,7 +71,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 #pragma warning restore CS0618 // Member is obsolete
                 .Publish(eventSubject, eventType, events, eventId);
 
-            _testOutput.WriteLine($"Event '{eventId}' published");
+            _testLogger.LogInformation($"Event '{eventId}' published");
 
             // Assert
             var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);
@@ -110,7 +112,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .Build()
                 .Publish(eventSubject, eventType, events, eventId);
 
-            _testOutput.WriteLine($"Event '{eventId}' published");
+            _testLogger.LogInformation($"Event '{eventId}' published");
 
             // Assert
             var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);

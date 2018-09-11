@@ -3,27 +3,31 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Arcus.EventGrid.Testing.Logging;
+using GuardNet;
 using Microsoft.Azure.Relay;
+using Microsoft.Extensions.Logging;
 using Polly;
 
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
-    using Guard;
-
     public class HybridConnectionHost
     {
         private static readonly List<string> rawReceivedEvents = new List<string>();
         private readonly HybridConnectionListener _hybridConnectionListener;
+        private readonly ILogger _logger;
 
-        private HybridConnectionHost(HybridConnectionListener hybridConnectionListener)
+        private HybridConnectionHost(HybridConnectionListener hybridConnectionListener, ILogger logger)
         {
             Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
+            Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
 
+            _logger = logger;
             _hybridConnectionListener = hybridConnectionListener;
         }
 
         /// <summary>
-        ///     Gets the payload for a received event (Uses exponentional backoff)
+        ///     Gets the payload for a received event (Uses exponential back-off)
         /// </summary>
         /// <param name="eventId">Event id for requested event</param>
         /// <param name="retryCount">Amount of retries while waiting for the event to come in</param>
@@ -44,7 +48,25 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <summary>
         ///     Start receiving traffic
         /// </summary>
+        /// <param name="relayNamespaceName">Name of the Azure Relay namespace</param>
+        /// <param name="hybridConnectionName">Name of the Azure Relay Hybrid Connection</param>
+        /// <param name="accessPolicyName">Name of the access policy</param>
+        /// <param name="accessPolicyKey">Key of the access policy to authenticate with</param>
         public static async Task<HybridConnectionHost> Start(string relayNamespaceName, string hybridConnectionName, string accessPolicyName, string accessPolicyKey)
+        {
+            var hybridConnectionHost = await Start(relayNamespaceName, hybridConnectionName, accessPolicyName, accessPolicyKey, new NoOpLogger());
+            return hybridConnectionHost;
+        }
+
+        /// <summary>
+        ///     Start receiving traffic
+        /// </summary>
+        /// <param name="relayNamespaceName">Name of the Azure Relay namespace</param>
+        /// <param name="hybridConnectionName">Name of the Azure Relay Hybrid Connection</param>
+        /// <param name="accessPolicyName">Name of the access policy</param>
+        /// <param name="accessPolicyKey">Key of the access policy to authenticate with</param>
+        /// <param name="logger">Logger to use for writing event information during the hybrid connection</param>
+        public static async Task<HybridConnectionHost> Start(string relayNamespaceName, string hybridConnectionName, string accessPolicyName, string accessPolicyKey, ILogger logger)
         {
             Guard.NotNullOrWhitespace(relayNamespaceName, nameof(relayNamespaceName));
             Guard.NotNullOrWhitespace(hybridConnectionName, nameof(hybridConnectionName));
@@ -52,28 +74,34 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotNullOrWhitespace(accessPolicyKey, nameof(accessPolicyKey));
 
             var tokenProvider = TokenProvider.CreateSharedAccessSignatureTokenProvider(accessPolicyName, accessPolicyKey);
-            var hybridConnectionListener = new HybridConnectionListener(new Uri(string.Format(format: "sb://{0}/{1}", arg0: relayNamespaceName, arg1: hybridConnectionName)), tokenProvider);
+            var hybridConnectionUri = string.Format(format: "sb://{0}/{1}", arg0: relayNamespaceName, arg1: hybridConnectionName);
+            var hybridConnectionListener = new HybridConnectionListener(new Uri(hybridConnectionUri), tokenProvider);
+            
+            hybridConnectionListener.Connecting += (o, e) => { logger.LogInformation("Connecting to Azure Relay Hybrid Connections"); };
+            hybridConnectionListener.Offline += (o, e) => { logger.LogInformation("Azure Relay Hybrid Connections listener is offline"); };
+            hybridConnectionListener.Online += (o, e) => { logger.LogInformation("Azure Relay Hybrid Connections listener is online"); };
 
-            hybridConnectionListener.Connecting += (o, e) => { Console.WriteLine(value: "Connecting"); };
-            hybridConnectionListener.Offline += (o, e) => { Console.WriteLine(value: "Offline"); };
-            hybridConnectionListener.Online += (o, e) => { Console.WriteLine(value: "Online"); };
+            hybridConnectionListener.RequestHandler = (relayedHttpListenerContext) => HandleReceivedRequest(relayedHttpListenerContext, logger);
 
-            hybridConnectionListener.RequestHandler = context =>
-            {
-                using (var requestStreamReader = new StreamReader(context.Request.InputStream))
-                {
-                    var request = requestStreamReader.ReadToEnd();
-                    Console.WriteLine($"Request - {request}");
-                    rawReceivedEvents.Add(request);
-                }
-
-                // The context MUST be closed here
-                context.Response.Close();
-            };
-
+            logger.LogInformation($"Host connecting to {hybridConnectionUri}");
             await hybridConnectionListener.OpenAsync();
 
-            return new HybridConnectionHost(hybridConnectionListener);
+            return new HybridConnectionHost(hybridConnectionListener, logger);
+        }
+
+        private static void HandleReceivedRequest(RelayedHttpListenerContext context, ILogger logger)
+        {
+            using (var requestStreamReader = new StreamReader(context.Request.InputStream))
+            {
+                var rawRequest = requestStreamReader.ReadToEnd();
+
+                logger.LogInformation($"New request was received - {rawRequest}");
+
+                rawReceivedEvents.Add(rawRequest);
+            }
+
+            // The context MUST be closed here
+            context.Response.Close();
         }
 
         /// <summary>
@@ -81,6 +109,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// </summary>
         public async Task Stop()
         {
+            _logger.LogInformation("Stopping host");
             await _hybridConnectionListener.CloseAsync();
         }
     }

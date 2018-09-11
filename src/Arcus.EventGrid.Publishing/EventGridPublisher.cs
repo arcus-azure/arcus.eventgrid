@@ -5,11 +5,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Flurl.Http;
+using GuardNet;
 
 namespace Arcus.EventGrid.Publishing
 {
-    using Guard;
-
     /// <summary>
     ///     Event Grid publisher can be used to publish events to a custom Event Grid topic
     /// </summary>

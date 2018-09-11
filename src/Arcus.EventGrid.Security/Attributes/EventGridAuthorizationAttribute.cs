@@ -8,11 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http.Filters;
 using System.Web.Http.Results;
+using GuardNet;
 
 namespace Arcus.EventGrid.Security.Attributes
 {
-    using Guard;
-
     /// <summary>
     ///     Attribute that leverages authentication validation for api operations via query string or HTTP headers
     /// </summary>

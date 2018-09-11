@@ -1,10 +1,9 @@
 ﻿using System;
 using Arcus.EventGrid.Publishing.Interfaces;
+using GuardNet;
 
 namespace Arcus.EventGrid.Publishing
 {
-    using Guard;
-
     /// <summary>
     /// Result of the minimum required values to create <see cref="EventGridPublisher"/> instances, but also startpoint of extending the instance.
     /// The required and optional values are therefore split in separate classes and cannot be manipulated with casting.

@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Arcus.EventGrid.Contracts;
+using GuardNet;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Arcus.EventGrid
 {
-    using Guard;
-
     public class EventGridMessage<TData>
     {
         /// <summary>

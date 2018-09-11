@@ -1,10 +1,9 @@
 ﻿using System;
 using Arcus.EventGrid.Publishing.Interfaces;
+using GuardNet;
 
 namespace Arcus.EventGrid.Publishing
 {
-    using Guard;
-
     /// <summary>
     /// Exposed builder to create <see cref="EventGridPublisher"/> instances in a fluent manner.
     /// </summary>
