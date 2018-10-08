@@ -3,7 +3,7 @@
 
 Azure development in a breeze.
 
-![Arcus](https://github.com/arcus-azure/arcus/blob/master/media/arcus.png)
+![Arcus](https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png)
 
 # Installation
 
