@@ -9,6 +9,7 @@ using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Integration.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -48,6 +49,8 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             _hybridConnectionHost = await HybridConnectionHost.Start(relayNamespace, hybridConnectionName, accessPolicyName, accessPolicyKey, _testLogger);
         }
 
+
+
         // TODO: remove the raw-duplicate of the Integration Test after the obsolete creation of the 'EventGridPublisher' is removed
         [Fact]
         public async Task Publish_WithFactoryMethod_ValidParameters_Succeeds()
@@ -71,7 +74,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 #pragma warning restore CS0618 // Member is obsolete
                 .Publish(eventSubject, eventType, events, eventId);
 
-            _testLogger.LogInformation($"Event '{eventId}' published");
+            TracePublishedEvent(eventId, events);
 
             // Assert
             var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);
@@ -112,7 +115,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .Build()
                 .Publish(eventSubject, eventType, events, eventId);
 
-            _testLogger.LogInformation($"Event '{eventId}' published");
+            TracePublishedEvent(eventId, events);
 
             // Assert
             var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);
@@ -129,6 +132,11 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             Assert.Equal(deserializedEvent.EventType, eventType);
             Assert.NotNull(deserializedEvent.Data);
             Assert.Equal(deserializedEvent.Data.LicensePlate, licensePlate);
+        }
+
+        private void TracePublishedEvent(string eventId, List<NewCarRegisteredEvent> events)
+        {
+            _testLogger.LogInformation($"Event '{eventId}' published - {JsonConvert.SerializeObject(events)}");
         }
     }
 }
