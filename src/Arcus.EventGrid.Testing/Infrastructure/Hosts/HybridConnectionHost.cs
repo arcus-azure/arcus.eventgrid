@@ -17,21 +17,29 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         private readonly HybridConnectionListener _hybridConnectionListener;
         private readonly ILogger _logger;
 
-        private HybridConnectionHost(HybridConnectionListener hybridConnectionListener, ILogger logger)
+        private HybridConnectionHost(string hostId, HybridConnectionListener hybridConnectionListener, ILogger logger)
         {
+            Guard.NotNullOrWhitespace(hostId, nameof(hostId));
             Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
             Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
+
+            HostId = hostId;
 
             _logger = logger;
             _hybridConnectionListener = hybridConnectionListener;
         }
 
         /// <summary>
+        ///     Id of the host
+        /// </summary>
+        public string HostId { get; }
+
+        /// <summary>
         ///     Gets the event envelope that includes a requested event (Uses exponential back-off)
         /// </summary>
         /// <param name="eventId">Event id for requested event</param>
         /// <param name="retryCount">Amount of retries while waiting for the event to come in</param>
-        public string GetReceivedEvent(string eventId, int retryCount = 5)
+        public string GetReceivedEvent(string eventId, int retryCount = 10)
         {
             var retryPolicy = Policy.HandleResult<string>(string.IsNullOrWhiteSpace)
                 .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
@@ -43,7 +51,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                 receivedEvents.TryGetValue(eventId, out var rawEvent);
                 return rawEvent;
             });
-            
+
             return matchingEvent;
         }
 
@@ -85,10 +93,11 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             hybridConnectionListener.RequestHandler = relayedHttpListenerContext => HandleReceivedRequest(relayedHttpListenerContext, logger);
 
-            logger.LogInformation($"Host connecting to {hybridConnectionUri}");
+            var hostId = Guid.NewGuid().ToString();
+            logger.LogInformation($"Host connecting to {hybridConnectionUri} (Host Id: {hostId})");
             await hybridConnectionListener.OpenAsync();
 
-            return new HybridConnectionHost(hybridConnectionListener, logger);
+            return new HybridConnectionHost(hostId, hybridConnectionListener, logger);
         }
 
         private static void HandleReceivedRequest(RelayedHttpListenerContext context, ILogger logger)

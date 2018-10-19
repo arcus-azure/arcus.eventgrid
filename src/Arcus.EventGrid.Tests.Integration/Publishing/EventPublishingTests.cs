@@ -48,9 +48,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             _hybridConnectionHost = await HybridConnectionHost.Start(relayNamespace, hybridConnectionName, accessPolicyName, accessPolicyKey, _testLogger);
         }
-
-
-
+        
         // TODO: remove the raw-duplicate of the Integration Test after the obsolete creation of the 'EventGridPublisher' is removed
         [Fact]
         public async Task Publish_WithFactoryMethod_ValidParameters_Succeeds()
