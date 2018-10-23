@@ -66,7 +66,7 @@ namespace Arcus.EventGrid.Publishing
         /// Finilized builder result that can directly create <see cref="EventGridPublisher"/> instances 
         /// via the <see cref="IBuilder.Build()"/> method or extend the publisher even further.
         /// </returns>
-        public IBuilder UsingAuthenticationKey(string authenticationKey)
+        public IEventGridPublisherBuilderWithExponentialRetry UsingAuthenticationKey(string authenticationKey)
         {
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
 
