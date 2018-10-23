@@ -1,4 +1,5 @@
 ﻿using Arcus.EventGrid.Contracts;
+using Arcus.EventGrid.IoTHub.Contracts.Events.Data;
 
 namespace Arcus.EventGrid.IoTHub.Contracts.Events
 {
