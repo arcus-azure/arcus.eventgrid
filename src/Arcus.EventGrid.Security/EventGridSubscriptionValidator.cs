@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
+using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Security.Contracts;
+using Arcus.EventGrid.Security.Contracts.Events;
 
 namespace Arcus.EventGrid.Security
 {
@@ -52,7 +54,7 @@ namespace Arcus.EventGrid.Security
         {
             // Parsing the incoming message to a typed EventGrid message
             var rawRequest = await actionContext.Request.Content.ReadAsStringAsync();
-            var gridMessage = EventGridMessage<SubscriptionEventData>.Parse(rawRequest);
+            var gridMessage = EventGridParser.Parse<SubscriptionValidation>(rawRequest);
 
             if (gridMessage.Events == null || gridMessage.Events.Any() == false)
             {

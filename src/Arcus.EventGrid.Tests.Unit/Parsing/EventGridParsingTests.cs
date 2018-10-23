@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Arcus.EventGrid.Security.Contracts;
+using Arcus.EventGrid.Parsers;
+using Arcus.EventGrid.Security.Contracts.Events;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Xunit;
 
@@ -21,7 +22,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             var eventTime = DateTimeOffset.Parse("2017-08-06T22:09:30.740323Z");
 
             // Act
-            var eventGridMessage = EventGridMessage<SubscriptionEventData>.Parse(rawEvent);
+            var eventGridMessage = EventGridParser.Parse<SubscriptionValidation>(rawEvent);
 
             // Assert
             Assert.NotNull(eventGridMessage);

@@ -19,7 +19,7 @@ namespace Arcus.EventGrid.Tests.Integration.Logging
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             var message = formatter(state, exception);
-            _testOutput.WriteLine($"{DateTimeOffset.UtcNow:s} {logLevel} > {message}");
+            _testOutput.WriteLine($"{DateTimeOffset.UtcNow:s} > {message}");
         }
 
         public bool IsEnabled(LogLevel logLevel)

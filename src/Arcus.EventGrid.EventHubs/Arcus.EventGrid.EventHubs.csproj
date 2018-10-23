@@ -14,4 +14,8 @@
     <Description>Provides contracts for Azure Event Hubs events</Description>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
+  </ItemGroup>
+
 </Project>
