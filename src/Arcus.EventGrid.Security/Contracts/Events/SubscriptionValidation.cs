@@ -1,5 +1,4 @@
 ﻿using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.Security.Contracts.Events.Data;
 
 namespace Arcus.EventGrid.Security.Contracts.Events
 {
@@ -17,7 +16,7 @@ namespace Arcus.EventGrid.Security.Contracts.Events
         {
         }
 
-        public override string DataVersion { get; set; } = "1";
-        public override string EventType { get; set; } = "Microsoft.EventGrid.SubscriptionValidationEvent";
+        public override string DataVersion { get;  } = "1";
+        public override string EventType { get;  } = "Microsoft.EventGrid.SubscriptionValidationEvent";
     }
 }

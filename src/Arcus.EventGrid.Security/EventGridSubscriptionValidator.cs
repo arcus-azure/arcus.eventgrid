@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 using Arcus.EventGrid.Parsers;
-using Arcus.EventGrid.Security.Contracts;
 using Arcus.EventGrid.Security.Contracts.Events;
 
 namespace Arcus.EventGrid.Security

@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using System.Web.Http;
-using Arcus.EventGrid.Security;
 using Arcus.EventGrid.Security.Attributes;
 using Owin;
 

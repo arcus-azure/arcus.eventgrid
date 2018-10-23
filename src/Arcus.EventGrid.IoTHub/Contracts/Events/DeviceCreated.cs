@@ -1,5 +1,4 @@
 ﻿using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.IoTHub.Contracts.Events.Data;
 
 namespace Arcus.EventGrid.IoTHub.Contracts.Events
 {
@@ -17,7 +16,7 @@ namespace Arcus.EventGrid.IoTHub.Contracts.Events
         {
         }
 
-        public override string DataVersion { get; set; } = "1";
-        public override string EventType { get; set; } = "Microsoft.Devices.DeviceCreated";
+        public override string DataVersion { get; } = "1";
+        public override string EventType { get;  } = "Microsoft.Devices.DeviceCreated";
     }
 }

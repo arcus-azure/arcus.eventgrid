@@ -16,7 +16,7 @@ namespace Arcus.EventGrid.EventHubs.Contracts.Events
         {
         }
 
-        public override string DataVersion { get; set; } = "1";
-        public override string EventType { get; set; } = "Microsoft.EventHub.CaptureFileCreated";
+        public override string DataVersion { get;  } = "1";
+        public override string EventType { get;  } = "Microsoft.EventHub.CaptureFileCreated";
     }
 }

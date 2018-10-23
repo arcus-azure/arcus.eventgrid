@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Arcus.EventGrid.Parsers;
-using Arcus.EventGrid.Storage.Contracts;
 using Arcus.EventGrid.Storage.Contracts.Events;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Xunit;

@@ -6,7 +6,7 @@ namespace Arcus.EventGrid.Contracts
 {
     /// <summary>
     ///     Represents an event published on a topic.
-    ///     (Offical schema documentation - https://docs.microsoft.com/en-us/azure/event-grid/event-schema#event-schema)
+    ///     (Official schema documentation - https://docs.microsoft.com/en-us/azure/event-grid/event-schema#event-schema)
     /// </summary>
     /// <typeparam name="TData">Type of data payload</typeparam>
     public abstract class Event<TData> : IEvent
@@ -38,7 +38,7 @@ namespace Arcus.EventGrid.Contracts
         /// <summary>
         ///     The schema version of the data object. The publisher defines the schema version.
         /// </summary>
-        public abstract string DataVersion { get; set; }
+        public abstract string DataVersion { get; }
 
         /// <summary>
         ///     The time the event is generated based on the provider's UTC time.
@@ -48,7 +48,7 @@ namespace Arcus.EventGrid.Contracts
         /// <summary>
         ///     One of the registered event types for this event source.
         /// </summary>
-        public abstract string EventType { get; set; }
+        public abstract string EventType { get; }
 
         /// <summary>
         ///     Unique identifier for the event.

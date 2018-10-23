@@ -24,7 +24,7 @@ namespace Arcus.EventGrid.Tests.Core.Events
             Data.LicensePlate = licensePlate;
         }
 
-        public override string DataVersion { get; set; } = "1";
-        public override string EventType { get; set; } = "Arcus.Samples.Cars.NewCarRegistered";
+        public override string DataVersion { get;  } = "1";
+        public override string EventType { get;  } = "Arcus.Samples.Cars.NewCarRegistered";
     }
 }
