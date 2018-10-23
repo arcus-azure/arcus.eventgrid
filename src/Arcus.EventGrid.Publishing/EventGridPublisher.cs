@@ -87,14 +87,18 @@ namespace Arcus.EventGrid.Publishing
         private async Task PublishEventToTopic<TEvent>(List<TEvent> eventList) where TEvent : class, IEvent, new()
         {
             // Calling HTTP endpoint
-            var response = await TopicEndpoint
-                .WithHeader(name: "aeg-sas-key", value: AuthenticationKey)
-                .PostJsonAsync(eventList);
+            var response = await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequest(eventList));
 
             if (!response.IsSuccessStatusCode)
             {
                 await ThrowApplicationExceptionAsync(response);
             }
+        }
+
+        private Task<HttpResponseMessage> SendAuthorizedHttpPostRequest<TEvent>(List<TEvent> events) where TEvent : class, IEvent, new()
+        {
+            return TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey)
+                .PostJsonAsync(events);
         }
 
         private async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)

@@ -30,7 +30,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             const string topicEndpoint = "https://savanh-grid-lab.westcentralus-1.eventgrid.azure.net/api/events";
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(
+            Assert.Throws<ArgumentException>( 
                 () => EventGridPublisherBuilder
                       .ForTopic(topicEndpoint)
                       .UsingAuthenticationKey(authenticationKey));
@@ -44,11 +44,10 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             Action act = () =>
             {
                 // Act
-                EventGridPublisher publisher =
-                    EventGridPublisherBuilder
-                        .ForTopic(endpointTopic.Get)
-                        .UsingAuthenticationKey(endpointAuthKey.Get)
-                        .Build();
+                var publisher = EventGridPublisherBuilder
+                                    .ForTopic(endpointTopic.Get)
+                                    .UsingAuthenticationKey(endpointAuthKey.Get)
+                                    .Build();
 
                 // Assert
                 Assert.NotNull(publisher);
@@ -56,8 +55,8 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             };
 
             bool endpointTopicAndKeyNotEmpty = 
-                !String.IsNullOrWhiteSpace(endpointTopic.Get) 
-                && !String.IsNullOrWhiteSpace(endpointAuthKey.Get);
+                !string.IsNullOrWhiteSpace(endpointTopic.Get) 
+                && !string.IsNullOrWhiteSpace(endpointAuthKey.Get);
 
             // Conditional Property because the 'NonEmptyString' also generates line-feats which also corresponds to a null-or-whitespaced string.
             return act.When(endpointTopicAndKeyNotEmpty);
