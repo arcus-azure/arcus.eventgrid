@@ -24,7 +24,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             var eventGridMessage = EventGridMessage<SubscriptionEventData>.Parse(rawEvent);
 
             // Assert
-            Assert.NotNull(eventGridMessage);
+            Assert.Null(eventGridMessage);
             Assert.NotNull(eventGridMessage.Events);
             Assert.Single(eventGridMessage.Events);
             var eventPayload = eventGridMessage.Events.Single();
