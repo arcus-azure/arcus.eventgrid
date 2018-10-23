@@ -1,7 +1,7 @@
 ﻿using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.IoTHub.Contracts.Events.Data;
+using Arcus.EventGrid.IoTHub.Contracts.Events.v1.Data;
 
-namespace Arcus.EventGrid.IoTHub.Contracts.Events
+namespace Arcus.EventGrid.IoTHub.Contracts.Events.v1
 {
     public class DeviceCreated : Event<IoTDeviceEventData>
     {

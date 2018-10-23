@@ -1,7 +1,7 @@
 ﻿using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.EventHubs.Contracts.Events.Data;
+using Arcus.EventGrid.EventHubs.Contracts.Events.v1.Data;
 
-namespace Arcus.EventGrid.EventHubs.Contracts.Events
+namespace Arcus.EventGrid.EventHubs.Contracts.Events.v1
 {
     public class CaptureFileCreated : Event<EventHubCaptureEventData>
     {

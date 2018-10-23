@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Parsers;
-using Arcus.EventGrid.Security.Contracts.Events;
+using Arcus.EventGrid.Security.Contracts.Events.v1;
 using Arcus.EventGrid.Tests.InMemoryApi;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Microsoft.Owin.Testing;

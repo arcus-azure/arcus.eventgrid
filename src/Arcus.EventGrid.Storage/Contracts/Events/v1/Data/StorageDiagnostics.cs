@@ -1,4 +1,4 @@
-﻿namespace Arcus.EventGrid.Storage.Contracts.Events.Data
+﻿namespace Arcus.EventGrid.Storage.Contracts.Events.v1.Data
 {
     public class StorageDiagnostics
     {

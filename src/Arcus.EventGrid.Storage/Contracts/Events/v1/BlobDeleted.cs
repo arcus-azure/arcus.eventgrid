@@ -1,7 +1,7 @@
 ﻿using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.Storage.Contracts.Events.Data;
+using Arcus.EventGrid.Storage.Contracts.Events.v1.Data;
 
-namespace Arcus.EventGrid.Storage.Contracts.Events
+namespace Arcus.EventGrid.Storage.Contracts.Events.v1
 {
     public class BlobDeleted : Event<BlobEventData>
     {

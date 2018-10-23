@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Arcus.EventGrid.IoTHub.Contracts.Events;
+using Arcus.EventGrid.IoTHub.Contracts.Events.v1;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Xunit;

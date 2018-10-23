@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Arcus.EventGrid.IoTHub.Contracts.Events.Data
+namespace Arcus.EventGrid.IoTHub.Contracts.Events.v1.Data
 {
     public class PropertyConfiguration
     {

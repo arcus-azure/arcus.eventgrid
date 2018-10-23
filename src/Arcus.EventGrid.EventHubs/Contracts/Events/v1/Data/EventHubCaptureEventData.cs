@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Arcus.EventGrid.EventHubs.Contracts.Events.Data
+namespace Arcus.EventGrid.EventHubs.Contracts.Events.v1.Data
 {
     /// <summary>
     ///     Event data contract for Event Hubs Capture File

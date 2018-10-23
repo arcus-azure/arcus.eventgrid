@@ -1,7 +1,7 @@
 ﻿using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.Security.Contracts.Events.Data;
+using Arcus.EventGrid.Security.Contracts.Events.v1.Data;
 
-namespace Arcus.EventGrid.Security.Contracts.Events
+namespace Arcus.EventGrid.Security.Contracts.Events.v1
 {
     public class SubscriptionValidation : Event<SubscriptionEventData>
     {
