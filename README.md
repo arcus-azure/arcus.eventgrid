@@ -27,7 +27,10 @@ For more information, [read our wiki](https://github.com/arcus-azure/arcus.event
 
 ## How do I run the integration tests?
 In order to run the integration tests, you will need to do the following:
-1. Deploy the Azure Resource Manager template located at `/deploy/armdeploy-testing-infrastructure.json`
+1. Deploy the Azure Resource Manager template - <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Farcus-azure%2Farcus.eventgrid%2Fmaster%2Fdeploy%2Farm%2Fdeploy-testing-infrastructure.json" target="_blank">
+        <img src="http://azuredeploy.net/deploybutton.png"/>
+    </a>
+
 2. Create a subscription on our custom Azure Event Grid topic for our Hybrid Connection ([walkthrough](https://www.codit.eu/blog/writing-tests-for-azure-event-grid/))
 3. Configure the following environment variables:
     - `Arcus__HybridConnections__RelayNamespace` _- Azure Relay namespace, for example `arcus.servicebus.windows.net`_
