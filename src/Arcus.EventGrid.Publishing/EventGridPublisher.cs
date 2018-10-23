@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts.Interfaces;
+using Arcus.EventGrid.Publishing.Interfaces;
 using Flurl.Http;
 using GuardNet;
 
@@ -12,7 +13,7 @@ namespace Arcus.EventGrid.Publishing
     /// <summary>
     ///     Event Grid publisher can be used to publish events to a custom Event Grid topic
     /// </summary>
-    public class EventGridPublisher
+    public class EventGridPublisher : IEventGridPublisher
     {
         /// <summary>
         ///     Constructor
