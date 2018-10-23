@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Storage.Contracts;
+using Arcus.EventGrid.Storage.Contracts.Events;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Xunit;
 
@@ -32,7 +34,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274Z");
 
             // Act
-            var eventGridMessage = EventGridMessage<BlobEventData>.Parse(rawEvent);
+            var eventGridMessage = EventGridParser.Parse<BlobCreated>(rawEvent);
 
             // Assert
             Assert.NotNull(eventGridMessage);

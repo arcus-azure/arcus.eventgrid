@@ -67,7 +67,7 @@ namespace Arcus.EventGrid.Contracts
         public string Subject { get; set; }
 
         /// <summary>
-        ///     Full resource path to the event source. This field is not writeable. Event Grid provides this value.
+        ///     Full resource path to the event source. This field is not writable. Event Grid provides this value.
         /// </summary>
         public string Topic { get; set; }
     }

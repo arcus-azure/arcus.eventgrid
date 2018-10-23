@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Arcus.EventGrid.IoTHub.Contracts;
+using Arcus.EventGrid.IoTHub.Contracts.Events;
+using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Xunit;
 
@@ -35,7 +36,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const int twinPropertyVersion = 1;
 
             // Act
-            var eventGridMessage = EventGridMessage<IoTDeviceEventData>.Parse(rawEvent);
+            var eventGridMessage = EventGridParser.Parse<DeviceCreated>(rawEvent);
 
             // Assert
             Assert.NotNull(eventGridMessage);
