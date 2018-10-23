@@ -43,7 +43,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                 receivedEvents.TryGetValue(eventId, out var rawEvent);
                 return rawEvent;
             });
-            
+
             return matchingEvent;
         }
 

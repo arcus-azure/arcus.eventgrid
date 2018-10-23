@@ -1,5 +1,6 @@
 ﻿using System;
 using Arcus.EventGrid.Publishing;
+using Arcus.EventGrid.Tests.Unit.Publishing.Fixtures;
 using FsCheck;
 using FsCheck.Xunit;
 using Xunit;
@@ -27,7 +28,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         public void UsingAuthenticationKey_NullOrEmptyEndpointKey_ShouldFailWithArgumentException(string authenticationKey)
         {
             // Arrange
-            const string topicEndpoint = "https://savanh-grid-lab.westcentralus-1.eventgrid.azure.net/api/events";
+            const string topicEndpoint =  PublishingFixures.SampleTopicEndpoint;
 
             // Act & Assert
             Assert.Throws<ArgumentException>( 
