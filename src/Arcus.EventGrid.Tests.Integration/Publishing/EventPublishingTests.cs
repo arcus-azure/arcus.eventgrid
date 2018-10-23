@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Publishing;
@@ -110,6 +111,48 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             await EventGridPublisherBuilder
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
+                .Build()
+                .Publish(eventSubject, eventType, events, eventId);
+
+            TracePublishedEvent(eventId, events);
+
+            // Assert
+            var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);
+            Assert.NotEmpty(receivedEvent);
+
+            EventGridMessage<NewCarRegisteredEvent> deserializedEventGridMessage = EventGridMessage<NewCarRegisteredEvent>.Parse(receivedEvent);
+            Assert.NotNull(deserializedEventGridMessage);
+            Assert.NotEmpty(deserializedEventGridMessage.SessionId);
+            Assert.NotNull(deserializedEventGridMessage.Events);
+            Assert.Single(deserializedEventGridMessage.Events);
+            Event<NewCarRegisteredEvent> deserializedEvent = deserializedEventGridMessage.Events.First();
+            Assert.Equal(deserializedEvent.Id, eventId);
+            Assert.Equal(deserializedEvent.Subject, eventSubject);
+            Assert.Equal(deserializedEvent.EventType, eventType);
+            Assert.NotNull(deserializedEvent.Data);
+            Assert.Equal(deserializedEvent.Data.LicensePlate, licensePlate);
+        }
+
+        [Fact]
+        public async Task Publish_WithBuilderWithResiliency_WithValidParameters_Succeeds()
+        {
+            // Arrange
+            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
+            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            const string eventSubject = "integration-test";
+            const string eventType = "integration-test-event";
+            const string licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var events = new List<NewCarRegisteredEvent>
+            {
+                new NewCarRegisteredEvent(licensePlate)
+            };
+
+            // Act
+            await EventGridPublisherBuilder
+                .ForTopic(topicEndpoint)
+                .UsingAuthenticationKey(endpointKey)
+                .WithExponentialRetry<WebException>(3)
                 .Build()
                 .Publish(eventSubject, eventType, events, eventId);
 

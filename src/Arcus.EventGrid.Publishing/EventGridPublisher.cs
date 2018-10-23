@@ -4,39 +4,53 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
+using Arcus.EventGrid.Publishing.Interfaces;
 using Flurl.Http;
 using GuardNet;
+using Polly;
 
 namespace Arcus.EventGrid.Publishing
 {
     /// <summary>
     ///     Event Grid publisher can be used to publish events to a custom Event Grid topic
     /// </summary>
-    public class EventGridPublisher
+    public class EventGridPublisher : IEventGridPublisher
     {
+        private readonly Policy _resilientPolicy;
+        private readonly string _authenticationKey;
+
         /// <summary>
         ///     Constructor
         /// </summary>
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
         internal EventGridPublisher(string topicEndpoint, string authenticationKey)
+            : this(topicEndpoint, authenticationKey, Policy.NoOpAsync())
+        {
+        }
+
+        /// <summary>
+        ///     Constructor
+        /// </summary>
+        /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
+        /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
+        /// <param name="resilientPolicy">The policy to use making the publishing resilient.</param>
+        internal EventGridPublisher(string topicEndpoint, string authenticationKey, Policy resilientPolicy)
         {
             Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
+            Guard.NotNull(resilientPolicy, nameof(resilientPolicy), "The resilient policy is required with this construction, otherwise use other constructor");
 
             TopicEndpoint = topicEndpoint;
-            AuthenticationKey = authenticationKey;
+
+            _authenticationKey = authenticationKey;
+            _resilientPolicy = resilientPolicy;
         }
 
         /// <summary>
         ///     Url of the custom Event Grid topic
         /// </summary>
         public string TopicEndpoint { get; }
-
-        /// <summary>
-        ///     Authentication Key for the Event Grid topic
-        /// </summary>
-        private string AuthenticationKey { get; }
 
         /// <summary>
         ///     Creates a validated EventGrid publisher
@@ -69,12 +83,11 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotNull(data, nameof(data), "No events were specified");
             Guard.For(() => data.Any() == false, new ArgumentException("No events were specified", nameof(data)));
 
-            List<Event<TData>> eventList = ComposeEventList(subject, eventType, data, id);
+            IEnumerable<Event<TData>> eventList = ComposeEventList(subject, eventType, data, id);
 
-            // Calling HTTP endpoint
-            var response = await TopicEndpoint
-                .WithHeader(name: "aeg-sas-key", value: AuthenticationKey)
-                .PostJsonAsync(eventList);
+            HttpResponseMessage response =
+                await _resilientPolicy.ExecuteAsync(
+                    () => SendAuthorizedHttpPostRequest(eventList));
 
             if (!response.IsSuccessStatusCode)
             {
@@ -82,11 +95,15 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private List<Event<TData>> ComposeEventList<TData>(string subject, string eventType, IEnumerable<TData> dataEntries, string id)
+        private static IEnumerable<Event<TData>> ComposeEventList<TData>(
+            string subject, 
+            string eventType, 
+            IEnumerable<TData> dataEntries, 
+            string id)
         {
             IEnumerable<Event<TData>> events = dataEntries.Select(data =>
             {
-                var eventId = id ?? Guid.NewGuid().ToString();
+                string eventId = id ?? Guid.NewGuid().ToString();
                 var eventData = new Event<TData>
                 {
                     Subject = subject,
@@ -102,9 +119,15 @@ namespace Arcus.EventGrid.Publishing
             return events.ToList();
         }
 
-        private async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
+        private Task<HttpResponseMessage> SendAuthorizedHttpPostRequest<TData>(IEnumerable<Event<TData>> eventList)
         {
-            var rawResponse = string.Empty;
+            return TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey)
+                                .PostJsonAsync(eventList);
+        }
+
+        private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
+        {
+            string rawResponse = string.Empty;
 
             try
             {

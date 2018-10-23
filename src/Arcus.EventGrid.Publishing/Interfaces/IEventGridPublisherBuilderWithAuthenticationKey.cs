@@ -5,10 +5,6 @@ namespace Arcus.EventGrid.Publishing.Interfaces
     /// <summary>
     /// Intermediary builder contract after the <see cref="EventGridPublisherBuilder.ForTopic"/> is called.
     /// </summary>
-    /// <remarks>
-    /// This interface is not explicitly necessary at the moment but could be after there exists another correct way of creating 
-    /// <see cref="EventGridPublisherBuilderResult"/> instances.
-    /// </remarks>
     internal interface IEventGridPublisherBuilderWithAuthenticationKey
     {
         /// <summary>
@@ -21,6 +17,6 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// Finilized builder result that can directly create <see cref="EventGridPublisher"/> instances 
         /// via the <see cref="IBuilder.Build()"/> method or extend the publisher even further.
         /// </returns>
-        IBuilder UsingAuthenticationKey(string authenticationKey);
+        IEventGridPublisherBuilderWithExponentialRetry UsingAuthenticationKey(string authenticationKey);
     }
 }

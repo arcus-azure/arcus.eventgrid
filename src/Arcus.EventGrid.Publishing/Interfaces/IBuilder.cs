@@ -9,6 +9,6 @@
         /// <summary>
         /// Creates a <see cref="EventGridPublisher"/> instance for the specified builder values.
         /// </summary>
-        EventGridPublisher Build();
+        IEventGridPublisher Build();
     }
 }
