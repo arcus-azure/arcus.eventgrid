@@ -7,37 +7,37 @@ namespace Arcus.EventGrid.Contracts.Interfaces
         /// <summary>
         ///     The schema version of the data object. The publisher defines the schema version.
         /// </summary>
-        string DataVersion { get; set; }
+        string DataVersion { get; }
 
         /// <summary>
         ///     The time the event is generated based on the provider's UTC time.
         /// </summary>
-        DateTimeOffset EventTime { get; set; }
+        DateTimeOffset EventTime { get; }
 
         /// <summary>
         ///     One of the registered event types for this event source.
         /// </summary>
-        string EventType { get; set; }
+        string EventType { get; }
 
         /// <summary>
         ///     Unique identifier for the event.
         /// </summary>
-        string Id { get; set; }
+        string Id { get; }
 
         /// <summary>
         ///     The schema version of the event metadata. Event Grid defines the schema of the top-level properties. Event Grid
         ///     provides this value.
         /// </summary>
-        string MetadataVersion { get; set; }
+        string MetadataVersion { get; }
 
         /// <summary>
         ///     Publisher-defined path to the event subject.
         /// </summary>
-        string Subject { get; set; }
+        string Subject { get; }
 
         /// <summary>
-        ///     Full resource path to the event source. This field is not writeable. Event Grid provides this value.
+        ///     Full resource path to the event source. This field is not writable. Event Grid provides this value.
         /// </summary>
-        string Topic { get; set; }
+        string Topic { get; }
     }
 }
