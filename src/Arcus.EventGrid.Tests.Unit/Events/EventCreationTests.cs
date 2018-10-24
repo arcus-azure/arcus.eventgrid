@@ -14,7 +14,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             const string licensePlate = "1-TOM-337";
             const string subject = licensePlate;
 
-            // Act
+            // Act & Assert
             Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, subject, licensePlate));
         }
 
@@ -25,7 +25,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             string eventId = null;
             const string licensePlate = "1-TOM-337";
 
-            // Act
+            // Act & Assert
             Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, licensePlate));
         }
 
@@ -37,7 +37,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             const string licensePlate = "1-TOM-337";
             const string subject = licensePlate;
 
-            // Act
+            // Act & Assert
             Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, subject, licensePlate));
         }
 
@@ -49,7 +49,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             string subject = string.Empty;
             const string licensePlate = "1-TOM-337";
 
-            // Act
+            // Act & Assert
             Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, subject, licensePlate));
         }
 
@@ -61,7 +61,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             string subject = null;
             const string licensePlate = "1-TOM-337";
 
-            // Act
+            // Act & Assert
             Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, subject, licensePlate));
         }
 
@@ -75,6 +75,8 @@ namespace Arcus.EventGrid.Tests.Unit.Events
 
             // Act
             var createdEvent = new NewCarRegistered(eventId, subject, licensePlate);
+
+            // Assert
             Assert.NotNull(createdEvent);
             Assert.Equal(eventId, createdEvent.Id);
             Assert.Equal(subject, createdEvent.Subject);
@@ -92,6 +94,8 @@ namespace Arcus.EventGrid.Tests.Unit.Events
 
             // Act
             var createdEvent = new NewCarRegistered(eventId, licensePlate);
+
+            // Assert
             Assert.NotNull(createdEvent);
             Assert.Equal(eventId, createdEvent.Id);
             Assert.Null(createdEvent.Subject);
