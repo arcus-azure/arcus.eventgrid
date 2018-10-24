@@ -17,6 +17,7 @@ namespace Arcus.EventGrid.Parsers
             where TEvent : IEvent, new()
         {
             Guard.NotNullOrWhitespace(rawJsonBody, nameof(rawJsonBody));
+
             var sessionId = Guid.NewGuid().ToString();
 
             var eventGridMessage = Parse<TEvent>(rawJsonBody, sessionId);
@@ -32,6 +33,9 @@ namespace Arcus.EventGrid.Parsers
         public static EventGridMessage<TEvent> Parse<TEvent>(string rawJsonBody, string sessionId)
             where TEvent : IEvent, new()
         {
+            Guard.NotNullOrWhitespace(rawJsonBody, nameof(rawJsonBody));
+            Guard.NotNullOrWhitespace(sessionId, nameof(sessionId));
+
             var array = JArray.Parse(rawJsonBody);
             var result = new EventGridMessage<TEvent>(sessionId);
 
