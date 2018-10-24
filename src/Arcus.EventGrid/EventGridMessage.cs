@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Arcus.EventGrid.Contracts.Interfaces;
 using GuardNet;
 
@@ -10,11 +11,14 @@ namespace Arcus.EventGrid
         /// Creates event grid message with passed session Id
         /// </summary>
         /// <param name="sessionId">Unique session id for all batched messages</param>
-        public EventGridMessage(string sessionId)
+        /// <param name="events">List of events that are part of this Event Grid message</param>
+        public EventGridMessage(string sessionId, IList<TEvent> events)
         {
             Guard.NotNullOrWhitespace(sessionId, nameof(sessionId));
+            Guard.NotNull(sessionId, nameof(sessionId));
 
             SessionId = sessionId;
+            Events = new ReadOnlyCollection<TEvent>(events);
         }
 
         /// <summary>
@@ -25,6 +29,6 @@ namespace Arcus.EventGrid
         /// <summary>
         ///     List of all events, belonging to the Event Grid message
         /// </summary>
-        public List<TEvent> Events { get; } = new List<TEvent>();
+        public ReadOnlyCollection<TEvent> Events { get; }
     }
 }

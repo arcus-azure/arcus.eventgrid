@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Arcus.EventGrid.Contracts.Interfaces;
 using GuardNet;
 using Newtonsoft.Json;
@@ -37,14 +38,16 @@ namespace Arcus.EventGrid.Parsers
             Guard.NotNullOrWhitespace(sessionId, nameof(sessionId));
 
             var array = JArray.Parse(rawJsonBody);
-            var result = new EventGridMessage<TEvent>(sessionId);
 
+            var deserializedEvents = new List<TEvent>();
             foreach (var eventObject in array.Children<JObject>())
             {
                 var rawEvent = eventObject.ToString();
                 var gridEvent = JsonConvert.DeserializeObject<TEvent>(rawEvent);
-                result.Events.Add(gridEvent);
+                deserializedEvents.Add(gridEvent);
             }
+
+            var result = new EventGridMessage<TEvent>(sessionId, deserializedEvents);
 
             return result;
         }
