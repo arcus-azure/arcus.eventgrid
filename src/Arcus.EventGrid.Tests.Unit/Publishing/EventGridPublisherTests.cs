@@ -24,6 +24,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .UsingAuthenticationKey(authenticationKey)
                     .Build();
 
+            // Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.Publish(@event));
         }
 
@@ -42,6 +43,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .UsingAuthenticationKey(authenticationKey)
                     .Build();
 
+            // Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.PublishMany(events));
         }
 
@@ -60,6 +62,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .UsingAuthenticationKey(authenticationKey)
                     .Build();
 
+            // Assert
             await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishMany(events));
         }
     }
