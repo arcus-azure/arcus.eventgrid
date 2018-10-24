@@ -8,7 +8,7 @@
     <PackageProjectUrl>https://github.com/arcus-azure/arcus.eventgrid</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
     <PackageTags>Azure;Event Grid;Testing</PackageTags>
-    <Description>Provides infrastructure to write automated tests with Azure Event Grid.</Description>
+    <Description>Provides infrastructure to write automated integration tests with Azure Event Grid.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
