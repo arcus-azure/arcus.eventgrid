@@ -96,7 +96,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
                 .Build()
-                .Publish(events);
+                .PublishMany(events);
 
             TracePublishedEvent(firstEventId, events);
             TracePublishedEvent(secondEventId, events);

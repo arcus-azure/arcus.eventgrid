@@ -62,7 +62,7 @@ namespace Arcus.EventGrid.Publishing
         {
             Guard.NotNull(@event, nameof(@event), "No event was specified");
 
-            List<TEvent> eventList = new List<TEvent>
+            IEnumerable<TEvent> eventList = new List<TEvent>
             {
                 @event
             };
@@ -75,7 +75,7 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
         /// <param name="events">Events to publish</param>
-        public async Task Publish<TEvent>(List<TEvent> events)
+        public async Task PublishMany<TEvent>(IEnumerable<TEvent> events)
             where TEvent : class, IEvent, new()
         {
             Guard.NotNull(events, nameof(events), "No events was specified");
@@ -84,7 +84,7 @@ namespace Arcus.EventGrid.Publishing
             await PublishEventToTopic(events);
         }
 
-        private async Task PublishEventToTopic<TEvent>(List<TEvent> eventList) where TEvent : class, IEvent, new()
+        private async Task PublishEventToTopic<TEvent>(IEnumerable<TEvent> eventList) where TEvent : class, IEvent, new()
         {
             // Calling HTTP endpoint
             var response = await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequest(eventList));
@@ -95,7 +95,7 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private Task<HttpResponseMessage> SendAuthorizedHttpPostRequest<TEvent>(List<TEvent> events) where TEvent : class, IEvent, new()
+        private Task<HttpResponseMessage> SendAuthorizedHttpPostRequest<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent, new()
         {
             return TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey)
                 .PostJsonAsync(events);
