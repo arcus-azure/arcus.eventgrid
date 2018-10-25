@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Arcus.EventGrid.IoTHub.Contracts
+namespace Arcus.EventGrid.IoTHub.Contracts.Events.v1.Data
 {
     public class Metadata
     {

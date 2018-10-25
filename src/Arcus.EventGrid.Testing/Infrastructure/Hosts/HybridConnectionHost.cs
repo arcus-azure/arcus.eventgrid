@@ -17,22 +17,14 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         private readonly HybridConnectionListener _hybridConnectionListener;
         private readonly ILogger _logger;
 
-        private HybridConnectionHost(string hostId, HybridConnectionListener hybridConnectionListener, ILogger logger)
+        private HybridConnectionHost(HybridConnectionListener hybridConnectionListener, ILogger logger)
         {
-            Guard.NotNullOrWhitespace(hostId, nameof(hostId));
             Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
             Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
-
-            HostId = hostId;
 
             _logger = logger;
             _hybridConnectionListener = hybridConnectionListener;
         }
-
-        /// <summary>
-        ///     Id of the host
-        /// </summary>
-        public string HostId { get; }
 
         /// <summary>
         ///     Gets the event envelope that includes a requested event (Uses exponential back-off)
@@ -93,11 +85,10 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             hybridConnectionListener.RequestHandler = relayedHttpListenerContext => HandleReceivedRequest(relayedHttpListenerContext, logger);
 
-            var hostId = Guid.NewGuid().ToString();
-            logger.LogInformation($"Host connecting to {hybridConnectionUri} (Host Id: {hostId})");
+            logger.LogInformation($"Host connecting to {hybridConnectionUri}");
             await hybridConnectionListener.OpenAsync();
 
-            return new HybridConnectionHost(hostId, hybridConnectionListener, logger);
+            return new HybridConnectionHost(hybridConnectionListener, logger);
         }
 
         private static void HandleReceivedRequest(RelayedHttpListenerContext context, ILogger logger)

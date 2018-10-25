@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Arcus.EventGrid.Security.Contracts
+namespace Arcus.EventGrid.Security.Contracts.Events.v1.Data
 {
     public class SubscriptionEventData
     {

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Contracts;
+using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Publishing;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts;
 using Arcus.EventGrid.Tests.Core.Events;
@@ -49,62 +48,47 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             _hybridConnectionHost = await HybridConnectionHost.Start(relayNamespace, hybridConnectionName, accessPolicyName, accessPolicyKey, _testLogger);
         }
-        
-        // TODO: remove the raw-duplicate of the Integration Test after the obsolete creation of the 'EventGridPublisher' is removed
+
         [Fact]
-        public async Task Publish_WithFactoryMethod_ValidParameters_Succeeds()
+        public async Task PublishSingleEvent_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
             var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
             var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             const string eventSubject = "integration-test";
-            const string eventType = "integration-test-event";
             const string licensePlate = "1-TOM-337";
             var eventId = Guid.NewGuid().ToString();
-            var events = new List<NewCarRegisteredEvent>
-            {
-                new NewCarRegisteredEvent(licensePlate)
-            };
+            var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
 
             // Act
-#pragma warning disable CS0618 // Member is obsolete
-            await EventGridPublisher
-                .Create(topicEndpoint, endpointKey)
-#pragma warning restore CS0618 // Member is obsolete
-                .Publish(eventSubject, eventType, events, eventId);
+            await EventGridPublisherBuilder
+                .ForTopic(topicEndpoint)
+                .UsingAuthenticationKey(endpointKey)
+                .Build()
+                .Publish(@event);
 
-            TracePublishedEvent(eventId, events);
+            TracePublishedEvent(eventId, @event);
 
             // Assert
             var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);
-            Assert.NotEmpty(receivedEvent);
-
-            EventGridMessage<NewCarRegisteredEvent> deserializedEventGridMessage = EventGridMessage<NewCarRegisteredEvent>.Parse(receivedEvent);
-            Assert.NotNull(deserializedEventGridMessage);
-            Assert.NotEmpty(deserializedEventGridMessage.SessionId);
-            Assert.NotNull(deserializedEventGridMessage.Events);
-            Assert.Single(deserializedEventGridMessage.Events);
-            Event<NewCarRegisteredEvent> deserializedEvent = deserializedEventGridMessage.Events.First();
-            Assert.Equal(deserializedEvent.Id, eventId);
-            Assert.Equal(deserializedEvent.Subject, eventSubject);
-            Assert.Equal(deserializedEvent.EventType, eventType);
-            Assert.NotNull(deserializedEvent.Data);
-            Assert.Equal(deserializedEvent.Data.LicensePlate, licensePlate);
+            AssertReceivedEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
         [Fact]
-        public async Task Publish_WithBuilder_ValidParameters_Succeeds()
+        public async Task PublishMultipleEvents_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
             var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
             var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             const string eventSubject = "integration-test";
-            const string eventType = "integration-test-event";
             const string licensePlate = "1-TOM-337";
-            var eventId = Guid.NewGuid().ToString();
-            var events = new List<NewCarRegisteredEvent>
+            var firstEventId = Guid.NewGuid().ToString();
+            var firstEvent = new NewCarRegistered(firstEventId, eventSubject, licensePlate);
+            var secondEventId = Guid.NewGuid().ToString();
+            var secondEvent = new NewCarRegistered(secondEventId, eventSubject, licensePlate);
+            var events = new List<NewCarRegistered>
             {
-                new NewCarRegisteredEvent(licensePlate)
+                firstEvent, secondEvent
             };
 
             // Act
@@ -112,70 +96,37 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
                 .Build()
-                .Publish(eventSubject, eventType, events, eventId);
+                .PublishMany(events);
 
-            TracePublishedEvent(eventId, events);
+            TracePublishedEvent(firstEventId, events);
+            TracePublishedEvent(secondEventId, events);
 
             // Assert
-            var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);
-            Assert.NotEmpty(receivedEvent);
-
-            EventGridMessage<NewCarRegisteredEvent> deserializedEventGridMessage = EventGridMessage<NewCarRegisteredEvent>.Parse(receivedEvent);
-            Assert.NotNull(deserializedEventGridMessage);
-            Assert.NotEmpty(deserializedEventGridMessage.SessionId);
-            Assert.NotNull(deserializedEventGridMessage.Events);
-            Assert.Single(deserializedEventGridMessage.Events);
-            Event<NewCarRegisteredEvent> deserializedEvent = deserializedEventGridMessage.Events.First();
-            Assert.Equal(deserializedEvent.Id, eventId);
-            Assert.Equal(deserializedEvent.Subject, eventSubject);
-            Assert.Equal(deserializedEvent.EventType, eventType);
-            Assert.NotNull(deserializedEvent.Data);
-            Assert.Equal(deserializedEvent.Data.LicensePlate, licensePlate);
+            var firstReceivedEvent = _hybridConnectionHost.GetReceivedEvent(firstEventId);
+            AssertReceivedEvent(firstEventId, firstEvent.EventType, eventSubject, licensePlate, firstReceivedEvent);
+            var secondReceivedEvent = _hybridConnectionHost.GetReceivedEvent(secondEventId);
+            AssertReceivedEvent(secondEventId, secondEvent.EventType, eventSubject, licensePlate, secondReceivedEvent);
         }
 
-        [Fact]
-        public async Task Publish_WithBuilderWithResiliency_WithValidParameters_Succeeds()
+        private static void AssertReceivedEvent(string eventId, string eventType, string eventSubject, string licensePlate, string receivedEvent)
         {
-            // Arrange
-            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
-            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
-            const string eventSubject = "integration-test";
-            const string eventType = "integration-test-event";
-            const string licensePlate = "1-TOM-337";
-            var eventId = Guid.NewGuid().ToString();
-            var events = new List<NewCarRegisteredEvent>
-            {
-                new NewCarRegisteredEvent(licensePlate)
-            };
+            Assert.NotEqual(string.Empty, receivedEvent);
 
-            // Act
-            await EventGridPublisherBuilder
-                .ForTopic(topicEndpoint)
-                .UsingAuthenticationKey(endpointKey)
-                .WithExponentialRetry<WebException>(3)
-                .Build()
-                .Publish(eventSubject, eventType, events, eventId);
-
-            TracePublishedEvent(eventId, events);
-
-            // Assert
-            var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);
-            Assert.NotEmpty(receivedEvent);
-
-            EventGridMessage<NewCarRegisteredEvent> deserializedEventGridMessage = EventGridMessage<NewCarRegisteredEvent>.Parse(receivedEvent);
+            EventGridMessage<NewCarRegistered> deserializedEventGridMessage = EventGridParser.Parse<NewCarRegistered>(receivedEvent);
             Assert.NotNull(deserializedEventGridMessage);
             Assert.NotEmpty(deserializedEventGridMessage.SessionId);
             Assert.NotNull(deserializedEventGridMessage.Events);
             Assert.Single(deserializedEventGridMessage.Events);
-            Event<NewCarRegisteredEvent> deserializedEvent = deserializedEventGridMessage.Events.First();
-            Assert.Equal(deserializedEvent.Id, eventId);
-            Assert.Equal(deserializedEvent.Subject, eventSubject);
-            Assert.Equal(deserializedEvent.EventType, eventType);
+            var deserializedEvent = deserializedEventGridMessage.Events.FirstOrDefault();
+            Assert.NotNull(deserializedEvent);
+            Assert.Equal(eventId, deserializedEvent.Id);
+            Assert.Equal(eventSubject, deserializedEvent.Subject);
+            Assert.Equal(eventType, deserializedEvent.EventType);
             Assert.NotNull(deserializedEvent.Data);
-            Assert.Equal(deserializedEvent.Data.LicensePlate, licensePlate);
+            Assert.Equal(licensePlate, deserializedEvent.Data.LicensePlate);
         }
 
-        private void TracePublishedEvent(string eventId, List<NewCarRegisteredEvent> events)
+        private void TracePublishedEvent(string eventId, object events)
         {
             _testLogger.LogInformation($"Event '{eventId}' published - {JsonConvert.SerializeObject(events)}");
         }

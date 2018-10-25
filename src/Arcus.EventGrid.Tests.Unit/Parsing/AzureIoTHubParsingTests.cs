@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
 {
-    public class EventGridIoTHubParsingTests
+    public class AzureIoTHubParsingTests
     {
         [Fact]
-        public void Parse_ValidDeviceCreatedEvent_ShouldSucceed()
+        public void Parse_ValidDeviceCreatedEvent_ShouldSucceed2()
         {
             // Arrange
             string rawEvent = EventSamples.IoTDeviceCreateEvent;

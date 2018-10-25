@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Xunit;
+using System;
 using Arcus.EventGrid.Publishing;
 using Arcus.EventGrid.Publishing.Interfaces;
-using Xunit;
 using static Arcus.EventGrid.Tests.Unit.Publishing.Fixtures.PublishingFixures;
 
 namespace Arcus.EventGrid.Tests.Unit.Publishing
@@ -15,8 +15,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         [InlineData("  ")]
         public void ForTopic_NullOrEmptyEndpointTopic_ShouldFailWithArgumentException(string topic)
         {
-            Assert.Throws<ArgumentException>(
-                () => EventGridPublisherBuilder.ForTopic(topic));
+            Assert.Throws<ArgumentException>(() => EventGridPublisherBuilder.ForTopic(topic));
         }
 
         [Theory]
@@ -36,11 +35,10 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         public void ForTopicUsingAuthentication_NonNullOrEmptyEndpointTopicAndAuthenticationKey_ShouldCreatePublisher()
         {
             // Act
-            IEventGridPublisher publisher =
-                EventGridPublisherBuilder
-                    .ForTopic(SampleTopicEndpoint)
-                    .UsingAuthenticationKey(SampleAuthenticationKey)
-                    .Build();
+            var publisher = EventGridPublisherBuilder
+                                .ForTopic(SampleTopicEndpoint)
+                                .UsingAuthenticationKey(SampleAuthenticationKey)
+                                .Build();
 
             // Assert
             Assert.NotNull(publisher);
@@ -52,13 +50,12 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         [InlineData(1)]
         [InlineData(2)]
         [InlineData(3)]
-        public void WithExpontntialRetry_PositiveRetryCount_ShouldCreatePublisher(int retryCount)
+        public void WithExponentialRetry_PositiveRetryCount_ShouldCreatePublisher(int retryCount)
         {
             // Act
-            IEventGridPublisher publisher =
-                CreateEventGridBuilder()
-                    .WithExponentialRetry<Exception>(retryCount)
-                    .Build();
+            var publisher = CreateEventGridBuilder()
+                            .WithExponentialRetry<Exception>(retryCount)
+                            .Build();
 
             // Assert
             Assert.NotNull(publisher);
@@ -73,22 +70,20 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             const int negativeInt = -100;
 
             // Assert
-            Assert.Throws<ArgumentOutOfRangeException>(
-                () => CreateEventGridBuilder()
-                      .WithExponentialRetry<Exception>(negativeInt));
+            Assert.Throws<ArgumentOutOfRangeException>(() => CreateEventGridBuilder()
+                                                                .WithExponentialRetry<Exception>(negativeInt));
         }
 
         [Fact]
         public void WithCircuitBroker_PositiveCircuitBrokenDuration_ShouldCreatePublisher()
         {
             // Arrange
-            TimeSpan positiveInterval = TimeSpan.FromSeconds(5);
+            var positiveInterval = TimeSpan.FromSeconds(5);
 
             // Act
-            IEventGridPublisher publisher =
-                CreateEventGridBuilder()
-                    .WithCircuitBreaker<Exception>(10, positiveInterval)
-                    .Build();
+            var publisher =CreateEventGridBuilder()
+                                .WithCircuitBreaker<Exception>(10, positiveInterval)
+                                .Build();
 
             // Assert
             Assert.NotNull(publisher);
@@ -100,7 +95,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         public void WithCircuitBroker_NegativeCircuitBrokenDuration_ShouldFailWithArgumentOutOfRangeException()
         {
             // Arrange
-            TimeSpan negativeInterval = TimeSpan.FromSeconds(-10);
+            var negativeInterval = TimeSpan.FromSeconds(-10);
 
             // Act / Assert
             Assert.Throws<ArgumentOutOfRangeException>(
@@ -114,7 +109,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         public void WithExponentialRetryWithCircuitBroker_NegativeCircuitBrokenDuration_ShouldFailWithArgumentOutOfRangeException()
         {
             // Arrange
-            TimeSpan negativeInterval = TimeSpan.FromDays(-1);
+            var negativeInterval = TimeSpan.FromDays(-1);
 
             // Assert
             Assert.Throws<ArgumentOutOfRangeException>(
@@ -160,10 +155,10 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         {
             // Arrange
             const int positiveInt = 10;
-            TimeSpan positiveInterval = TimeSpan.FromSeconds(5);
+            var positiveInterval = TimeSpan.FromSeconds(5);
 
             // Act
-            IEventGridPublisher publisher =
+            var publisher =
                 CreateEventGridBuilder()
                     .WithExponentialRetry<Exception>(6)
                     .WithCircuitBreaker<Exception>(positiveInt, positiveInterval)

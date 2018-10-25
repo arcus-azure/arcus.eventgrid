@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
 {
-    public class EventGridBlobParsingTests
+    public class AzureStorageParsingTests
     {
         [Fact]
         public void Parse_ValidBlobCreatedEvent_ShouldSucceed()

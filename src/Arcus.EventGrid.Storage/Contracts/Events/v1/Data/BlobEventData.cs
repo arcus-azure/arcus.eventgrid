@@ -1,4 +1,4 @@
-﻿namespace Arcus.EventGrid.Storage.Contracts
+﻿namespace Arcus.EventGrid.Storage.Contracts.Events.v1.Data
 {
     /// <summary>
     ///     Event data contract for Azure Blob Storage events

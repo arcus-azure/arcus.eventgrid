@@ -1,4 +1,4 @@
-﻿namespace Arcus.EventGrid.Azure.Contracts
+﻿namespace Arcus.EventGrid.Azure.Contracts.Events.Data
 {
     /// <summary>
     ///     Event data contract for Azure resource events
