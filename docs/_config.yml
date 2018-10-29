@@ -1,4 +1,7 @@
+repository: arcus-azure/arcus.eventgrid
 theme: jekyll-theme-slate
 logo: https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png
 title: Arcus Event Grid
 description: Azure Event Grid development in a breeze
+plugins:
+  - jemoji
