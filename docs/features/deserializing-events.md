@@ -1,7 +1,6 @@
 ---
 title: "Deserializing Events"
 layout: default
-permalink: /features/publishing-events
 ---
 
 ## Deserializing Events
