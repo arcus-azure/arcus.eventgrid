@@ -31,4 +31,4 @@ await eventGridPublisher.Publish(@event);
 
 Alternatively you can publish a list of events by using `await eventGridPublisher.PublishMany(events);`.
 
-[&larr; back](/)
+[&larr; back](/arcus.eventgrid)

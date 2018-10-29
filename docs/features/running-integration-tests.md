@@ -70,4 +70,4 @@ public class EventPublishingTests : IAsyncLifetime
 }
 ```
 
-[&larr; back](/)
+[&larr; back](/arcus.eventgrid)

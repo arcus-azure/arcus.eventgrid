@@ -14,4 +14,4 @@ Currently we provide support for the following Azure events:
    - `Microsoft.Devices.DeviceCreated`
    - `Microsoft.Devices.DeviceDeleted`
 
-[&larr; back](/)
+[&larr; back](/arcus.eventgrid)
