@@ -12,7 +12,7 @@ PM > Install-Package Arcus.EventGrid.All
 ```
 
 # Documentation
-All documentation can be found on [arcus-azure.github.io/arcus.eventgrid](https://arcus-azure.github.io/arcus.eventgrid/).
+All documentation can be found on [here](https://arcus-azure.github.io/arcus.eventgrid/).
 
 # Testing
 Currently we provide both unit tests and integration tests.
