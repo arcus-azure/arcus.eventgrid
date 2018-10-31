@@ -12,6 +12,14 @@ Easy to start:
 > Install-Package Arcus.EventGrid.Testing
 ```
 
+<br />
+
+--------------
+
+:loudspeaker: **Caveat** - *This approach does not allow you to run multiple test runs in parallel and is being handled as part of [#29](https://github.com/arcus-azure/arcus.eventgrid/issues/29)*
+
+--------------
+
 ### Receiving events in your tests
 By using the `HybridConnectionHost` you can subscribe to Azure Event Grid events on a custom topic and consume them in your tests. This is achieved by setting up a [Azure Relay Hybrid Connection](https://docs.microsoft.com/en-us/azure/service-bus-relay/relay-what-is-it#hybrid-connections) which is subscribing for events and storing them internally in the host.
 
