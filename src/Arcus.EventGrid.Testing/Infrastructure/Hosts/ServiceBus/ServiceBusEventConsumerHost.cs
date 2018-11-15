@@ -18,7 +18,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         private readonly ManagementClient _managementClient;
 
         private static bool isHostShuttingDown;
-
+        public string Id { get; } = Guid.NewGuid().ToString();
         private ServiceBusEventConsumerHost(string topicPath, string subscriptionName, SubscriptionClient subscriptionClient, ManagementClient managementClient, ILogger logger)
             : base(logger)
         {
@@ -91,13 +91,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
 
         private static void StartMessagePump(SubscriptionClient subscriptionClient, ILogger logger)
         {
-            var messageHandlerOptions = new MessageHandlerOptions(exceptionReceivedEventArgs => HandleException(exceptionReceivedEventArgs, logger))
+            var messageHandlerOptions = new MessageHandlerOptions(async exceptionReceivedEventArgs => await HandleException(exceptionReceivedEventArgs, logger))
             {
                 AutoComplete = false,
                 MaxConcurrentCalls = 10
             };
 
-            subscriptionClient.RegisterMessageHandler((receivedMessage, cancellationToken) => HandleNewMessage(receivedMessage, subscriptionClient, cancellationToken, logger), messageHandlerOptions);
+            subscriptionClient.RegisterMessageHandler(async (receivedMessage, cancellationToken) => await HandleNewMessage(receivedMessage, subscriptionClient, cancellationToken, logger), messageHandlerOptions);
         }
 
         private static async Task HandleNewMessage(Message receivedMessage, SubscriptionClient subscriptionClient, CancellationToken cancellationToken, ILogger logger)
