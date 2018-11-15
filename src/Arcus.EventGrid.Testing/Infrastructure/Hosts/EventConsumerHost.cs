@@ -8,6 +8,9 @@ using Polly;
 
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
+    /// <summary>
+    ///     Foundation for all event consumer hosts that handle Azure Event Grid events to be consumed in integration tests
+    /// </summary>
     public class EventConsumerHost
     {
         private static readonly Dictionary<string, string> _receivedEvents = new Dictionary<string, string>();
