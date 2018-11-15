@@ -17,8 +17,6 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         private readonly SubscriptionClient _subscriptionClient;
         private readonly ManagementClient _managementClient;
         private readonly bool _deleteSubscriptionOnStop;
-
-        private static bool isHostShuttingDown;
         public string Id { get; } = Guid.NewGuid().ToString();
 
         private ServiceBusEventConsumerHost(ServiceBusEventConsumerHostOptions consumerHostOptions, string subscriptionName, SubscriptionClient subscriptionClient, ManagementClient managementClient, ILogger logger)
@@ -80,7 +78,6 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         public override async Task Stop()
         {
             _logger.LogInformation("Stopping host");
-            isHostShuttingDown = true;
 
             if (_deleteSubscriptionOnStop)
             {
@@ -106,7 +103,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
 
         private static async Task HandleNewMessage(Message receivedMessage, SubscriptionClient subscriptionClient, CancellationToken cancellationToken, ILogger logger)
         {
-            if (receivedMessage == null || isHostShuttingDown)
+            if (receivedMessage == null)
             {
                 return;
             }
