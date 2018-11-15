@@ -52,25 +52,24 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         ///     messages
         /// </param>
         /// <param name="logger">Logger to use for writing event information during the hybrid connection</param>
-        public static async Task<ServiceBusEventConsumerHost> Start(string topicPath, string serviceBusConnectionString, ILogger logger)
+        public static async Task<ServiceBusEventConsumerHost> Start(ServiceBusEventConsumerHostOptions consumerHostOptions, ILogger logger)
         {
-            Guard.NotNullOrWhitespace(topicPath, nameof(topicPath));
-            Guard.NotNullOrWhitespace(serviceBusConnectionString, nameof(serviceBusConnectionString));
+            Guard.NotNull(consumerHostOptions, nameof(consumerHostOptions));
             Guard.NotNull(logger, nameof(logger));
 
             logger.LogInformation("Starting Service Bus event consumer host");
 
-            var managementClient = new ManagementClient(serviceBusConnectionString);
+            var managementClient = new ManagementClient(consumerHostOptions.ConnectionString);
 
             var subscriptionName = $"Test-{Guid.NewGuid().ToString()}";
-            await CreateSubscriptionAsync(topicPath, managementClient, subscriptionName).ConfigureAwait(continueOnCapturedContext: false);
-            logger.LogInformation("Created subscription '{subscription}' on topic '{topic}'", subscriptionName, topicPath);
+            await CreateSubscriptionAsync(consumerHostOptions.TopicPath, managementClient, subscriptionName).ConfigureAwait(continueOnCapturedContext: false);
+            logger.LogInformation("Created subscription '{subscription}' on topic '{topic}'", subscriptionName, consumerHostOptions.TopicPath);
 
-            var subscriptionClient = new SubscriptionClient(serviceBusConnectionString, topicPath, subscriptionName);
+            var subscriptionClient = new SubscriptionClient(consumerHostOptions.ConnectionString, consumerHostOptions.TopicPath, subscriptionName);
             StartMessagePump(subscriptionClient, logger);
-            logger.LogInformation("Message pump started on '{SubscriptionName}' (topic '{TopicPath}' for endpoint '{ServiceBusEndpoint}')", subscriptionName, topicPath, subscriptionClient.ServiceBusConnection?.Endpoint?.AbsoluteUri);
+            logger.LogInformation("Message pump started on '{SubscriptionName}' (topic '{TopicPath}' for endpoint '{ServiceBusEndpoint}')", subscriptionName, consumerHostOptions.TopicPath, subscriptionClient.ServiceBusConnection?.Endpoint?.AbsoluteUri);
 
-            return new ServiceBusEventConsumerHost(topicPath, subscriptionName, subscriptionClient, managementClient, logger);
+            return new ServiceBusEventConsumerHost(consumerHostOptions.TopicPath, subscriptionName, subscriptionClient, managementClient, logger);
         }
 
         /// <summary>

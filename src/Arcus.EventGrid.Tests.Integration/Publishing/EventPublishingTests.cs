@@ -44,7 +44,8 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var connectionString = Configuration.GetValue<string>("Arcus:ServiceBus:ConnectionString");
             var topicName = Configuration.GetValue<string>("Arcus:ServiceBus:TopicName");
 
-            _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.Start(topicName, connectionString, _testLogger);
+            var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(topicName, connectionString);
+            _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.Start(serviceBusEventConsumerHostOptions, _testLogger);
         }
 
         [Fact]
