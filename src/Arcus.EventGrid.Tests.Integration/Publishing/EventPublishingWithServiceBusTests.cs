@@ -20,7 +20,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
     {
         private readonly XunitTestLogger _testLogger;
 
-        private EventConsumerHost _eventConsumerHost;
+        private ServiceBusEventConsumerHost _serviceBusEventConsumerHost;
 
         public EventPublishingWithServiceBusTests(ITestOutputHelper testOutput)
         {
@@ -36,7 +36,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
         public async Task DisposeAsync()
         {
-            await _eventConsumerHost.Stop();
+            await _serviceBusEventConsumerHost.Stop();
         }
 
         public async Task InitializeAsync()
@@ -51,7 +51,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             try
             {
-                _eventConsumerHost = await EventConsumerHost.Start(topicName, connectionString, _testLogger);
+                _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.Start(topicName, connectionString, _testLogger);
             }
             catch (Exception ex)
             {
@@ -78,7 +78,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .Publish(@event);
 
             // Assert
-            var receivedEvent = _eventConsumerHost.GetReceivedEvent(eventId);
+            var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
             AssertReceivedEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
