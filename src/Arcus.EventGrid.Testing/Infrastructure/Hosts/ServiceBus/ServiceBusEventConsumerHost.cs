@@ -61,11 +61,11 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             logger.LogInformation("Starting Service Bus event consumer host");
 
             var managementClient = new ManagementClient(serviceBusConnectionString);
-            
+
             var subscriptionName = $"Test-{Guid.NewGuid().ToString()}";
-            await CreateSubscriptionAsync(topicPath, managementClient, subscriptionName).ConfigureAwait(false);
+            await CreateSubscriptionAsync(topicPath, managementClient, subscriptionName).ConfigureAwait(continueOnCapturedContext: false);
             logger.LogInformation("Created subscription '{subscription}' on topic '{topic}'", subscriptionName, topicPath);
-            
+
             var subscriptionClient = new SubscriptionClient(serviceBusConnectionString, topicPath, subscriptionName);
             StartMessagePump(subscriptionClient, logger);
             logger.LogInformation("Message pump started on '{SubscriptionName}' (topic '{TopicPath}' for endpoint '{ServiceBusEndpoint}')", subscriptionName, topicPath, subscriptionClient.ServiceBusConnection?.Endpoint?.AbsoluteUri);
@@ -81,10 +81,10 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             _logger.LogInformation("Stopping host");
             isHostShuttingDown = true;
 
-            await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName);
+            await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName).ConfigureAwait(continueOnCapturedContext: false);
             _logger.LogInformation("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
 
-            await _subscriptionClient.CloseAsync();
+            await _subscriptionClient.CloseAsync().ConfigureAwait(continueOnCapturedContext: false);
 
             await base.Stop();
         }
@@ -113,7 +113,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             {
                 EventsReceived(rawReceivedEvents);
 
-                await subscriptionClient.CompleteAsync(receivedMessage.SystemProperties.LockToken);
+                await subscriptionClient.CompleteAsync(receivedMessage.SystemProperties.LockToken).ConfigureAwait(continueOnCapturedContext: false);
             }
             catch (Exception ex)
             {
@@ -138,7 +138,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
 
             var ruleDescription = new RuleDescription("Accept All", new TrueFilter());
 
-            await managementClient.CreateSubscriptionAsync(subscriptionDescription, ruleDescription);
+            await managementClient.CreateSubscriptionAsync(subscriptionDescription, ruleDescription).ConfigureAwait(continueOnCapturedContext: false);
         }
     }
 }
