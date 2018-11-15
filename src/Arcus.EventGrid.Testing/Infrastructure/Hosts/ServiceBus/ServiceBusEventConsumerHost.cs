@@ -7,7 +7,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Extensions.Logging;
 
-namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
+namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
 {
     /// <summary>
     ///     Event consumer host for receiving Azure Event Grid events via Azure Logic Apps & Service Bus Topics
@@ -76,7 +76,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <summary>
         ///     Stop receiving traffic
         /// </summary>
-        public override async Task StopAsync()
+        public override async Task Stop()
         {
             _logger.LogInformation("Stopping host");
             isHostShuttingDown = true;
@@ -86,7 +86,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             await _subscriptionClient.CloseAsync();
 
-            await base.StopAsync();
+            await base.Stop();
         }
 
         private static void StartMessagePump(SubscriptionClient subscriptionClient, ILogger logger)

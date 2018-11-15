@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Publishing;
-using Arcus.EventGrid.Testing.Infrastructure.Hosts;
+using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
 using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Integration.Logging;
 using Microsoft.Extensions.Configuration;
@@ -36,7 +36,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
         public async Task DisposeAsync()
         {
-            await _serviceBusEventConsumerHost.StopAsync();
+            await _serviceBusEventConsumerHost.Stop();
         }
 
         public async Task InitializeAsync()

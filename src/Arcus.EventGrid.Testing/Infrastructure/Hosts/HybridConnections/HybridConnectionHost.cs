@@ -6,6 +6,7 @@ using GuardNet;
 using Microsoft.Azure.Relay;
 using Microsoft.Extensions.Logging;
 
+// ReSharper disable once CheckNamespace for backwards compatibility reasons
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
     /// <summary>
@@ -72,20 +73,11 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <summary>
         ///     Stop receiving traffic
         /// </summary>
-        public async Task Stop()
-        {
-            // Method is added for backwards compatibility reasons
-            await StopAsync();
-        }
-
-        /// <summary>
-        ///     Stop receiving traffic
-        /// </summary>
-        public override async Task StopAsync()
+        public override async Task Stop()
         {
             await _hybridConnectionListener.CloseAsync();
 
-            await base.StopAsync();
+            await base.Stop();
         }
 
         private static void HandleReceivedRequest(RelayedHttpListenerContext context, ILogger logger)
