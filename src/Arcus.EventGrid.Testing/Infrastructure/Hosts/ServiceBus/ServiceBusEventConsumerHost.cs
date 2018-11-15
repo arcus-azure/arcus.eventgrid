@@ -63,7 +63,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             var managementClient = new ManagementClient(serviceBusConnectionString);
             
             var subscriptionName = $"Test-{Guid.NewGuid().ToString()}";
-            await CreateSubscriptionAsync(topicPath, managementClient, subscriptionName);
+            await CreateSubscriptionAsync(topicPath, managementClient, subscriptionName).ConfigureAwait(false);
             logger.LogInformation("Created subscription '{subscription}' on topic '{topic}'", subscriptionName, topicPath);
             
             var subscriptionClient = new SubscriptionClient(serviceBusConnectionString, topicPath, subscriptionName);
