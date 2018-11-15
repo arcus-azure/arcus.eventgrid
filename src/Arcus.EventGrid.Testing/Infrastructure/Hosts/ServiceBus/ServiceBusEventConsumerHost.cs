@@ -16,19 +16,23 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
     {
         private readonly SubscriptionClient _subscriptionClient;
         private readonly ManagementClient _managementClient;
+        private readonly bool _deleteSubscriptionOnStop;
 
         private static bool isHostShuttingDown;
         public string Id { get; } = Guid.NewGuid().ToString();
-        private ServiceBusEventConsumerHost(string topicPath, string subscriptionName, SubscriptionClient subscriptionClient, ManagementClient managementClient, ILogger logger)
+
+        private ServiceBusEventConsumerHost(ServiceBusEventConsumerHostOptions consumerHostOptions, string subscriptionName, SubscriptionClient subscriptionClient, ManagementClient managementClient, ILogger logger)
             : base(logger)
         {
-            Guard.NotNullOrWhitespace(topicPath, nameof(topicPath));
             Guard.NotNullOrWhitespace(subscriptionName, nameof(subscriptionName));
+            Guard.NotNull(consumerHostOptions, nameof(consumerHostOptions));
             Guard.NotNull(subscriptionClient, nameof(subscriptionClient));
             Guard.NotNull(managementClient, nameof(managementClient));
 
-            TopicPath = topicPath;
+            TopicPath = consumerHostOptions.TopicPath;
             SubscriptionName = subscriptionName;
+
+            _deleteSubscriptionOnStop = consumerHostOptions.DeleteSubscriptionOnStop;
             _subscriptionClient = subscriptionClient;
             _managementClient = managementClient;
         }
@@ -46,10 +50,8 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         /// <summary>
         ///     Start receiving traffic
         /// </summary>
-        /// <param name="topicPath">Path of the topic relative to the namespace base address</param>
-        /// <param name="serviceBusConnectionString">
-        ///     Connection string of the Azure Service Bus namespace to use to consume
-        ///     messages
+        /// <param name="consumerHostOptions">
+        ///     Configuration options that indicate what Service Bus entities to use and how they should behave
         /// </param>
         /// <param name="logger">Logger to use for writing event information during the hybrid connection</param>
         public static async Task<ServiceBusEventConsumerHost> Start(ServiceBusEventConsumerHostOptions consumerHostOptions, ILogger logger)
@@ -69,7 +71,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             StartMessagePump(subscriptionClient, logger);
             logger.LogInformation("Message pump started on '{SubscriptionName}' (topic '{TopicPath}' for endpoint '{ServiceBusEndpoint}')", subscriptionName, consumerHostOptions.TopicPath, subscriptionClient.ServiceBusConnection?.Endpoint?.AbsoluteUri);
 
-            return new ServiceBusEventConsumerHost(consumerHostOptions.TopicPath, subscriptionName, subscriptionClient, managementClient, logger);
+            return new ServiceBusEventConsumerHost(consumerHostOptions, subscriptionName, subscriptionClient, managementClient, logger);
         }
 
         /// <summary>
@@ -80,8 +82,11 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             _logger.LogInformation("Stopping host");
             isHostShuttingDown = true;
 
-            await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName).ConfigureAwait(continueOnCapturedContext: false);
-            _logger.LogInformation("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
+            if (_deleteSubscriptionOnStop == true)
+            {
+                await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName).ConfigureAwait(continueOnCapturedContext: false);
+                _logger.LogInformation("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
+            }
 
             await _subscriptionClient.CloseAsync().ConfigureAwait(continueOnCapturedContext: false);
 
