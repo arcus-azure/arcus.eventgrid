@@ -20,7 +20,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         private HybridConnectionHost(HybridConnectionListener hybridConnectionListener, ILogger logger)
         {
             Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
-            Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
+            Guard.NotNull(logger, nameof(logger));
 
             _logger = logger;
             _hybridConnectionListener = hybridConnectionListener;
@@ -74,6 +74,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotNullOrWhitespace(hybridConnectionName, nameof(hybridConnectionName));
             Guard.NotNullOrWhitespace(accessPolicyName, nameof(accessPolicyName));
             Guard.NotNullOrWhitespace(accessPolicyKey, nameof(accessPolicyKey));
+            Guard.NotNull(logger, nameof(logger));
 
             var tokenProvider = TokenProvider.CreateSharedAccessSignatureTokenProvider(accessPolicyName, accessPolicyKey);
             var hybridConnectionUri = string.Format(format: "sb://{0}/{1}", arg0: relayNamespaceName, arg1: hybridConnectionName);
