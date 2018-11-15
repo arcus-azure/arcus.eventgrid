@@ -58,13 +58,17 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotNullOrWhitespace(serviceBusConnectionString, nameof(serviceBusConnectionString));
             Guard.NotNull(logger, nameof(logger));
 
-            var managementClient = new ManagementClient(serviceBusConnectionString);
+            logger.LogInformation("Starting Service Bus event consumer host");
 
+            var managementClient = new ManagementClient(serviceBusConnectionString);
+            
             var subscriptionName = $"Test-{Guid.NewGuid().ToString()}";
             await CreateSubscriptionAsync(topicPath, managementClient, subscriptionName);
-
+            logger.LogInformation($"Created subscription '{subscriptionName}' on topic '{topicPath}'");
+            
             var subscriptionClient = new SubscriptionClient(serviceBusConnectionString, topicPath, subscriptionName);
             StartMessagePump(subscriptionClient, logger);
+            logger.LogInformation($"Message pump started on '{subscriptionName}' (topic '{topicPath}' for endpoint '{subscriptionClient.ServiceBusConnection?.Endpoint?.AbsoluteUri}')");
 
             return new ServiceBusEventConsumerHost(topicPath, subscriptionName, subscriptionClient, managementClient, logger);
         }

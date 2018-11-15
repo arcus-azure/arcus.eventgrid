@@ -44,7 +44,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// </summary>
         /// <param name="eventId">Event id for requested event</param>
         /// <param name="retryCount">Amount of retries while waiting for the event to come in</param>
-        public string GetReceivedEvent(string eventId, int retryCount = 10)
+        public string GetReceivedEvent(string eventId, int retryCount = 5)
         {
             var retryPolicy = Policy.HandleResult<string>(string.IsNullOrWhiteSpace)
                 .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));

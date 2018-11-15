@@ -11,6 +11,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
     /// <summary>
     ///     Event consumer host for receiving Azure Event Grid events via Azure Relay with Hybrid Connections
     /// </summary>
+    [Obsolete("Use ServiceBusEventConsumerHost instead. Azure Relay with Hybrid Connections uses a round-robin approach and does not work nicely when running integration tests on multiple machines.")]
     public class HybridConnectionHost : EventConsumerHost
     {
         private readonly HybridConnectionListener _hybridConnectionListener;
