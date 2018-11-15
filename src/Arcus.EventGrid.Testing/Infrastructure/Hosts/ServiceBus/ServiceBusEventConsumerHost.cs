@@ -115,9 +115,9 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
 
                 await subscriptionClient.CompleteAsync(receivedMessage.SystemProperties.LockToken);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                logger.LogError($"Failed to persist raw events - {rawReceivedEvents}");
+                logger.LogError($"Failed to persist raw events with exception {ex.Message}. Payload: {rawReceivedEvents}");
             }
         }
 
