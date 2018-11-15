@@ -68,7 +68,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             
             var subscriptionClient = new SubscriptionClient(serviceBusConnectionString, topicPath, subscriptionName);
             StartMessagePump(subscriptionClient, logger);
-            logger.LogInformation($"Message pump started on '{subscriptionName}' (topic '{topicPath}' for endpoint '{subscriptionClient.ServiceBusConnection?.Endpoint?.AbsoluteUri}')");
+            logger.LogInformation("Message pump started on '{SubscriptionName}' (topic '{TopicPath}' for endpoint '{ServiceBusEndpoint}')", subscriptionName, topicPath, subscriptionClient.ServiceBusConnection?.Endpoint?.AbsoluteUri);
 
             return new ServiceBusEventConsumerHost(topicPath, subscriptionName, subscriptionClient, managementClient, logger);
         }
@@ -82,7 +82,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             isHostShuttingDown = true;
 
             await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName);
-            _logger.LogInformation($"Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'");
+            _logger.LogInformation("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
 
             await _subscriptionClient.CloseAsync();
 
@@ -117,7 +117,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             }
             catch (Exception ex)
             {
-                logger.LogError($"Failed to persist raw events with exception {ex.Message}. Payload: {rawReceivedEvents}");
+                logger.LogError("Failed to persist raw events with exception '{exceptionMessage}'. Payload: {rawEventsPayload}", ex.Message, rawReceivedEvents);
             }
         }
 

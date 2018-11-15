@@ -30,6 +30,8 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <param name="rawReceivedEvents">Raw payload containing all events</param>
         protected static void EventsReceived(string rawReceivedEvents)
         {
+            Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents));
+
             var parsedEvents = JArray.Parse(rawReceivedEvents);
             foreach (var parsedEvent in parsedEvents)
             {
@@ -46,12 +48,14 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <param name="retryCount">Amount of retries while waiting for the event to come in</param>
         public string GetReceivedEvent(string eventId, int retryCount = 5)
         {
+            Guard.NotNullOrWhitespace(eventId, nameof(eventId));
+
             var retryPolicy = Policy.HandleResult<string>(string.IsNullOrWhiteSpace)
                 .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
 
             var matchingEvent = retryPolicy.Execute(() =>
             {
-                _logger.LogInformation($"Received events are : {string.Join(", ", _receivedEvents.Keys)}");
+                _logger.LogInformation("Received events are : {receivedEvents}", string.Join(", ", _receivedEvents.Keys));
 
                 _receivedEvents.TryGetValue(eventId, out var rawEvent);
                 return rawEvent;

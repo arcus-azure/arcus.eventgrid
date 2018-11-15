@@ -86,7 +86,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             {
                 var rawEvents = requestStreamReader.ReadToEnd();
 
-                logger.LogInformation($"New request was received - {rawEvents}");
+                logger.LogInformation("New request was received - {rawEvents}", rawEvents);
                 StoreReceivedEvents(rawEvents, logger);
             }
 
