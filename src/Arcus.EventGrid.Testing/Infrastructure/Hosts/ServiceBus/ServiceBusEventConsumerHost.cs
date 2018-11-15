@@ -82,7 +82,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             _logger.LogInformation("Stopping host");
             isHostShuttingDown = true;
 
-            if (_deleteSubscriptionOnStop == true)
+            if (_deleteSubscriptionOnStop)
             {
                 await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName).ConfigureAwait(continueOnCapturedContext: false);
                 _logger.LogInformation("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
@@ -111,13 +111,17 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
                 return;
             }
 
-            var rawReceivedEvents = Encoding.UTF8.GetString(receivedMessage.Body);
+            logger.LogInformation("Message '{messageId}' was received", receivedMessage.MessageId);
 
+            string rawReceivedEvents = string.Empty;
             try
             {
+                rawReceivedEvents = Encoding.UTF8.GetString(receivedMessage.Body);
                 EventsReceived(rawReceivedEvents);
 
                 await subscriptionClient.CompleteAsync(receivedMessage.SystemProperties.LockToken).ConfigureAwait(continueOnCapturedContext: false);
+
+                logger.LogInformation("Message '{messageId}' was successfully handled", receivedMessage.MessageId);
             }
             catch (Exception ex)
             {
