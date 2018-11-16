@@ -36,8 +36,8 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         public string ConnectionString { get; }
 
         /// <summary>
-        ///     Indication whether or not the subscription should be deleted when the host stops. (Defaults to true)
+        ///     Defines the behavior of the subscription on closure. (Defaults to delete)
         /// </summary>
-        public bool DeleteSubscriptionOnStop { get; set; } = true;
+        public SubscriptionBehavior SubscriptionBehavior { get; set; } = SubscriptionBehavior.DeleteOnClosure;
     }
 }

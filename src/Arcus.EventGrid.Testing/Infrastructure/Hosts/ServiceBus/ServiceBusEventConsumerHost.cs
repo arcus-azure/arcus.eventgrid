@@ -16,7 +16,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
     {
         private readonly SubscriptionClient _subscriptionClient;
         private readonly ManagementClient _managementClient;
-        private readonly bool _deleteSubscriptionOnStop;
+        private readonly SubscriptionBehavior _subscriptionBehavior;
         public string Id { get; } = Guid.NewGuid().ToString();
 
         private ServiceBusEventConsumerHost(ServiceBusEventConsumerHostOptions consumerHostOptions, string subscriptionName, SubscriptionClient subscriptionClient, ManagementClient managementClient, ILogger logger)
@@ -30,7 +30,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             TopicPath = consumerHostOptions.TopicPath;
             SubscriptionName = subscriptionName;
 
-            _deleteSubscriptionOnStop = consumerHostOptions.DeleteSubscriptionOnStop;
+            _subscriptionBehavior = consumerHostOptions.SubscriptionBehavior;
             _subscriptionClient = subscriptionClient;
             _managementClient = managementClient;
         }
@@ -79,7 +79,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         {
             _logger.LogInformation("Stopping host");
 
-            if (_deleteSubscriptionOnStop)
+            if (_subscriptionBehavior == SubscriptionBehavior.DeleteOnClosure)
             {
                 await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName).ConfigureAwait(continueOnCapturedContext: false);
                 _logger.LogInformation("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
