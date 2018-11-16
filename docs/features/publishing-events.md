@@ -29,6 +29,9 @@ var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
 await eventGridPublisher.Publish(@event);
 ```
 
-Alternatively you can publish a list of events by using `await eventGridPublisher.PublishMany(events);`.
+Alternatively you can publish a list of events by using 
+```csharp
+await eventGridPublisher.PublishMany(events);
+```
 
 [&larr; back](/arcus.eventgrid)
