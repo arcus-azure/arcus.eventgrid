@@ -100,9 +100,9 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             {
                 EventsReceived(rawEvents);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                logger.LogError($"Failed to persist raw events - {rawEvents}");
+                logger.LogError("Failed to persist raw events with exception '{exceptionMessage}'. Payload: {rawEventsPayload}", ex.Message, rawEvents);
             }
         }
     }
