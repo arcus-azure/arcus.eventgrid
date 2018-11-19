@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Publishing;
-using Arcus.EventGrid.Testing.Infrastructure.Hosts;
+using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
 using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Integration.Logging;
 using Microsoft.Extensions.Configuration;
@@ -20,7 +20,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
     {
         private readonly XunitTestLogger _testLogger;
 
-        private HybridConnectionHost _hybridConnectionHost;
+        private ServiceBusEventConsumerHost _serviceBusEventConsumerHost;
 
         public EventPublishingTests(ITestOutputHelper testOutput)
         {
@@ -36,17 +36,16 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
         public async Task DisposeAsync()
         {
-            await _hybridConnectionHost.Stop();
+            await _serviceBusEventConsumerHost.Stop();
         }
 
         public async Task InitializeAsync()
         {
-            var relayNamespace = Configuration.GetValue<string>("Arcus:HybridConnections:RelayNamespace");
-            var hybridConnectionName = Configuration.GetValue<string>("Arcus:HybridConnections:Name");
-            var accessPolicyName = Configuration.GetValue<string>("Arcus:HybridConnections:AccessPolicyName");
-            var accessPolicyKey = Configuration.GetValue<string>("Arcus:HybridConnections:AccessPolicyKey");
+            var connectionString = Configuration.GetValue<string>("Arcus:ServiceBus:ConnectionString");
+            var topicName = Configuration.GetValue<string>("Arcus:ServiceBus:TopicName");
 
-            _hybridConnectionHost = await HybridConnectionHost.Start(relayNamespace, hybridConnectionName, accessPolicyName, accessPolicyKey, _testLogger);
+            var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(topicName, connectionString);
+            _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.Start(serviceBusEventConsumerHostOptions, _testLogger);
         }
 
         [Fact]
@@ -70,7 +69,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             TracePublishedEvent(eventId, @event);
 
             // Assert
-            var receivedEvent = _hybridConnectionHost.GetReceivedEvent(eventId);
+            var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
             AssertReceivedEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
@@ -102,9 +101,9 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             TracePublishedEvent(secondEventId, events);
 
             // Assert
-            var firstReceivedEvent = _hybridConnectionHost.GetReceivedEvent(firstEventId);
+            var firstReceivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(firstEventId);
             AssertReceivedEvent(firstEventId, firstEvent.EventType, eventSubject, licensePlate, firstReceivedEvent);
-            var secondReceivedEvent = _hybridConnectionHost.GetReceivedEvent(secondEventId);
+            var secondReceivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(secondEventId);
             AssertReceivedEvent(secondEventId, secondEvent.EventType, eventSubject, licensePlate, secondReceivedEvent);
         }
 

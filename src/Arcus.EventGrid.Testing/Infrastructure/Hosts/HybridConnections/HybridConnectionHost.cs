@@ -1,50 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Testing.Logging;
 using GuardNet;
 using Microsoft.Azure.Relay;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using Polly;
 
+// ReSharper disable once CheckNamespace for backwards compatibility reasons
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
-    public class HybridConnectionHost
+    /// <summary>
+    ///     Event consumer host for receiving Azure Event Grid events via Azure Relay with Hybrid Connections
+    /// </summary>
+    [Obsolete("Use ServiceBusEventConsumerHost instead. Azure Relay with Hybrid Connections uses a round-robin approach and does not work nicely when running integration tests on multiple machines.")]
+    public class HybridConnectionHost : EventConsumerHost
     {
-        private static readonly Dictionary<string, string> receivedEvents = new Dictionary<string, string>();
         private readonly HybridConnectionListener _hybridConnectionListener;
-        private readonly ILogger _logger;
 
         private HybridConnectionHost(HybridConnectionListener hybridConnectionListener, ILogger logger)
+            : base(logger)
         {
             Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
-            Guard.NotNull(hybridConnectionListener, nameof(hybridConnectionListener));
 
-            _logger = logger;
             _hybridConnectionListener = hybridConnectionListener;
-        }
-
-        /// <summary>
-        ///     Gets the event envelope that includes a requested event (Uses exponential back-off)
-        /// </summary>
-        /// <param name="eventId">Event id for requested event</param>
-        /// <param name="retryCount">Amount of retries while waiting for the event to come in</param>
-        public string GetReceivedEvent(string eventId, int retryCount = 10)
-        {
-            var retryPolicy = Policy.HandleResult<string>(string.IsNullOrWhiteSpace)
-                .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
-
-            var matchingEvent = retryPolicy.Execute(() =>
-            {
-                _logger.LogInformation($"Received events are : {string.Join(", ", receivedEvents.Keys)}");
-
-                receivedEvents.TryGetValue(eventId, out var rawEvent);
-                return rawEvent;
-            });
-
-            return matchingEvent;
         }
 
         /// <summary>
@@ -74,6 +52,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotNullOrWhitespace(hybridConnectionName, nameof(hybridConnectionName));
             Guard.NotNullOrWhitespace(accessPolicyName, nameof(accessPolicyName));
             Guard.NotNullOrWhitespace(accessPolicyKey, nameof(accessPolicyKey));
+            Guard.NotNull(logger, nameof(logger));
 
             var tokenProvider = TokenProvider.CreateSharedAccessSignatureTokenProvider(accessPolicyName, accessPolicyKey);
             var hybridConnectionUri = string.Format(format: "sb://{0}/{1}", arg0: relayNamespaceName, arg1: hybridConnectionName);
@@ -91,13 +70,23 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             return new HybridConnectionHost(hybridConnectionListener, logger);
         }
 
+        /// <summary>
+        ///     Stop receiving traffic
+        /// </summary>
+        public override async Task Stop()
+        {
+            await _hybridConnectionListener.CloseAsync();
+
+            await base.Stop();
+        }
+
         private static void HandleReceivedRequest(RelayedHttpListenerContext context, ILogger logger)
         {
             using (var requestStreamReader = new StreamReader(context.Request.InputStream))
             {
                 var rawEvents = requestStreamReader.ReadToEnd();
 
-                logger.LogInformation($"New request was received - {rawEvents}");
+                logger.LogInformation("New request was received - {rawEvents}", rawEvents);
                 StoreReceivedEvents(rawEvents, logger);
             }
 
@@ -105,29 +94,15 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             context.Response.Close();
         }
 
-        /// <summary>
-        ///     Stop receiving traffic
-        /// </summary>
-        public async Task Stop()
-        {
-            _logger.LogInformation("Stopping host");
-            await _hybridConnectionListener.CloseAsync();
-        }
-
         private static void StoreReceivedEvents(string rawEvents, ILogger logger)
         {
             try
             {
-                var parsedEvents = JArray.Parse(rawEvents);
-                foreach (var parsedEvent in parsedEvents)
-                {
-                    var eventId = parsedEvent["Id"]?.ToString();
-                    receivedEvents[eventId] = rawEvents;
-                }
+                EventsReceived(rawEvents);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                logger.LogError($"Failed to persist raw events - {rawEvents}");
+                logger.LogError("Failed to persist raw events with exception '{exceptionMessage}'. Payload: {rawEventsPayload}", ex.Message, rawEvents);
             }
         }
     }
