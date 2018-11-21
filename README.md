@@ -14,27 +14,15 @@ PM > Install-Package Arcus.EventGrid.All
 # Documentation
 All documentation can be found on [here](https://eventgrid.arcus-azure.net/).
 
-# Testing
-Currently we provide both unit tests and integration tests.
-Every new feature should be covered by both.
-
-Our integration tests are using Azure Relay Hybrid Connections to relay events back to our tests by using our `HybridConnectionHost`.
-For more information, [read our wiki](https://github.com/arcus-azure/arcus.eventgrid/wiki/Running-integration-tests-with-Arcus) or read [this blog post](https://www.codit.eu/blog/writing-tests-for-azure-event-grid/).
-
-## How do I run the integration tests?
+# How do I run the integration tests?
 In order to run the integration tests, you will need to do the following:
-1. Deploy the Azure Resource Manager template - <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Farcus-azure%2Farcus.eventgrid%2Fmaster%2Fdeploy%2Farm%2Fdeploy-testing-infrastructure.json" target="_blank">
-        <img src="http://azuredeploy.net/deploybutton.png"/>
-    </a>
+1. Setup the infrastructure ([docs](https://eventgrid.arcus-azure.net/features/running-integration-tests#azure-infrastructure))
 
-2. Create a subscription on our custom Azure Event Grid topic for our Hybrid Connection ([walkthrough](https://www.codit.eu/blog/writing-tests-for-azure-event-grid/))
-3. Configure the following environment variables:
-    - `Arcus__HybridConnections__RelayNamespace` _- Azure Relay namespace, for example `arcus.servicebus.windows.net`_
-    - `Arcus__HybridConnections__Name` _- Name of your create Hybrid Connection_
-    - `Arcus__HybridConnections__AccessPolicyName` _- Name of the access policy_
-    - `Arcus__HybridConnections__AccessPolicyKey` _- Authentication key for the access policy_
+2. Configure the following environment variables:
     - `Arcus__EventGrid__TopicEndpoint` _- Custom topic endpoint for Azure Event Grid, for example `https://arcus.westeurope-1.eventgrid.azure.net/api/events`_
     - `Arcus__EventGrid__EndpointKey` _- Authentication key for the custom Azure Event Grid topic_
+    - `Arcus__ServiceBus__ConnectionString` _- Connection string to use when connecting to Azure Service Bus`_
+    - `Arcus__ServiceBus__TopicName` _- Name of the Service Bus Topic that you want to use_
 
 Once you have completed the above, you can run `dotnet test` from the `src\Arcus.EventGrid.Tests.Integration` directory.
 
