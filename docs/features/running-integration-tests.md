@@ -31,12 +31,12 @@ _serviceBusEventConsumerHost.GetReceivedEvent(eventId, retryCount: 5)
 
 As requests are flowing in asynchronously, we provide the capability to retry the looking for an event which is using an exponential backoff.
 
-In order to use this host, we require you to setup a small infrastructure in Azure that is consuming all events on your custom Azure Event Grid topic.
+In order to use this host, we require you to set up a small infrastructure in Azure that is consuming all events on your custom Azure Event Grid topic.
 
 More information can be found in ["The Azure infrastructure"](#azure-infrastructure).
 
 ### Example
-Here is an example of how you can setup the `ServiceBusEventConsumerHost` and receive query for events in your tests:
+Here is an example of how you can set up the `ServiceBusEventConsumerHost` and query for events in your tests:
 ```csharp
 [Trait(name: "Category", value: "Integration")]
 public class EventPublishingTests : IAsyncLifetime
@@ -89,7 +89,7 @@ When running integration tests with Azure, Arcus needs to be one of the consumer
 
 The `ServiceBusEventConsumerHost` will poll for new messages on the subscription that was created and store them internally. Once the host closes, it will shut itself down and delete the subscription on the topic.
 
-In the future we will provide an ARM template which allows you to easily deploy an Azure Logic App that will receive all events from Event Grid and store them on the Service Bus Topic, but you can also provide your own flow to achieve this.
+In the future, we will provide an ARM template which allows you to easily deploy an Azure Logic App that will receive all events from Event Grid and store them on the Service Bus Topic, but you can also provide your own flow to achieve this.
 
 Here is a visual representation of how it works:
 ![Infrastructure](/media/integration-testing-infrastructure.png)
