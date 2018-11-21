@@ -29,6 +29,8 @@ You can easily check if an event is received:
 _serviceBusEventConsumerHost.GetReceivedEvent(eventId, retryCount: 5)
 ```
 
+As requests are flowing in asynchronously, we provide the capability to retry the looking for an event which is using an exponential backoff.
+
 In order to use this host, we require you to setup a small infrastructure in Azure that is consuming all events on your custom Azure Event Grid topic.
 
 More information can be found in ["The Azure infrastructure"](#azure-infrastructure).
