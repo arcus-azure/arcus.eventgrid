@@ -1,0 +1,24 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "EventGrid.Topic.Name": {
+            "value": "arcus-testing-event-topic"
+        },
+        "EventGrid.Subscription.Name": {
+            "value": "arcus-testing-runtime"
+        },
+        "ServiceBus.Topic.Name": {
+            "value": "received-events"
+        },
+        "ServiceBus.Namespace.Name": {
+            "value": "arcus-testing-infrastructure"
+        },
+        "LogicApp.Name": {
+            "value": "arcus-testing-event-to-service-bus-topic"
+        },
+        "LogicApps.Connections.ServiceBus.Name": {
+            "value": "arcus-testing-connections-service-bus"
+        }
+    }
+}

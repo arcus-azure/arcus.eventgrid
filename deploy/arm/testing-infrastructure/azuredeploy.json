@@ -1,0 +1,244 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "EventGrid.Topic.Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the custom Azure Event Grid topic"
+            }
+        },
+        "EventGrid.Subscription.Name": {
+            "type": "string",
+            "defaultValue": "Arcus-Testing-Runtime",
+            "metadata": {
+                "description": "Name of the subscription to create"
+            }
+        },
+        "ServiceBus.Topic.Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Topic"
+            }
+        },
+        "ServiceBus.Namespace.Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Service Bus namespace"
+            }
+        },
+        "LogicApp.Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Logic App that will process the events and queue them on the Service Bus Topic"
+            }
+        },
+        "LogicApps.Connections.ServiceBus.Name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Logic App that will process the events and queue them on the Service Bus Topic"
+            }
+        }
+    },
+    "variables": {
+        "ServiceBus.AuthorizationRules.Automation": "Automation"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.EventGrid/topics",
+            "name": "[parameters('EventGrid.Topic.Name')]",
+            "apiVersion": "2018-01-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('EventGrid.Topic.Name'), '/Microsoft.EventGrid/', parameters('EventGrid.Subscription.Name'))]",
+            "type": "Microsoft.EventGrid/topics/providers/eventSubscriptions",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2018-01-01",
+            "properties": {
+                "destination": {
+                    "endpointType": "WebHook",
+                    "properties": {
+                        "endpointUrl": "[listCallbackUrl(resourceId('Microsoft.Logic/workflows/triggers', parameters('LogicApp.Name'), 'request'), '2016-06-01').value]"
+                    }
+                },
+                "filter": {
+                    "includedEventTypes": [
+                        "All"
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[parameters('EventGrid.Topic.Name')]",
+                "[parameters('LogicApp.Name')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2016-06-01",
+            "name": "[parameters('LogicApp.Name')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "actions": {
+                        "Send_message": {
+                            "inputs": {
+                                "body": {
+                                    "ContentData": "@{base64(triggerBody())}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['servicebus']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "[concat('/@{encodeURIComponent(encodeURIComponent(''', parameters('ServiceBus.Topic.Name'), '''))}/messages')]",
+                                "queries": {
+                                    "systemProperties": "None"
+                                }
+                            },
+                            "runAfter": {},
+                            "type": "ApiConnection"
+                        }
+                    },
+                    "contentVersion": "1.0.0.0",
+                    "outputs": {},
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "request": {
+                            "inputs": {
+                                "schema": {
+                                    "items": {
+                                        "properties": {
+                                            "data": {
+                                                "properties": {},
+                                                "type": "object"
+                                            },
+                                            "dataVersion": {
+                                                "type": "string"
+                                            },
+                                            "eventTime": {
+                                                "type": "string"
+                                            },
+                                            "eventType": {
+                                                "type": "string"
+                                            },
+                                            "id": {
+                                                "type": "string"
+                                            },
+                                            "metadataVersion": {
+                                                "type": "string"
+                                            },
+                                            "subject": {
+                                                "type": "string"
+                                            },
+                                            "topic": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "topic",
+                                            "subject",
+                                            "eventType",
+                                            "eventTime",
+                                            "id",
+                                            "data",
+                                            "dataVersion",
+                                            "metadataVersion"
+                                        ],
+                                        "type": "object"
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "kind": "Http",
+                            "type": "Request"
+                        }
+                    }
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "servicebus": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('LogicApps.Connections.ServiceBus.Name'))]",
+                                "connectionName": "servicebus",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId ,'/providers/Microsoft.Web/locations/', resourceGroup().location ,'/managedApis/servicebus')]"
+                            }
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[parameters('ServiceBus.Namespace.Name')]",
+                "[parameters('ServiceBus.Topic.Name')]",
+                "[parameters('LogicApps.Connections.ServiceBus.Name')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "name": "[parameters('LogicApps.Connections.ServiceBus.Name')]",
+            "apiVersion": "2016-06-01",
+            "location": "[resourceGroup().location]",
+            "scale": null,
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces/AuthorizationRules', parameters('ServiceBus.Namespace.Name'), variables('ServiceBus.AuthorizationRules.Automation'))]"
+            ],
+            "properties": {
+                "displayName": "Router",
+                "customParameterValues": {},
+                "api": {
+                    "id": "[concat('/subscriptions/',  subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location , '/managedApis/servicebus')]"
+                },
+                "parameterValues": {
+                    "connectionString": "[listKeys(resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('ServiceBus.Namespace.Name'), variables('ServiceBus.AuthorizationRules.Automation')), '2015-08-01').primaryConnectionString]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-04-01",
+            "name": "[parameters('ServiceBus.Namespace.Name')]",
+            "type": "Microsoft.ServiceBus/namespaces",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[parameters('ServiceBus.Topic.Name')]",
+                    "type": "topics",
+                    "dependsOn": [
+                        "[concat('Microsoft.ServiceBus/namespaces/', parameters('ServiceBus.Namespace.Name'))]"
+                    ],
+                    "properties": {
+                        "enablePartitioning": "true"
+                    },
+                    "resources": []
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+            "name": "[concat(parameters('ServiceBus.Namespace.Name'), '/', variables('ServiceBus.AuthorizationRules.Automation'))]",
+            "apiVersion": "2017-04-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('ServiceBus.Namespace.Name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen",
+                    "Manage",
+                    "Send"
+                ]
+            }
+        }
+    ]
+}
