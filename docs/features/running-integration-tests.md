@@ -87,10 +87,10 @@ public class EventPublishingTests : IAsyncLifetime
 ### Azure infrastructure
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Farcus-azure%2Farcus.eventgrid%2Fmaster%2Fdeploy%2Farm%2Ftesting-infrastructure%2Fazuredeploy.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
+    <img src="https://azuredeploy.net/deploybutton.png"/>
 </a>
 <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Farcus-azure%2Farcus.eventgrid%2Fmaster%2Fdeploy%2Farm%2Ftesting-infrastructure%2Fazuredeploy.json" target="_blank">
-    <img src="http://armviz.io/visualizebutton.png"/>
+    <img src="https://armviz.io/visualizebutton.png"/>
 </a>
 
 
