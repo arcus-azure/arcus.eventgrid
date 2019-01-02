@@ -255,5 +255,11 @@
                 ]
             }
         }
-    ]
+    ],
+    "outputs": {
+        "NamespaceConnectionString": {
+            "type": "string",
+            "value": "[listkeys(resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('ServiceBus.Namespace.Name'), variables('ServiceBus.AuthorizationRules.Receiver')), '2017-04-01').primaryConnectionString]"
+        }
+    }
 }
