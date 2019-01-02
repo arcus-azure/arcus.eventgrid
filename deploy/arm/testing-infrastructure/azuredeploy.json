@@ -41,7 +41,8 @@
         }
     },
     "variables": {
-        "ServiceBus.AuthorizationRules.Automation": "Automation"
+        "ServiceBus.AuthorizationRules.Automation": "Automation",
+        "ServiceBus.AuthorizationRules.Receiver": "Receiver"
     },
     "resources": [
         {
@@ -237,6 +238,20 @@
                     "Listen",
                     "Manage",
                     "Send"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+            "name": "[concat(parameters('ServiceBus.Namespace.Name'), '/', variables('ServiceBus.AuthorizationRules.Receiver'))]",
+            "apiVersion": "2017-04-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('ServiceBus.Namespace.Name'))]"
+            ],
+            "properties": {
+                "rights": [
+                    "Listen"
                 ]
             }
         }
