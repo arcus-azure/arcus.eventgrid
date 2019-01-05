@@ -71,4 +71,4 @@ EventGridPublisherBuilder.ForTopic(topicEndpoint)
                          .Build();
 ```
 
-[&larr; back](/arcus.eventgrid)
+[&larr; back](/)
