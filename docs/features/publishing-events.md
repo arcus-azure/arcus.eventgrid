@@ -61,7 +61,7 @@ EventGridPublisherBuilder.ForTopic(topicEndpoint)
                          .Build();
 ```
 
-- Combination of the two: **Circuit broker with/after exponential retry**.
+- Combination of the two: **Circuit breaker with/after exponential retry**.
 
 ```csharp
 EventGridPublisherBuilder.ForTopic(topicEndpoint)
