@@ -13,7 +13,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         public async Task Publish_NoEventSpecified_ShouldFailWithArgumentNullException()
         {
             // Arrange
-            const string topicEndpoint = "myTopic";
+            const string topicEndpoint = "http://myTopic";
             const string authenticationKey = "myKey";
             NewCarRegistered @event = null;
 
@@ -32,7 +32,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         public async Task Publish_NoEventsSpecified_ShouldFailWithArgumentNullException()
         {
             // Arrange
-            const string topicEndpoint = "myTopic";
+            const string topicEndpoint = "https://myTopic";
             const string authenticationKey = "myKey";
             List<NewCarRegistered> events = null;
 
@@ -51,7 +51,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         public async Task Publish_EmptyCollectionOfEventsSpecified_ShouldFailWithArgumentException()
         {
             // Arrange
-            const string topicEndpoint = "myTopic";
+            const string topicEndpoint = "http://myTopic";
             const string authenticationKey = "myKey";
             List<NewCarRegistered> events = new List<NewCarRegistered>();
 

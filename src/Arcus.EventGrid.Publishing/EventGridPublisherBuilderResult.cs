@@ -8,13 +8,13 @@ using Polly.NoOp;
 namespace Arcus.EventGrid.Publishing
 {
     /// <summary>
-    ///     Result of the minimum required values to create <see cref="EventGridPublisher" /> instances, but also startpoint of
+    ///     Result of the minimum required values to create <see cref="EventGridPublisher" /> instances, but also start-point of
     ///     extending the instance.
     ///     The required and optional values are therefore split in separate classes and cannot be manipulated with casting.
     /// </summary>
     internal class EventGridPublisherBuilderResult : IEventGridPublisherBuilderWithExponentialRetry
     {
-        private readonly string _topicEndpoint;
+        private readonly Uri _topicEndpoint;
         private readonly string _authenticationKey;
         private readonly Policy _resilientPolicy;
 
@@ -25,7 +25,7 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
         /// <exception cref="ArgumentException">The topic endpoint must not be empty and is required</exception>
         /// <exception cref="ArgumentException">The authentication key must not be empty and is required</exception>
-        public EventGridPublisherBuilderResult(string topicEndpoint, string authenticationKey)
+        public EventGridPublisherBuilderResult(Uri topicEndpoint, string authenticationKey)
             : this(topicEndpoint, authenticationKey, Policy.NoOpAsync())
         {
         }
@@ -40,17 +40,21 @@ namespace Arcus.EventGrid.Publishing
         /// <exception cref="ArgumentException">The authentication key must not be empty and is required</exception>
         /// <exception cref="ArgumentNullException">The resilient policy is required</exception>
         public EventGridPublisherBuilderResult(
-            string topicEndpoint,
+            Uri topicEndpoint,
             string authenticationKey,
             Policy resilientPolicy)
         {
-            Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
+            Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must be specified");
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
             Guard.NotNull(resilientPolicy, nameof(resilientPolicy), "The resilient policy is required via this construction, use other constructor otherwise");
+            Guard.For<UriFormatException>(
+                () => topicEndpoint.Scheme != Uri.UriSchemeHttp
+                      && topicEndpoint.Scheme != Uri.UriSchemeHttps,
+                $"The topic endpoint must be and HTTP or HTTPS endpoint but is: {topicEndpoint.Scheme}");
 
             /* TODO:
              * shouldn't the `topicEndpoint` and the `authenticationKey` be domain models
-             * instead of primitives so we can centrilize these validations (and possible others)
+             * instead of primitives so we can centralize these validations (and possible others)
              * and not 'wait' till the 'Publish() throws? */
 
             _topicEndpoint = topicEndpoint;
@@ -60,7 +64,7 @@ namespace Arcus.EventGrid.Publishing
 
         /// <summary>
         ///     Makes the <see cref="IEventGridPublisher" /> resilient by retrying <paramref name="retryCount" /> times with
-        ///     exponential backoff.
+        ///     exponential back-off.
         /// </summary>
         /// <typeparam name="TException">The type of the exception that has to be retired.</typeparam>
         /// <param name="retryCount">The amount of retries should happen when a failure occurs during the publishing.</param>
