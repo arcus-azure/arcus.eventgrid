@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using GuardNet;
 using Microsoft.Extensions.Logging;
@@ -13,8 +13,12 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
     /// </summary>
     public class EventConsumerHost
     {
-        private static readonly Dictionary<string, string> _receivedEvents = new Dictionary<string, string>();
-        protected readonly ILogger _logger;
+        private static readonly ConcurrentDictionary<string, string> ReceivedEvents = new ConcurrentDictionary<string, string>();
+
+        /// <summary>
+        ///     Gets the logger associated with this event consumer.
+        /// </summary>
+        protected ILogger Logger { get; }
 
         /// <summary>
         ///     Constructor
@@ -24,7 +28,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNull(logger, nameof(logger));
 
-            _logger = logger;
+            Logger = logger;
         }
 
         /// <summary>
@@ -35,12 +39,18 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents));
 
-            var parsedEvents = JArray.Parse(rawReceivedEvents);
-            foreach (var parsedEvent in parsedEvents)
+            JArray parsedEvents = JArray.Parse(rawReceivedEvents);
+            foreach (JToken parsedEvent in parsedEvents)
             {
-                var eventId = parsedEvent["Id"]?.ToString();
-
-                _receivedEvents[eventId] = rawReceivedEvents;
+                string eventId = parsedEvent["Id"]?.ToString();
+                if (eventId == null)
+                {
+                    // TODO: log warning that we can't add the received event because the 'Id' isn't specified.
+                }
+                else
+                {
+                    ReceivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents); 
+                }
             }
         }
 
@@ -53,18 +63,39 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId));
 
-            var retryPolicy = Policy.HandleResult<string>(string.IsNullOrWhiteSpace)
-                .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
+            Policy<string> retryPolicy = 
+                Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
+                      .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
 
-            var matchingEvent = retryPolicy.Execute(() =>
-            {
-                _logger.LogInformation("Received events are : {receivedEvents}", string.Join(", ", _receivedEvents.Keys));
-
-                _receivedEvents.TryGetValue(eventId, out var rawEvent);
-                return rawEvent;
-            });
-
+            string matchingEvent = retryPolicy.Execute(() => TryGetReceivedEvent(eventId));
             return matchingEvent;
+        }
+
+        /// <summary>
+        ///     Gets the event envelope that includes a requested event (Uses timeout)
+        /// </summary>
+        /// <param name="eventId">Event id for requested event</param>
+        /// <param name="timeout">Time period in which the event should be received.</param>
+        public string GetReceivedEvent(string eventId, TimeSpan timeout)
+        {
+            Guard.NotNullOrWhitespace(eventId, nameof(eventId));
+            Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Timeout should be representing a positive time range");
+
+            Policy<string> timeoutPolicy = 
+                Policy.Timeout(timeout)
+                      .Wrap(Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
+                                  .RetryForever());
+
+            string matchingEvent = timeoutPolicy.Execute(() => TryGetReceivedEvent(eventId));
+            return matchingEvent;
+        }
+
+        private string TryGetReceivedEvent(string eventId)
+        {
+            Logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", ReceivedEvents.Keys));
+            ReceivedEvents.TryGetValue(eventId, out string rawEvent);
+
+            return rawEvent;
         }
 
         /// <summary>
@@ -72,7 +103,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// </summary>
         public virtual Task Stop()
         {
-            _logger.LogInformation("Host stopped");
+            Logger.LogInformation("Host stopped");
 
             return Task.CompletedTask;
         }
