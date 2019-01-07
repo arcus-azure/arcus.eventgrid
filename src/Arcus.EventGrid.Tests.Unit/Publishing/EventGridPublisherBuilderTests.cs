@@ -19,6 +19,24 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         }
 
         [Theory]
+        [InlineData("something not a HTTP endpoint ☺")]
+        [InlineData("11304-asdf-123123-sdafsd")]
+        [InlineData("test.be")]
+        public void ForTopic_NonUriEndpointTopic_ShouldFailWithInvalidOperationException(string topic)
+        {
+            Assert.Throws<InvalidOperationException>(() => EventGridPublisherBuilder.ForTopic(topic));
+        }
+
+        [Theory]
+        [InlineData("sftp://some-FTPS-uri")]
+        [InlineData("file:///C:\\temp\\dir")]
+        [InlineData("net.tcp://localhost:55509")]
+        public void ForTopic_NonHttpEndpointTopic_ShouldFailWithUriFormatException(string topic)
+        {
+            Assert.Throws<UriFormatException>(() => EventGridPublisherBuilder.ForTopic(topic));
+        }
+
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
