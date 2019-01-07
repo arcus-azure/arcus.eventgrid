@@ -133,7 +133,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 e =>
                 {
                     TracePublishedEvent(e.Id, events);
-                    string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(e.Id, TimeSpan.FromMinutes(1));
+                    string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(e.Id, TimeSpan.FromMinutes(5));
                     AssertReceivedEvent(e.Id, e.EventType, e.Subject, e.Data.LicensePlate, receivedEvent);
                 });
         }
