@@ -5,6 +5,7 @@ using GuardNet;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Polly;
+using Polly.Wrap;
 
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
@@ -68,7 +69,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         }
 
         /// <summary>
-        ///     Gets the event envelope that includes a requested event (Uses exponential back-off)
+        ///     Gets the event envelope that includes a requested event (Uses timeout)
         /// </summary>
         /// <param name="eventId">Event id for requested event</param>
         /// <param name="timeout">Time period in which the event should be received.</param>
@@ -77,16 +78,17 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotNullOrWhitespace(eventId, nameof(eventId));
             Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Timeout should be representing a positive time range");
 
-            string matchingEvent = 
-                Policy.Timeout(timeout)
-                      .Wrap(Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
-                                  .RetryForever())
-                      .Execute(() =>
-                      {
-                          _logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", _receivedEvents.Keys));
-                          _receivedEvents.TryGetValue(eventId, out string rawEvent);
-                          return rawEvent;
-                      });
+            var timeoutPolicy = Policy.Timeout(timeout)
+                                      .Wrap(Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
+                                                  .RetryForever());
+
+            string matchingEvent = timeoutPolicy.Execute(() =>
+            {
+                _logger.LogInformation("Received events are : {receivedEvents}",
+                                       String.Join(", ", _receivedEvents.Keys));
+                _receivedEvents.TryGetValue(eventId, out string rawEvent);
+                return rawEvent;
+            });
 
             return matchingEvent;
         }
