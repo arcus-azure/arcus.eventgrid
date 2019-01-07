@@ -52,7 +52,7 @@ EventGridPublisherBuilder.ForTopic(topicEndpoint)
                          .Build();
 ```
 
-- **Circuit breaker**: makes the publishing resilient by breaking the circuit if the maximum specified number of exceptions are handled by the policy. The circuit will stay broken for a specified duration. Any attempt to execute the function while the circuit is broken will result in a `BrokenCircuitException`.
+- **Circuit broker**: makes the publishing resilient by breaking the circuit if the maximum specified number of exceptions are handled by the policy. The circuit will stay broken for a specified duration. Any attempt to execute the function while the circuit is broken will result in a `BrokenCircuitException`.
 
 ```csharp
 EventGridPublisherBuilder.ForTopic(topicEndpoint)
