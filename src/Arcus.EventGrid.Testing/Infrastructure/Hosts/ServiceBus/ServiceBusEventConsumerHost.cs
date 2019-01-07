@@ -77,12 +77,12 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         /// </summary>
         public override async Task Stop()
         {
-            _logger.LogInformation("Stopping host");
+            Logger.LogInformation("Stopping host");
 
             if (_subscriptionBehavior == SubscriptionBehavior.DeleteOnClosure)
             {
                 await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName).ConfigureAwait(continueOnCapturedContext: false);
-                _logger.LogInformation("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
+                Logger.LogInformation("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
             }
 
             await _subscriptionClient.CloseAsync().ConfigureAwait(continueOnCapturedContext: false);

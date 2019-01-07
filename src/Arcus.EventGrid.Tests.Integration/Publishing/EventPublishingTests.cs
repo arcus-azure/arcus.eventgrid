@@ -34,11 +34,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
         protected IConfiguration Configuration { get; }
 
-        public async Task DisposeAsync()
-        {
-            await _serviceBusEventConsumerHost.Stop();
-        }
-
         public async Task InitializeAsync()
         {
             var connectionString = Configuration.GetValue<string>("Arcus:ServiceBus:ConnectionString");
@@ -46,6 +41,11 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(topicName, connectionString);
             _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.Start(serviceBusEventConsumerHostOptions, _testLogger);
+        }
+
+        public async Task DisposeAsync()
+        {
+            await _serviceBusEventConsumerHost.Stop();
         }
 
         [Fact]
@@ -74,21 +74,19 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
-        public async Task PublishMultipleEvents_WithBuilder_ValidParameters_Succeeds()
+        public async Task PublishMultipleEvents_WithBuilder_ValidParameters_SucceedsWithRetryCount()
         {
             // Arrange
             var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
             var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
-            const string eventSubject = "integration-test";
-            const string licensePlate = "1-TOM-337";
-            var firstEventId = Guid.NewGuid().ToString();
-            var firstEvent = new NewCarRegistered(firstEventId, eventSubject, licensePlate);
-            var secondEventId = Guid.NewGuid().ToString();
-            var secondEvent = new NewCarRegistered(secondEventId, eventSubject, licensePlate);
-            var events = new List<NewCarRegistered>
-            {
-                firstEvent, secondEvent
-            };
+            var events =
+                Enumerable
+                    .Repeat<Func<Guid>>(Guid.NewGuid, 2)
+                    .Select(newGuid => new NewCarRegistered(
+                        newGuid().ToString(),
+                        subject: "integration-test",
+                        licensePlate: "1-TOM-337"))
+                    .ToArray();
 
             // Act
             await EventGridPublisherBuilder
@@ -97,14 +95,48 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .Build()
                 .PublishMany(events);
 
-            TracePublishedEvent(firstEventId, events);
-            TracePublishedEvent(secondEventId, events);
+            // Assert
+            Assert.All(
+                events,
+                e =>
+                {
+                    TracePublishedEvent(e.Id, events);
+                    string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(e.Id, 5);
+                    AssertReceivedEvent(e.Id, e.EventType, e.Subject, e.Data.LicensePlate, receivedEvent);
+                });
+        }
+
+        [Fact]
+        public async Task PublishMultipleEvents_WithBuilder_ValidParameters_SucceedsWithTimeout()
+        {
+            // Arrange
+            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
+            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            var events = 
+                Enumerable
+                    .Repeat<Func<Guid>>(Guid.NewGuid, 2)
+                    .Select(newGuid => new NewCarRegistered(
+                        newGuid().ToString(), 
+                        subject: "integration-test", 
+                        licensePlate: "1-TOM-337"))
+                    .ToArray();
+
+            // Act
+            await EventGridPublisherBuilder
+                  .ForTopic(topicEndpoint)
+                  .UsingAuthenticationKey(endpointKey)
+                  .Build()
+                  .PublishMany(events);
 
             // Assert
-            var firstReceivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(firstEventId);
-            AssertReceivedEvent(firstEventId, firstEvent.EventType, eventSubject, licensePlate, firstReceivedEvent);
-            var secondReceivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(secondEventId);
-            AssertReceivedEvent(secondEventId, secondEvent.EventType, eventSubject, licensePlate, secondReceivedEvent);
+            Assert.All(
+                events,
+                e =>
+                {
+                    TracePublishedEvent(e.Id, events);
+                    string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(e.Id, TimeSpan.FromMinutes(10));
+                    AssertReceivedEvent(e.Id, e.EventType, e.Subject, e.Data.LicensePlate, receivedEvent);
+                });
         }
 
         private static void AssertReceivedEvent(string eventId, string eventType, string eventSubject, string licensePlate, string receivedEvent)
@@ -115,12 +147,13 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             Assert.NotNull(deserializedEventGridMessage);
             Assert.NotEmpty(deserializedEventGridMessage.SessionId);
             Assert.NotNull(deserializedEventGridMessage.Events);
-            Assert.Single(deserializedEventGridMessage.Events);
-            var deserializedEvent = deserializedEventGridMessage.Events.FirstOrDefault();
+
+            NewCarRegistered deserializedEvent = Assert.Single(deserializedEventGridMessage.Events);
             Assert.NotNull(deserializedEvent);
             Assert.Equal(eventId, deserializedEvent.Id);
             Assert.Equal(eventSubject, deserializedEvent.Subject);
             Assert.Equal(eventType, deserializedEvent.EventType);
+
             Assert.NotNull(deserializedEvent.Data);
             Assert.Equal(licensePlate, deserializedEvent.Data.LicensePlate);
         }
