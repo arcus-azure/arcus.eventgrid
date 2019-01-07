@@ -53,16 +53,40 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId));
 
-            var retryPolicy = Policy.HandleResult<string>(string.IsNullOrWhiteSpace)
+            var retryPolicy = Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
                 .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
 
             var matchingEvent = retryPolicy.Execute(() =>
             {
-                _logger.LogInformation("Received events are : {receivedEvents}", string.Join(", ", _receivedEvents.Keys));
+                _logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", _receivedEvents.Keys));
 
                 _receivedEvents.TryGetValue(eventId, out var rawEvent);
                 return rawEvent;
             });
+
+            return matchingEvent;
+        }
+
+        /// <summary>
+        ///     Gets the event envelope that includes a requested event (Uses exponential back-off)
+        /// </summary>
+        /// <param name="eventId">Event id for requested event</param>
+        /// <param name="timeout">Time period in which the event should be received.</param>
+        public string GetReceivedEvent(string eventId, TimeSpan timeout)
+        {
+            Guard.NotNullOrWhitespace(eventId, nameof(eventId));
+            Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Timeout should be representing a positive time range");
+
+            string matchingEvent = 
+                Policy.Timeout(timeout)
+                      .Wrap(Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
+                                  .RetryForever())
+                      .Execute(() =>
+                      {
+                          _logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", _receivedEvents.Keys));
+                          _receivedEvents.TryGetValue(eventId, out string rawEvent);
+                          return rawEvent;
+                      });
 
             return matchingEvent;
         }
