@@ -5,7 +5,6 @@ using GuardNet;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Polly;
-using Polly.Wrap;
 
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
@@ -14,8 +13,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
     /// </summary>
     public class EventConsumerHost
     {
-        private static readonly Dictionary<string, string> _receivedEvents = new Dictionary<string, string>();
-        protected readonly ILogger _logger;
+        // TODO: shouldn't this be a 'ConcurrentDictionary'?
+        private static readonly Dictionary<string, string> ReceivedEvents = new Dictionary<string, string>();
+
+        /// <summary>
+        ///     Gets the logger associated with this event consumer.
+        /// </summary>
+        protected ILogger Logger { get; }
 
         /// <summary>
         ///     Constructor
@@ -25,7 +29,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNull(logger, nameof(logger));
 
-            _logger = logger;
+            Logger = logger;
         }
 
         /// <summary>
@@ -41,7 +45,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             {
                 var eventId = parsedEvent["Id"]?.ToString();
 
-                _receivedEvents[eventId] = rawReceivedEvents;
+                ReceivedEvents[eventId] = rawReceivedEvents;
             }
         }
 
@@ -59,9 +63,9 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             var matchingEvent = retryPolicy.Execute(() =>
             {
-                _logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", _receivedEvents.Keys));
+                Logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", ReceivedEvents.Keys));
 
-                _receivedEvents.TryGetValue(eventId, out var rawEvent);
+                ReceivedEvents.TryGetValue(eventId, out var rawEvent);
                 return rawEvent;
             });
 
@@ -84,9 +88,9 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             string matchingEvent = timeoutPolicy.Execute(() =>
             {
-                _logger.LogInformation("Received events are : {receivedEvents}",
-                                       String.Join(", ", _receivedEvents.Keys));
-                _receivedEvents.TryGetValue(eventId, out string rawEvent);
+                Logger.LogInformation("Received events are : {receivedEvents}",
+                                       String.Join(", ", ReceivedEvents.Keys));
+                ReceivedEvents.TryGetValue(eventId, out string rawEvent);
                 return rawEvent;
             });
 
@@ -98,7 +102,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// </summary>
         public virtual Task Stop()
         {
-            _logger.LogInformation("Host stopped");
+            Logger.LogInformation("Host stopped");
 
             return Task.CompletedTask;
         }
