@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GuardNet;
@@ -13,8 +14,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
     /// </summary>
     public class EventConsumerHost
     {
-        // TODO: shouldn't this be a 'ConcurrentDictionary'?
-        private static readonly Dictionary<string, string> ReceivedEvents = new Dictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> ReceivedEvents = new ConcurrentDictionary<string, string>();
 
         /// <summary>
         ///     Gets the logger associated with this event consumer.
@@ -40,12 +40,18 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents));
 
-            var parsedEvents = JArray.Parse(rawReceivedEvents);
-            foreach (var parsedEvent in parsedEvents)
+            JArray parsedEvents = JArray.Parse(rawReceivedEvents);
+            foreach (JToken parsedEvent in parsedEvents)
             {
-                var eventId = parsedEvent["Id"]?.ToString();
-
-                ReceivedEvents[eventId] = rawReceivedEvents;
+                string eventId = parsedEvent["Id"]?.ToString();
+                if (eventId == null)
+                {
+                    // TODO: log warning that we can't add the received event because the 'Id' isn't specified.
+                }
+                else
+                {
+                    ReceivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents); 
+                }
             }
         }
 
