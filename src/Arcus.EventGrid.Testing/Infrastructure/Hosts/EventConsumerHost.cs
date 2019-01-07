@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using GuardNet;
 using Microsoft.Extensions.Logging;
@@ -64,17 +63,11 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId));
 
-            var retryPolicy = Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
-                .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
+            Policy<string> retryPolicy = 
+                Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
+                      .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
 
-            var matchingEvent = retryPolicy.Execute(() =>
-            {
-                Logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", ReceivedEvents.Keys));
-
-                ReceivedEvents.TryGetValue(eventId, out var rawEvent);
-                return rawEvent;
-            });
-
+            string matchingEvent = retryPolicy.Execute(() => TryGetReceivedEvent(eventId));
             return matchingEvent;
         }
 
@@ -88,19 +81,21 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotNullOrWhitespace(eventId, nameof(eventId));
             Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Timeout should be representing a positive time range");
 
-            var timeoutPolicy = Policy.Timeout(timeout)
-                                      .Wrap(Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
-                                                  .RetryForever());
+            Policy<string> timeoutPolicy = 
+                Policy.Timeout(timeout)
+                      .Wrap(Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
+                                  .RetryForever());
 
-            string matchingEvent = timeoutPolicy.Execute(() =>
-            {
-                Logger.LogInformation("Received events are : {receivedEvents}",
-                                       String.Join(", ", ReceivedEvents.Keys));
-                ReceivedEvents.TryGetValue(eventId, out string rawEvent);
-                return rawEvent;
-            });
-
+            string matchingEvent = timeoutPolicy.Execute(() => TryGetReceivedEvent(eventId));
             return matchingEvent;
+        }
+
+        private string TryGetReceivedEvent(string eventId)
+        {
+            Logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", ReceivedEvents.Keys));
+            ReceivedEvents.TryGetValue(eventId, out string rawEvent);
+
+            return rawEvent;
         }
 
         /// <summary>
