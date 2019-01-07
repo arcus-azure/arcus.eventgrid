@@ -14,11 +14,11 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
         public void GetReceivedEvent_WithNegativeOrZeroTimeRange_FailsWithArgumentOutOfRangeException(string timeout)
         {
             // Arrange
-            var sut = new EventConsumerHost(new ConsoleLogger());
+            var consumer = new EventConsumerHost(new ConsoleLogger());
 
             // Act / Assert
             Assert.Throws<ArgumentOutOfRangeException>(
-                () => sut.GetReceivedEvent(eventId: Guid.NewGuid().ToString(), timeout: TimeSpan.Parse(timeout)));
+                () => consumer.GetReceivedEvent(eventId: Guid.NewGuid().ToString(), timeout: TimeSpan.Parse(timeout)));
         }
     }
 }
