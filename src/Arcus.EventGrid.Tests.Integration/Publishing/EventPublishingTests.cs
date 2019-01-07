@@ -82,10 +82,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var events =
                 Enumerable
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
-                    .Select(f => new NewCarRegistered(
-                                f().ToString(),
-                                subject: "integration-test",
-                                licensePlate: "1-TOM-337"))
+                    .Select(newGuid => new NewCarRegistered(
+                        newGuid().ToString(),
+                        subject: "integration-test",
+                        licensePlate: "1-TOM-337"))
                     .ToArray();
 
             // Act
@@ -115,8 +115,8 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var events = 
                 Enumerable
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
-                    .Select(f => new NewCarRegistered(
-                        f().ToString(), 
+                    .Select(newGuid => new NewCarRegistered(
+                        newGuid().ToString(), 
                         subject: "integration-test", 
                         licensePlate: "1-TOM-337"))
                     .ToArray();
