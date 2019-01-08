@@ -24,7 +24,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         [InlineData("test.be")]
         public void ForTopic_NonUriEndpointTopic_ShouldFailWithInvalidOperationException(string topic)
         {
-            Assert.Throws<InvalidOperationException>(() => EventGridPublisherBuilder.ForTopic(topic));
+            Assert.Throws<UriFormatException>(() => EventGridPublisherBuilder.ForTopic(topic));
         }
 
         [Theory]
