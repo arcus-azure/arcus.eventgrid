@@ -26,7 +26,7 @@ namespace Arcus.EventGrid.Publishing
         /// <exception cref="ArgumentException">The topic endpoint must not be empty and is required</exception>
         /// <exception cref="ArgumentException">The authentication key must not be empty and is required</exception>
         /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
-        public EventGridPublisherBuilderResult(Uri topicEndpoint, string authenticationKey)
+        internal EventGridPublisherBuilderResult(Uri topicEndpoint, string authenticationKey)
             : this(topicEndpoint, authenticationKey, Policy.NoOpAsync())
         {
         }
@@ -41,7 +41,7 @@ namespace Arcus.EventGrid.Publishing
         /// <exception cref="ArgumentException">The authentication key must not be empty and is required</exception>
         /// <exception cref="ArgumentNullException">The resilient policy is required</exception>
         /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
-        public EventGridPublisherBuilderResult(
+        internal EventGridPublisherBuilderResult(
             Uri topicEndpoint,
             string authenticationKey,
             Policy resilientPolicy)
