@@ -3,7 +3,8 @@
 namespace Arcus.EventGrid.Publishing.Interfaces
 {
     /// <summary>
-    /// Intermediary builder contract after the <see cref="EventGridPublisherBuilder.ForTopic"/> is called.
+    /// Intermediary builder contract after the <see cref="EventGridPublisherBuilder.ForTopic(string)"/>
+    /// or <see cref="EventGridPublisherBuilder.ForTopic(Uri)"/> is called.
     /// </summary>
     /// <remarks>
     /// This interface is not explicitly necessary at the moment but could be after there exists another correct way of creating 
@@ -13,7 +14,7 @@ namespace Arcus.EventGrid.Publishing.Interfaces
     {
         /// <summary>
         /// Specifies the <paramref name="authenticationKey"/> 
-        /// for the custom Event Grid topic for whcih a <see cref="EventGridPublisher"/> will be created.
+        /// for the custom Event Grid topic for Which a <see cref="EventGridPublisher"/> will be created.
         /// </summary>
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
         /// <exception cref="ArgumentException">The authentication key must not be empty and is required</exception>
@@ -21,6 +22,7 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// Finalized builder result that can directly create <see cref="EventGridPublisher"/> instances 
         /// via the <see cref="IBuilder.Build()"/> method or extend the publisher even further.
         /// </returns>
+        /// <exception cref="ArgumentException">The authentication key must not be empty and is required.</exception>
         IEventGridPublisherBuilderWithExponentialRetry UsingAuthenticationKey(string authenticationKey);
     }
 }

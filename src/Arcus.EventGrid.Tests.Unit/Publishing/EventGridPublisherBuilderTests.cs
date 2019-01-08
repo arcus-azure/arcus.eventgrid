@@ -19,6 +19,52 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         }
 
         [Theory]
+        [InlineData("something not a HTTP endpoint ☺")]
+        [InlineData("11304-asdf-123123-sdafsd")]
+        [InlineData("test.be")]
+        public void ForTopic_NonUriEndpointTopic_ShouldFailWithInvalidOperationException(string topic)
+        {
+            Assert.Throws<UriFormatException>(() => EventGridPublisherBuilder.ForTopic(topic));
+        }
+
+        [Theory]
+        [InlineData("sftp://some-FTPS-uri")]
+        [InlineData("file:///C:\\temp\\dir")]
+        [InlineData("net.tcp://localhost:55509")]
+        public void ForTopic_NonHttpEndpointTopic_ShouldFailWithUriFormatException(string topic)
+        {
+            Assert.Throws<UriFormatException>(() => EventGridPublisherBuilder.ForTopic(topic));
+        }
+
+        [Theory]
+        [InlineData("sftp://some-FTPS-uri")]
+        [InlineData("file:///C:\\temp\\dir")]
+        [InlineData("net.tcp://localhost:55509")]
+        public void ForTopic_NonHttpEndpointTopic_WitUriOverload_ShouldFailWithUriFormatException(string topic)
+        {
+            var uri = new Uri(topic);
+            Assert.Throws<UriFormatException>(() => EventGridPublisherBuilder.ForTopic(uri));
+        }
+
+        [Theory]
+        [InlineData("http://some-http-topic-endpoint")]
+        [InlineData("http://some-https-topic-endpoint")]
+        [InlineData(SampleTopicEndpoint)]
+        public void ForTopic_HttpEndpointTopic_WithUriOverload_ShouldCreatePublisher(string topic)
+        {
+            var uri = new Uri(topic);
+            IEventGridPublisher publisher = 
+                EventGridPublisherBuilder
+                    .ForTopic(uri)
+                    .UsingAuthenticationKey(SampleAuthenticationKey)
+                    .Build();
+
+            Assert.NotNull(publisher);
+            Assert.IsType<EventGridPublisher>(publisher);
+            Assert.Equal(topic, publisher.TopicEndpoint);
+        }
+
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
