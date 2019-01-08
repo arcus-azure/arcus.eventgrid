@@ -57,13 +57,7 @@ namespace Arcus.EventGrid.Publishing
         public static EventGridPublisherBuilder ForTopic(string topicEndpoint)
         {
             Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
-
-            bool isValidUri = Uri.TryCreate(topicEndpoint, UriKind.RelativeOrAbsolute, out Uri result);
-            Guard.For<UriFormatException>(
-                () => !isValidUri, 
-                $"Topic endpoint {topicEndpoint} was not in a correct format, please provide a HTTP or HTTPS topic endpoint");
-
-            return ForTopic(result);
+            return ForTopic(new Uri(topicEndpoint));
         }
 
         /// <summary>
