@@ -24,7 +24,7 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
-        internal EventGridPublisher(Uri topicEndpoint, string authenticationKey)
+        internal EventGridPublisher(string topicEndpoint, string authenticationKey)
             : this(topicEndpoint, authenticationKey, Policy.NoOpAsync())
         {
         }
@@ -35,13 +35,13 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
         /// <param name="resilientPolicy">The policy to use making the publishing resilient.</param>
-        internal EventGridPublisher(Uri topicEndpoint, string authenticationKey, Policy resilientPolicy)
+        internal EventGridPublisher(string topicEndpoint, string authenticationKey, Policy resilientPolicy)
         {
-            Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must be specified");
+            Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
             Guard.NotNull(resilientPolicy, nameof(resilientPolicy), "The resilient policy is required with this construction, otherwise use other constructor");
 
-            TopicEndpoint = topicEndpoint.OriginalString;
+            TopicEndpoint = topicEndpoint;
 
             _authenticationKey = authenticationKey;
             _resilientPolicy = resilientPolicy;
