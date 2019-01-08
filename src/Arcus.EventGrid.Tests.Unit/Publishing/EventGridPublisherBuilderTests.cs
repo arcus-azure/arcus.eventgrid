@@ -47,6 +47,24 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         }
 
         [Theory]
+        [InlineData("http://some-http-topic-endpoint")]
+        [InlineData("http://some-https-topic-endpoint")]
+        [InlineData(SampleTopicEndpoint)]
+        public void ForTopic_HttpEndpointTopic_WithUriOverload_ShouldCreatePublisher(string topic)
+        {
+            var uri = new Uri(topic);
+            IEventGridPublisher publisher = 
+                EventGridPublisherBuilder
+                    .ForTopic(uri)
+                    .UsingAuthenticationKey(SampleAuthenticationKey)
+                    .Build();
+
+            Assert.NotNull(publisher);
+            Assert.IsType<EventGridPublisher>(publisher);
+            Assert.Equal(topic, publisher.TopicEndpoint);
+        }
+
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
