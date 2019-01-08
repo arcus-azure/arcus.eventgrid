@@ -26,6 +26,7 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <exception cref="ArgumentException">The topic endpoint must not be empty and is required</exception>
+        /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
         private EventGridPublisherBuilder(Uri topicEndpoint)
         {
             Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must be specified");
@@ -42,7 +43,7 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <exception cref="ArgumentException">The topic endpoint must not be empty and is required</exception>
-        /// <returns></returns>
+        /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
         /// <example>
         /// Shows how a <see cref="EventGridPublisher"/> should be created.
         /// <code>
@@ -57,21 +58,20 @@ namespace Arcus.EventGrid.Publishing
         {
             Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
 
-            if (Uri.TryCreate(topicEndpoint, UriKind.RelativeOrAbsolute, out Uri result))
-            {
-                return ForTopic(result);
-            }
+            bool isValidUri = Uri.TryCreate(topicEndpoint, UriKind.RelativeOrAbsolute, out Uri result);
+            Guard.For<UriFormatException>(
+                () => !isValidUri, 
+                $"Topic endpoint {topicEndpoint} was not in a correct format, please provide a HTTP or HTTPS topic endpoint");
 
-            throw new UriFormatException(
-                "Topic endpoint was not in a correct format, please provide a HTTP or HTTPS topic endpoint");
+            return ForTopic(result);
         }
 
         /// <summary>
-        /// Specifies the custom Event Grid <paramref name="topicEndpoint"/> for which a <see cref="EventGridPublisher"/> will be created.
+        ///     Specifies the custom Event Grid <paramref name="topicEndpoint"/> for which a <see cref="EventGridPublisher"/> will be created.
         /// </summary>
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <exception cref="ArgumentException">The topic endpoint must not be empty and is required</exception>
-        /// <returns></returns>
+        /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
         /// <example>
         /// Shows how a <see cref="EventGridPublisher"/> should be created.
         /// <code>
@@ -103,6 +103,7 @@ namespace Arcus.EventGrid.Publishing
         /// Finalized builder result that can directly create <see cref="EventGridPublisher"/> instances 
         /// via the <see cref="IBuilder.Build()"/> method or extend the publisher even further.
         /// </returns>
+        /// <exception cref="ArgumentException">The authentication key must not be empty and is required.</exception>
         public IEventGridPublisherBuilderWithExponentialRetry UsingAuthenticationKey(string authenticationKey)
         {
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");

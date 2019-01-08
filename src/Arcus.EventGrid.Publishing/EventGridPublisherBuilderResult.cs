@@ -25,6 +25,7 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
         /// <exception cref="ArgumentException">The topic endpoint must not be empty and is required</exception>
         /// <exception cref="ArgumentException">The authentication key must not be empty and is required</exception>
+        /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
         public EventGridPublisherBuilderResult(Uri topicEndpoint, string authenticationKey)
             : this(topicEndpoint, authenticationKey, Policy.NoOpAsync())
         {
@@ -39,6 +40,7 @@ namespace Arcus.EventGrid.Publishing
         /// <exception cref="ArgumentException">The topic endpoint must not be empty and is required</exception>
         /// <exception cref="ArgumentException">The authentication key must not be empty and is required</exception>
         /// <exception cref="ArgumentNullException">The resilient policy is required</exception>
+        /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
         public EventGridPublisherBuilderResult(
             Uri topicEndpoint,
             string authenticationKey,
@@ -73,10 +75,11 @@ namespace Arcus.EventGrid.Publishing
         {
             Guard.NotLessThan(retryCount, 0, nameof(retryCount));
 
-            Policy exponentialRetryPolicy = Policy.Handle<TException>()
-                .WaitAndRetryAsync(
-                    retryCount,
-                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+            Policy exponentialRetryPolicy = 
+                Policy.Handle<TException>()
+                      .WaitAndRetryAsync(
+                          retryCount,
+                          retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
             return new EventGridPublisherBuilderResult(_topicEndpoint, _authenticationKey, exponentialRetryPolicy);
         }
@@ -101,8 +104,9 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotLessThanOrEqualTo(exceptionsAllowedBeforeBreaking, 0, nameof(exceptionsAllowedBeforeBreaking));
             Guard.NotLessThan(durationOfBreak, TimeSpan.Zero, nameof(durationOfBreak));
 
-            Policy circuitBreakerPolicy = Policy.Handle<TException>()
-                .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking, durationOfBreak);
+            Policy circuitBreakerPolicy = 
+                Policy.Handle<TException>()
+                      .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking, durationOfBreak);
 
             var resilientPolicy = _resilientPolicy is NoOpPolicy
                 ? circuitBreakerPolicy

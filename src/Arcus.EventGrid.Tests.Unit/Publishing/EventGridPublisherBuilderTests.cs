@@ -37,6 +37,16 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         }
 
         [Theory]
+        [InlineData("sftp://some-FTPS-uri")]
+        [InlineData("file:///C:\\temp\\dir")]
+        [InlineData("net.tcp://localhost:55509")]
+        public void ForTopic_NonHttpEndpointTopic_WitUriOverload_ShouldFailWithUriFormatException(string topic)
+        {
+            var uri = new Uri(topic);
+            Assert.Throws<UriFormatException>(() => EventGridPublisherBuilder.ForTopic(uri));
+        }
+
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]

@@ -24,6 +24,7 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
+        /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
         internal EventGridPublisher(Uri topicEndpoint, string authenticationKey)
             : this(topicEndpoint, authenticationKey, Policy.NoOpAsync())
         {
@@ -35,11 +36,16 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="topicEndpoint">Url of the custom Event Grid topic</param>
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
         /// <param name="resilientPolicy">The policy to use making the publishing resilient.</param>
+        /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
         internal EventGridPublisher(Uri topicEndpoint, string authenticationKey, Policy resilientPolicy)
         {
             Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must be specified");
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
             Guard.NotNull(resilientPolicy, nameof(resilientPolicy), "The resilient policy is required with this construction, otherwise use other constructor");
+            Guard.For<UriFormatException>(
+                () => topicEndpoint.Scheme != Uri.UriSchemeHttp
+                      && topicEndpoint.Scheme != Uri.UriSchemeHttps,
+                $"The topic endpoint must be and HTTP or HTTPS endpoint but is: {topicEndpoint.Scheme}");
 
             TopicEndpoint = topicEndpoint.OriginalString;
 
