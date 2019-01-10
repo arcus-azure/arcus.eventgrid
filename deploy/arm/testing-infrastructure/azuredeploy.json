@@ -185,6 +185,7 @@
             },
             "dependsOn": [
                 "[resourceId('Microsoft.ServiceBus/namespaces', parameters('ServiceBus.Namespace.Name'))]",
+                "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('ServiceBus.Namespace.Name'), parameters('ServiceBus.Topic.Name'))]",
                 "[resourceId('Microsoft.Web/connections', parameters('LogicApps.Connections.ServiceBus.Name'))]"
             ]
         },
