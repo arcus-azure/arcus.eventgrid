@@ -78,8 +78,8 @@
                 }
             },
             "dependsOn": [
-                "[parameters('EventGrid.Topic.Name')]",
-                "[parameters('LogicApp.Name')]"
+                "[resourceId('Microsoft.EventGrid/topics', parameters('EventGrid.Topic.Name'))]",
+                "[resourceId('Microsoft.Logic/workflows', parameters('LogicApp.Name'))]"
             ]
         },
         {
@@ -184,9 +184,8 @@
                 }
             },
             "dependsOn": [
-                "[parameters('ServiceBus.Namespace.Name')]",
-                "[parameters('ServiceBus.Topic.Name')]",
-                "[parameters('LogicApps.Connections.ServiceBus.Name')]"
+                "[resourceId('Microsoft.ServiceBus/namespaces', parameters('ServiceBus.Namespace.Name'))]",
+                "[resourceId('Microsoft.Web/connections', parameters('LogicApps.Connections.ServiceBus.Name'))]"
             ]
         },
         {
