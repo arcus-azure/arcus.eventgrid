@@ -90,7 +90,7 @@ public class EventPublishingTests : IAsyncLifetime
     <img src="https://azuredeploy.net/deploybutton.png"/>
 </a>
 <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Farcus-azure%2Farcus.eventgrid%2Fmaster%2Fdeploy%2Farm%2Ftesting-infrastructure%2Fazuredeploy.json" target="_blank">
-    <img src="https://armviz.io/visualizebutton.png"/>
+    <img src="./../media/logos/armviz.png"/>
 </a>
 
 
