@@ -4,12 +4,16 @@
     "parameters": {
         "EventGrid.Topic.Name": {
             "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
             "metadata": {
                 "description": "Name of the custom Azure Event Grid topic"
             }
         },
         "EventGrid.Subscription.Name": {
             "type": "string",
+            "minLength": 3,
+            "maxLength": 64,
             "defaultValue": "Arcus-Testing-Runtime",
             "metadata": {
                 "description": "Name of the subscription to create"
@@ -23,12 +27,15 @@
         },
         "ServiceBus.Namespace.Name": {
             "type": "string",
+            "minLength": 6,
+            "maxLength": 50,
             "metadata": {
                 "description": "Name of the Service Bus namespace"
             }
         },
         "LogicApp.Name": {
             "type": "string",
+            "maxLength": 80,
             "metadata": {
                 "description": "Name of the Logic App that will process the events and queue them on the Service Bus Topic"
             }
