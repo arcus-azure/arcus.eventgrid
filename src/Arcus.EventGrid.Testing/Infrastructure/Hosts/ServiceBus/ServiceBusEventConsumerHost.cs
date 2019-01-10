@@ -51,7 +51,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         /// <param name="consumerHostOptions">
         ///     Configuration options that indicate what Service Bus entities to use and how they should behave
         /// </param>
-        /// <param name="logger">Logger to use for writing event information during the hybrid connection</param>
+        /// <param name="logger">Logger to use for writing event information for received events</param>
         public static async Task<ServiceBusEventConsumerHost> Start(ServiceBusEventConsumerHostOptions consumerHostOptions, ILogger logger)
         {
             Guard.NotNull(consumerHostOptions, nameof(consumerHostOptions));
