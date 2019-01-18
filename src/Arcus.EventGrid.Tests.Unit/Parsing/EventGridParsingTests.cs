@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Security.Contracts.Events.v1;
-using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
