@@ -65,9 +65,21 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="eventId">Id of the event</param>
         /// <param name="eventType">Type of the event</param>
         /// <param name="eventBody">Body of the event</param>
+        public async Task PublishRaw(string eventId, string eventType, string eventBody)
+        {
+            await PublishRaw(eventId, eventType, eventBody, eventSubject: "/", dataVersion: "1.0", eventTime: DateTimeOffset.UtcNow);
+        }
+
+        /// <summary>
+        ///     Publish a raw JSON payload as event
+        /// </summary>
+        /// <param name="eventId">Id of the event</param>
+        /// <param name="eventType">Type of the event</param>
+        /// <param name="eventBody">Body of the event</param>
         /// <param name="eventSubject">Subject of the event</param>
         /// <param name="dataVersion">Data version of the event body</param>
-        public async Task PublishRaw(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion)
+        /// <param name="eventTime">Time when the event occured</param>
+        public async Task PublishRaw(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId), "No event id was specified");
             Guard.NotNullOrWhitespace(eventType, nameof(eventType), "No event type was specified");
@@ -75,7 +87,7 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotNullOrWhitespace(dataVersion, nameof(dataVersion), "No data version body was specified");
             Guard.For<ArgumentException>(() => eventBody.IsValidJson() == false, "The event body is not a valid JSON payload");
 
-            var rawEvent = new RawEvent(eventId, eventType, eventBody, eventSubject, dataVersion);
+            var rawEvent = new RawEvent(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime);
 
             IEnumerable<RawEvent> eventList = new List<RawEvent>
             {

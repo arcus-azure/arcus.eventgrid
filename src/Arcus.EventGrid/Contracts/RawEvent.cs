@@ -14,19 +14,6 @@ namespace Arcus.EventGrid.Contracts
         /// <param name="body">Body of the event</param>
         /// <param name="subject">Subject of the event</param>
         /// <param name="dataVersion">Data version of the event body</param>
-        public RawEvent(string id, string type, string body, string subject, string dataVersion) :
-            this(id, type, body, subject, dataVersion, DateTimeOffset.UtcNow)
-        {
-        }
-
-        /// <summary>
-        ///     Constructor
-        /// </summary>
-        /// <param name="id">Id of the event</param>
-        /// <param name="type">Type of the event</param>
-        /// <param name="body">Body of the event</param>
-        /// <param name="subject">Subject of the event</param>
-        /// <param name="dataVersion">Data version of the event body</param>
         /// <param name="eventTime">Time when the event occured</param>
         public RawEvent(string id, string type, string body, string subject, string dataVersion, DateTimeOffset eventTime)
         {

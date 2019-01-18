@@ -79,6 +79,32 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Arrange
             var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
             var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            const string licensePlate = "1-TOM-337";
+            const string expectedSubject = "/";
+            var eventId = Guid.NewGuid().ToString();
+            var @event = new NewCarRegistered(eventId, licensePlate);
+            var rawEventBody = JsonConvert.SerializeObject(@event.Data);
+
+            // Act
+            await EventGridPublisherBuilder
+                .ForTopic(topicEndpoint)
+                .UsingAuthenticationKey(endpointKey)
+                .Build()
+                .PublishRaw(@event.Id, @event.EventType, rawEventBody);
+
+            TracePublishedEvent(eventId, @event);
+
+            // Assert
+            var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
+            AssertReceivedEvent(eventId, @event.EventType, expectedSubject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
+        public async Task PublishSingleRawEventWithDetailedInfo_WithBuilder_ValidParameters_Succeeds()
+        {
+            // Arrange
+            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
+            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             const string eventSubject = "integration-test";
             const string licensePlate = "1-TOM-337";
             var eventId = Guid.NewGuid().ToString();
@@ -90,7 +116,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
                 .Build()
-                .PublishRaw(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion);
+                .PublishRaw(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime);
 
             TracePublishedEvent(eventId, @event);
 

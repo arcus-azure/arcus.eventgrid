@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts.Interfaces;
 
@@ -20,9 +21,18 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// <param name="eventId">Id of the event</param>
         /// <param name="eventType">Type of the event</param>
         /// <param name="eventBody">Body of the event</param>
+        Task PublishRaw(string eventId, string eventType, string eventBody);
+
+        /// <summary>
+        ///     Publish a raw JSON payload as event
+        /// </summary>
+        /// <param name="eventId">Id of the event</param>
+        /// <param name="eventType">Type of the event</param>
+        /// <param name="eventBody">Body of the event</param>
         /// <param name="eventSubject">Subject of the event</param>
         /// <param name="dataVersion">Data version of the event body</param>
-        Task PublishRaw(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion);
+        /// <param name="eventTime">Time when the event occured</param>
+        Task PublishRaw(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime);
 
         /// <summary>
         ///     Publish an event grid message
