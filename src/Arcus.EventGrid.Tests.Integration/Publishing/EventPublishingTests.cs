@@ -74,6 +74,32 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
+        public async Task PublishSingleRawEvent_WithBuilder_ValidParameters_Succeeds()
+        {
+            // Arrange
+            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
+            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            const string eventSubject = "integration-test";
+            const string licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
+            var rawEventBody = JsonConvert.SerializeObject(@event.Data);
+
+            // Act
+            await EventGridPublisherBuilder
+                .ForTopic(topicEndpoint)
+                .UsingAuthenticationKey(endpointKey)
+                .Build()
+                .PublishRaw(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion);
+
+            TracePublishedEvent(eventId, @event);
+
+            // Assert
+            var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
+            AssertReceivedEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
         public async Task PublishMultipleEvents_WithBuilder_ValidParameters_SucceedsWithRetryCount()
         {
             // Arrange
@@ -112,12 +138,12 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Arrange
             var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
             var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
-            var events = 
+            var events =
                 Enumerable
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
                     .Select(newGuid => new NewCarRegistered(
-                        newGuid().ToString(), 
-                        subject: "integration-test", 
+                        newGuid().ToString(),
+                        subject: "integration-test",
                         licensePlate: "1-TOM-337"))
                     .ToArray();
 

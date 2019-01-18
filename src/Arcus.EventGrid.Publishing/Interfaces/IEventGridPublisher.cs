@@ -15,14 +15,24 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         string TopicEndpoint { get; }
 
         /// <summary>
-        ///     Publish an event grid message to the configured Event Grid topic
+        ///     Publish a raw JSON payload as event
+        /// </summary>
+        /// <param name="eventId">Id of the event</param>
+        /// <param name="eventType">Type of the event</param>
+        /// <param name="eventBody">Body of the event</param>
+        /// <param name="eventSubject">Subject of the event</param>
+        /// <param name="dataVersion">Data version of the event body</param>
+        Task PublishRaw(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion);
+
+        /// <summary>
+        ///     Publish an event grid message
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific event</typeparam>
         /// <param name="event">Event to publish</param>
         Task Publish<TEvent>(TEvent @event) where TEvent : class, IEvent, new();
 
         /// <summary>
-        ///     Publish an event grid message to the configured Event Grid topic
+        ///     Publish an event grid message
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific event</typeparam>
         /// <param name="events">Events to publish</param>
