@@ -1,5 +1,6 @@
 ﻿using System;
 using GuardNet;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Arcus.EventGrid.Contracts
@@ -35,6 +36,13 @@ namespace Arcus.EventGrid.Contracts
 
         public RawEvent()
         {
+        }
+
+        [JsonConstructor]
+        protected RawEvent(string dataVersion, string eventType)
+        {
+            DataVersion = dataVersion;
+            EventType = eventType;
         }
 
         public override string DataVersion { get; }
