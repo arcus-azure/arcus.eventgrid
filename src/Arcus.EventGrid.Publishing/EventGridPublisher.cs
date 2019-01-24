@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
 using Arcus.EventGrid.Publishing.Interfaces;
 using Flurl.Http;
@@ -59,7 +60,45 @@ namespace Arcus.EventGrid.Publishing
         public string TopicEndpoint { get; }
 
         /// <summary>
-        ///     Publish an event grid message to the configured Event Grid topic
+        ///     Publish a raw JSON payload as event
+        /// </summary>
+        /// <param name="eventId">Id of the event</param>
+        /// <param name="eventType">Type of the event</param>
+        /// <param name="eventBody">Body of the event</param>
+        public async Task PublishRaw(string eventId, string eventType, string eventBody)
+        {
+            await PublishRaw(eventId, eventType, eventBody, eventSubject: "/", dataVersion: "1.0", eventTime: DateTimeOffset.UtcNow);
+        }
+
+        /// <summary>
+        ///     Publish a raw JSON payload as event
+        /// </summary>
+        /// <param name="eventId">Id of the event</param>
+        /// <param name="eventType">Type of the event</param>
+        /// <param name="eventBody">Body of the event</param>
+        /// <param name="eventSubject">Subject of the event</param>
+        /// <param name="dataVersion">Data version of the event body</param>
+        /// <param name="eventTime">Time when the event occured</param>
+        public async Task PublishRaw(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
+        {
+            Guard.NotNullOrWhitespace(eventId, nameof(eventId), "No event id was specified");
+            Guard.NotNullOrWhitespace(eventType, nameof(eventType), "No event type was specified");
+            Guard.NotNullOrWhitespace(eventBody, nameof(eventBody), "No event body was specified");
+            Guard.NotNullOrWhitespace(dataVersion, nameof(dataVersion), "No data version body was specified");
+            Guard.For<ArgumentException>(() => eventBody.IsValidJson() == false, "The event body is not a valid JSON payload");
+
+            var rawEvent = new RawEvent(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime);
+
+            IEnumerable<RawEvent> eventList = new List<RawEvent>
+            {
+                rawEvent
+            };
+
+            await PublishEventToTopic(eventList);
+        }
+
+        /// <summary>
+        ///     Publish an event grid message
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
         /// <param name="event">Event to publish</param>
@@ -77,7 +116,7 @@ namespace Arcus.EventGrid.Publishing
         }
 
         /// <summary>
-        ///     Publish an event grid message to the configured Event Grid topic
+        ///     Publish an event grid message
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
         /// <param name="events">Events to publish</param>
