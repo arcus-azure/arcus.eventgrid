@@ -59,7 +59,11 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must not be empty and is required");
             Guard.For<ArgumentException>(() => Uri.IsWellFormedUriString(topicEndpoint, UriKind.Absolute) == false, "The topic endpoint is not a valid URI");
 
-            return ForTopic(new Uri(topicEndpoint));
+            var topicEndpointUri = new Uri(topicEndpoint);
+            Guard.For<ArgumentException>(() => topicEndpointUri.Scheme != Uri.UriSchemeHttp && topicEndpointUri.Scheme != Uri.UriSchemeHttps,
+                $"The topic endpoint must be and HTTP or HTTPS endpoint but is: {topicEndpointUri.Scheme}");
+
+            return ForTopic(topicEndpointUri);
         }
 
         /// <summary>

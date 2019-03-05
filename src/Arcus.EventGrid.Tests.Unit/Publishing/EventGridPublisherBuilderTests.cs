@@ -31,9 +31,9 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
         [InlineData("sftp://some-FTPS-uri")]
         [InlineData("file:///C:\\temp\\dir")]
         [InlineData("net.tcp://localhost:55509")]
-        public void ForTopic_NonHttpEndpointTopic_ShouldFailWithUriFormatException(string topic)
+        public void ForTopic_NonHttpEndpointTopic_ShouldFailWithArgumentException(string topic)
         {
-            Assert.Throws<UriFormatException>(() => EventGridPublisherBuilder.ForTopic(topic));
+            Assert.Throws<ArgumentException>(() => EventGridPublisherBuilder.ForTopic(topic));
         }
 
         [Theory]
