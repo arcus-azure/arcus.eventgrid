@@ -11,8 +11,9 @@
     <PackageTags>Azure;Event Grid</PackageTags>
     <Authors>Arcus</Authors>
     <Company>Arcus</Company>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Provides capability to push events to Azure Event Grid</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
