@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -8,8 +8,9 @@
     <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
     <PackageTags>Azure;Event Grid</PackageTags>
     <Authors>Arcus</Authors>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Provides capabilities to easily integrate with Azure Event Grid such as pushing events, endpoint authentication &amp; handshake, contracts and more</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

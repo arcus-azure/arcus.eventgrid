@@ -10,6 +10,7 @@
     <PackageTags>Azure;Event Grid;Testing</PackageTags>
     <Description>Provides infrastructure to build automated testing with Azure Event Grid.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
