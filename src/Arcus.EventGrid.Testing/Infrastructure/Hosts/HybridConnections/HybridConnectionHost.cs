@@ -98,7 +98,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             try
             {
-                EventsReceived(rawEvents);
+                EventsReceived(rawEvents, logger);
             }
             catch (Exception ex)
             {
