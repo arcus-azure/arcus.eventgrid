@@ -43,10 +43,10 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             JArray parsedEvents = JArray.Parse(rawReceivedEvents);
             foreach (JToken parsedEvent in parsedEvents)
             {
-                string eventId = parsedEvent["Id"]?.ToString();
+                string eventId = DetermineEventId(parsedEvent);
                 if (eventId == null)
                 {
-                    logger.LogWarning("Event was received without an event id. Payload : {receivedEvent}", parsedEvent);
+                    logger.LogWarning($"Event was received without an event id. Payload : {parsedEvent}");
                 }
                 else
                 {
@@ -107,6 +107,14 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             ReceivedEvents.TryGetValue(eventId, out string rawEvent);
 
             return rawEvent;
+        }
+
+        private static string DetermineEventId(JToken parsedEvent)
+        {
+            Guard.NotNull(parsedEvent, nameof(parsedEvent));
+
+            var eventIdNode = ((JObject)parsedEvent).GetValue("Id", StringComparison.InvariantCultureIgnoreCase);
+            return eventIdNode?.ToString();
         }
     }
 }
