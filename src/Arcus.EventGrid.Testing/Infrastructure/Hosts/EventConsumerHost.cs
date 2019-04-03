@@ -113,8 +113,12 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNull(parsedEvent, nameof(parsedEvent));
 
-            var eventIdNode = ((JObject)parsedEvent).GetValue("Id", StringComparison.InvariantCultureIgnoreCase);
-            return eventIdNode?.ToString();
+            if (((JObject) parsedEvent).TryGetValue("Id", StringComparison.InvariantCultureIgnoreCase, out JToken eventIdNode))
+            {
+                return eventIdNode.ToString();
+            }
+
+            return string.Empty;
         }
     }
 }
