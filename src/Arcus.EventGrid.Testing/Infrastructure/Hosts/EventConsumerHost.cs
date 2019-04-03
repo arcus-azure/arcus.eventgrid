@@ -35,21 +35,22 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         ///     Handles new events that are being received
         /// </summary>
         /// <param name="rawReceivedEvents">Raw payload containing all events</param>
-        protected static void EventsReceived(string rawReceivedEvents)
+        /// <param name="logger">Logger to use for writing event information</param>
+        protected static void EventsReceived(string rawReceivedEvents, ILogger logger)
         {
             Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents));
 
             JArray parsedEvents = JArray.Parse(rawReceivedEvents);
             foreach (JToken parsedEvent in parsedEvents)
             {
-                string eventId = parsedEvent["Id"]?.ToString();
+                string eventId = DetermineEventId(parsedEvent);
                 if (eventId == null)
                 {
-                    // TODO: log warning that we can't add the received event because the 'Id' isn't specified.
+                    logger.LogWarning($"Event was received without an event id. Payload : {parsedEvent}");
                 }
                 else
                 {
-                    ReceivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents); 
+                    ReceivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents);
                 }
             }
         }
@@ -63,7 +64,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId));
 
-            Policy<string> retryPolicy = 
+            Policy<string> retryPolicy =
                 Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
                       .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
 
@@ -81,21 +82,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotNullOrWhitespace(eventId, nameof(eventId));
             Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Timeout should be representing a positive time range");
 
-            Policy<string> timeoutPolicy = 
+            Policy<string> timeoutPolicy =
                 Policy.Timeout(timeout)
                       .Wrap(Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
                                   .RetryForever());
 
             string matchingEvent = timeoutPolicy.Execute(() => TryGetReceivedEvent(eventId));
             return matchingEvent;
-        }
-
-        private string TryGetReceivedEvent(string eventId)
-        {
-            Logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", ReceivedEvents.Keys));
-            ReceivedEvents.TryGetValue(eventId, out string rawEvent);
-
-            return rawEvent;
         }
 
         /// <summary>
@@ -106,6 +99,26 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Logger.LogInformation("Host stopped");
 
             return Task.CompletedTask;
+        }
+
+        private string TryGetReceivedEvent(string eventId)
+        {
+            Logger.LogInformation("Received events are : {receivedEvents}", String.Join(", ", ReceivedEvents.Keys));
+            ReceivedEvents.TryGetValue(eventId, out string rawEvent);
+
+            return rawEvent;
+        }
+
+        private static string DetermineEventId(JToken parsedEvent)
+        {
+            Guard.NotNull(parsedEvent, nameof(parsedEvent));
+
+            if (((JObject) parsedEvent).TryGetValue("Id", StringComparison.InvariantCultureIgnoreCase, out JToken eventIdNode))
+            {
+                return eventIdNode.ToString();
+            }
+
+            return string.Empty;
         }
     }
 }

@@ -114,7 +114,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             try
             {
                 rawReceivedEvents = Encoding.UTF8.GetString(receivedMessage.Body);
-                EventsReceived(rawReceivedEvents);
+                EventsReceived(rawReceivedEvents, logger);
 
                 await subscriptionClient.CompleteAsync(receivedMessage.SystemProperties.LockToken).ConfigureAwait(continueOnCapturedContext: false);
 
