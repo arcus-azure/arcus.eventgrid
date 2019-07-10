@@ -39,6 +39,22 @@ Alternatively you can publish a list of events by using
 await eventGridPublisher.PublishMany(events);
 ```
 
+### Publishing Raw Events
+
+We provide the capability to push events without a schema based on a raw JSON string.
+
+```csharp
+// Created via EventGridPublisherBuilder.
+EventGridPublisher eventGridPublisher = ...
+
+string licensePlate = "1-TOM-337";
+string eventSubject = $"/cars/{licensePlate}";
+string eventId = Guid.NewGuid().ToString();
+string rawEventPayload = $"{{ \"licensePlate\": \"{licensePlate}\"}}";
+
+await eventGridPublisher.PublishRaw(eventId, eventSubject, rawEventPayload);
+```
+
 ### Resilient Publishing
 
 The `EventGridPublisherBuilder` also provides several ways to publish events in a resilient manner. Resilient meaning we support three ways to add resilience to your event publishing:
