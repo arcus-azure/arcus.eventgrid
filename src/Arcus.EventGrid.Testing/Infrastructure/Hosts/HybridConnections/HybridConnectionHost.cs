@@ -73,11 +73,11 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <summary>
         ///     Stop receiving traffic
         /// </summary>
-        public override async Task Stop()
+        public override async Task StopAsync()
         {
             await _hybridConnectionListener.CloseAsync();
 
-            await base.Stop();
+            await base.StopAsync();
         }
 
         private static void HandleReceivedRequest(RelayedHttpListenerContext context, ILogger logger)

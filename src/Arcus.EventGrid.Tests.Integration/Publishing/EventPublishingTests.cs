@@ -40,12 +40,12 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var topicName = Configuration.GetValue<string>("Arcus:ServiceBus:TopicName");
 
             var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(topicName, connectionString);
-            _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.Start(serviceBusEventConsumerHostOptions, _testLogger);
+            _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.StartAsync(serviceBusEventConsumerHostOptions, _testLogger);
         }
 
         public async Task DisposeAsync()
         {
-            await _serviceBusEventConsumerHost.Stop();
+            await _serviceBusEventConsumerHost.StopAsync();
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
                 .Build()
-                .Publish(@event);
+                .PublishAsync(@event);
 
             TracePublishedEvent(eventId, @event);
 
@@ -90,7 +90,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
                 .Build()
-                .PublishRaw(@event.Id, @event.EventType, rawEventBody);
+                .PublishRawAsync(@event.Id, @event.EventType, rawEventBody);
 
             TracePublishedEvent(eventId, @event);
 
@@ -116,7 +116,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
                 .Build()
-                .PublishRaw(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime);
+                .PublishRawAsync(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime);
 
             TracePublishedEvent(eventId, @event);
 
@@ -145,7 +145,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
                 .Build()
-                .PublishMany(events);
+                .PublishManyAsync(events);
 
             // Assert
             Assert.All(
@@ -178,7 +178,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .ForTopic(topicEndpoint)
                   .UsingAuthenticationKey(endpointKey)
                   .Build()
-                  .PublishMany(events);
+                  .PublishManyAsync(events);
 
             // Assert
             Assert.All(

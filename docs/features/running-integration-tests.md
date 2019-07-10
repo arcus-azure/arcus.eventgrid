@@ -47,7 +47,7 @@ public class EventPublishingTests : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await _serviceBusEventConsumerHost.Stop();
+        await _serviceBusEventConsumerHost.StopAsync();
     }
 
     public async Task InitializeAsync()
@@ -56,7 +56,7 @@ public class EventPublishingTests : IAsyncLifetime
         var serviceBusTopicName = "<topic-name>";
 
         var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(serviceBusTopicName, serviceBusConnectionString);
-        _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.Start(serviceBusEventConsumerHostOptions, _testLogger);
+        _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.StartAsync(serviceBusEventConsumerHostOptions, _testLogger);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class EventPublishingTests : IAsyncLifetime
                                         .ForTopic(topicEndpoint)
                                         .UsingAuthenticationKey(endpointKey)
                                         .Build();
-        await eventGridPublisher.Publish(@event);
+        await eventGridPublisher.PublishAsync(@event);
 
         // Assert
         var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
