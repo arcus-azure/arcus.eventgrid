@@ -30,13 +30,13 @@ string eventSubject = $"/cars/{licensePlate}";
 string eventId = Guid.NewGuid().ToString();
 var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
 
-await eventGridPublisher.Publish(@event);
+await eventGridPublisher.PublishAsync(@event);
 ```
 
 Alternatively you can publish a list of events by using
 
 ```csharp
-await eventGridPublisher.PublishMany(events);
+await eventGridPublisher.PublishManyAsync(events);
 ```
 
 ### Resilient Publishing
