@@ -50,7 +50,7 @@ EventGridPublisher eventGridPublisher = ...
 string licensePlate = "1-TOM-337";
 string eventSubject = $"/cars/{licensePlate}";
 string eventId = Guid.NewGuid().ToString();
-string rawEventPayload = $"{{ \"licensePlate\": \"{licensePlate}\"}}";
+string rawEventPayload = String.Format("{ \"licensePlate\": \"{0}\"}", licensePlate);
 
 await eventGridPublisher.PublishRaw(eventId, eventSubject, rawEventPayload);
 ```
