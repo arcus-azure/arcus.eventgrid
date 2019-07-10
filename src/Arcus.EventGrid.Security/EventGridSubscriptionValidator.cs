@@ -29,7 +29,7 @@ namespace Arcus.EventGrid.Security
                     //Log.Logger.Information("Subscription validation message received by Action Filter");
                     if (headerValues.Contains(value: "SubscriptionValidation"))
                     {
-                        var subscriptionValidationResponse = await HandleSubscriptionValidationEvent(actionContext);
+                        var subscriptionValidationResponse = await HandleSubscriptionValidationEventAsync(actionContext);
                         if (subscriptionValidationResponse != null)
                         {
                             actionContext.Response = subscriptionValidationResponse;
@@ -49,7 +49,7 @@ namespace Arcus.EventGrid.Security
             }
         }
 
-        private async Task<HttpResponseMessage> HandleSubscriptionValidationEvent(HttpActionContext actionContext)
+        private async Task<HttpResponseMessage> HandleSubscriptionValidationEventAsync(HttpActionContext actionContext)
         {
             // Parsing the incoming message to a typed EventGrid message
             var rawRequest = await actionContext.Request.Content.ReadAsStringAsync();

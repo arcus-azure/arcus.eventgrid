@@ -65,9 +65,9 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="eventId">Id of the event</param>
         /// <param name="eventType">Type of the event</param>
         /// <param name="eventBody">Body of the event</param>
-        public async Task PublishRaw(string eventId, string eventType, string eventBody)
+        public async Task PublishRawAsync(string eventId, string eventType, string eventBody)
         {
-            await PublishRaw(eventId, eventType, eventBody, eventSubject: "/", dataVersion: "1.0", eventTime: DateTimeOffset.UtcNow);
+            await PublishRawAsync(eventId, eventType, eventBody, eventSubject: "/", dataVersion: "1.0", eventTime: DateTimeOffset.UtcNow);
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="eventSubject">Subject of the event</param>
         /// <param name="dataVersion">Data version of the event body</param>
         /// <param name="eventTime">Time when the event occured</param>
-        public async Task PublishRaw(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
+        public async Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId), "No event id was specified");
             Guard.NotNullOrWhitespace(eventType, nameof(eventType), "No event type was specified");
@@ -94,7 +94,7 @@ namespace Arcus.EventGrid.Publishing
                 rawEvent
             };
 
-            await PublishEventToTopic(eventList);
+            await PublishEventToTopicAsync(eventList);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
         /// <param name="event">Event to publish</param>
-        public async Task Publish<TEvent>(TEvent @event)
+        public async Task PublishAsync<TEvent>(TEvent @event)
             where TEvent : class, IEvent, new()
         {
             Guard.NotNull(@event, nameof(@event), "No event was specified");
@@ -112,7 +112,7 @@ namespace Arcus.EventGrid.Publishing
                 @event
             };
 
-            await PublishEventToTopic(eventList);
+            await PublishEventToTopicAsync(eventList);
         }
 
         /// <summary>
@@ -120,19 +120,19 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
         /// <param name="events">Events to publish</param>
-        public async Task PublishMany<TEvent>(IEnumerable<TEvent> events)
+        public async Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events)
             where TEvent : class, IEvent, new()
         {
             Guard.NotNull(events, nameof(events), "No events was specified");
             Guard.For(() => events.Any() == false, new ArgumentException("No events were specified", nameof(events)));
 
-            await PublishEventToTopic(events);
+            await PublishEventToTopicAsync(events);
         }
 
-        private async Task PublishEventToTopic<TEvent>(IEnumerable<TEvent> eventList) where TEvent : class, IEvent, new()
+        private async Task PublishEventToTopicAsync<TEvent>(IEnumerable<TEvent> eventList) where TEvent : class, IEvent, new()
         {
             // Calling HTTP endpoint
-            var response = await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequest(eventList));
+            var response = await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequestAsync(eventList));
 
             if (!response.IsSuccessStatusCode)
             {
@@ -140,7 +140,7 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private Task<HttpResponseMessage> SendAuthorizedHttpPostRequest<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent, new()
+        private Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent, new()
         {
             return TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey)
                 .PostJsonAsync(events);

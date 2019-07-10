@@ -52,7 +52,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         ///     Configuration options that indicate what Service Bus entities to use and how they should behave
         /// </param>
         /// <param name="logger">Logger to use for writing event information for received events</param>
-        public static async Task<ServiceBusEventConsumerHost> Start(ServiceBusEventConsumerHostOptions consumerHostOptions, ILogger logger)
+        public static async Task<ServiceBusEventConsumerHost> StartAsync(ServiceBusEventConsumerHostOptions consumerHostOptions, ILogger logger)
         {
             Guard.NotNull(consumerHostOptions, nameof(consumerHostOptions));
             Guard.NotNull(logger, nameof(logger));
@@ -75,7 +75,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
         /// <summary>
         ///     Stop receiving traffic
         /// </summary>
-        public override async Task Stop()
+        public override async Task StopAsync()
         {
             Logger.LogInformation("Stopping host");
 
@@ -87,7 +87,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
 
             await _subscriptionClient.CloseAsync().ConfigureAwait(continueOnCapturedContext: false);
 
-            await base.Stop();
+            await base.StopAsync();
         }
 
         private static void StartMessagePump(SubscriptionClient subscriptionClient, ILogger logger)

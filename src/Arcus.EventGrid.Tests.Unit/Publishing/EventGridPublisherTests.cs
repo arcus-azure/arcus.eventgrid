@@ -30,7 +30,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
         }
 
         [Fact]
@@ -54,7 +54,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody));
         }
 
         [Fact]
@@ -78,7 +78,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
         }
 
         [Fact]
@@ -126,7 +126,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
         }
 
         [Fact]
@@ -150,7 +150,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
         }
 
         [Fact]
@@ -174,7 +174,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
         }
 
         [Fact]
@@ -195,7 +195,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody));
         }
 
         [Fact]
@@ -216,7 +216,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody));
         }
 
         [Fact]
@@ -237,7 +237,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody));
         }
 
         [Fact]
@@ -258,7 +258,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody));
         }
 
         [Fact]
@@ -279,7 +279,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody));
         }
 
         [Fact]
@@ -303,7 +303,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
         }
 
         [Fact]
@@ -327,7 +327,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRaw(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishRawAsync(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime));
         }
 
         [Fact]
@@ -346,7 +346,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.Publish(@event));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.PublishAsync(@event));
         }
 
         [Fact]
@@ -365,7 +365,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.PublishMany(events));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.PublishManyAsync(events));
         }
 
         [Fact]
@@ -384,7 +384,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
                     .Build();
 
             // Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishMany(events));
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishManyAsync(events));
         }
     }
 }

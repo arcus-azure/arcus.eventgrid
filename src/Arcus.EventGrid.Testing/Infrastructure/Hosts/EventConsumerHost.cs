@@ -94,7 +94,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <summary>
         ///     Stop receiving traffic
         /// </summary>
-        public virtual Task Stop()
+        public virtual Task StopAsync()
         {
             Logger.LogInformation("Host stopped");
 
