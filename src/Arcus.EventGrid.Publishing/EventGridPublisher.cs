@@ -79,7 +79,7 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="eventSubject">Subject of the event</param>
         /// <param name="dataVersion">Data version of the event body</param>
         /// <param name="eventTime">Time when the event occured</param>
-        public async Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
+        public Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId), "No event id was specified");
             Guard.NotNullOrWhitespace(eventType, nameof(eventType), "No event type was specified");
@@ -89,9 +89,7 @@ namespace Arcus.EventGrid.Publishing
 
             var rawEvent = new RawEvent(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime);
 
-            IEnumerable<RawEvent> eventList = new [] { rawEvent };
-
-            await PublishEventToTopicAsync(eventList);
+            return PublishRawAsync(rawEvent);
         }
 
         /// <summary>
