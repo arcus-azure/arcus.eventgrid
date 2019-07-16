@@ -139,12 +139,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(@event.Data);
 
+            var rawEvent = new RawEvent(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime);
+
             // Act
             await EventGridPublisherBuilder
                   .ForTopic(topicEndpoint)
                   .UsingAuthenticationKey(endpointKey)
                   .Build()
-                  .PublishRawAsync(new RawEvent(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime));
+                  .PublishRawAsync(rawEvent);
 
             TracePublishedEvent(eventId, @event);
 
