@@ -390,7 +390,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             // Arrange
             const string topicEndpoint = "http://myTopic";
             const string authenticationKey = "myKey";
-            string eventId = String.Empty;
+            string eventId = Guid.NewGuid().ToString();
             string eventType = "Arcus.Samples.Cars.NewCarRegistered";
             string eventBody = "{\"licensePlate\": \"1-TOM-1337\"}";
             string eventSubject = "/cars/volvo";
