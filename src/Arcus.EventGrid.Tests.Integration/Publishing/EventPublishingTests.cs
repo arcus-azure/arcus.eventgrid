@@ -228,13 +228,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Arrange
             var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
             var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            const string licensePlate = "1-TOM-1337";
             var events =
                 Enumerable
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
                     .Select(newGuid => new RawEvent(
                                 newGuid().ToString(),
                                 subject: "integration-test",
-                                body: "{\"licensePlate\": \"1-TOM-1337\"}",
+                                body: $"{{\"licensePlate\": \"{licensePlate}\"}}",
                                 type: "Arcus.Samples.Cars.NewCarRegistered",
                                 dataVersion:"1.0",
                                 eventTime: DateTimeOffset.Now))
@@ -254,7 +255,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 {
                     TracePublishedEvent(rawEvent.Id, events);
                     string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(rawEvent.Id, 5);
-                    AssertReceivedEvent(rawEvent.Id, rawEvent.EventType, rawEvent.Subject, JToken.FromObject(rawEvent.Data)["licensePlate"].ToString(), receivedEvent);
+                    AssertReceivedEvent(rawEvent.Id, rawEvent.EventType, rawEvent.Subject, licensePlate, receivedEvent);
                 });
         }
 
@@ -264,13 +265,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Arrange
             var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
             var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            const string licensePlate = "1-TOM-1337";
             var events =
                 Enumerable
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
                     .Select(newGuid => new RawEvent(
                                 newGuid().ToString(),
                                 subject: "integration-test",
-                                body: "{\"licensePlate\": \"1-TOM-1337\"}",
+                                body: $"{{\"licensePlate\": \"{licensePlate}\"}}",
                                 type: "Arcus.Samples.Cars.NewCarRegistered",
                                 dataVersion:"1.0",
                                 eventTime: DateTimeOffset.Now))
@@ -290,7 +292,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 {
                     TracePublishedEvent(rawEvent.Id, events);
                     string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(rawEvent.Id, TimeSpan.FromMinutes(10));
-                    AssertReceivedEvent(rawEvent.Id, rawEvent.EventType, rawEvent.Subject, JToken.FromObject(rawEvent.Data)["licensePlate"].ToString(), receivedEvent);
+                    AssertReceivedEvent(rawEvent.Id, rawEvent.EventType, rawEvent.Subject, licensePlate, receivedEvent);
                 });
         }
 
