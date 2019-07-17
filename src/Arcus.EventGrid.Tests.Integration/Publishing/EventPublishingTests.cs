@@ -72,7 +72,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
-            AssertReceivedEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+            AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
         [Fact]
@@ -98,7 +98,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
-            AssertReceivedEvent(eventId, @event.EventType, expectedSubject, licensePlate, receivedEvent);
+            AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, expectedSubject, licensePlate, receivedEvent);
         }
 
         [Fact]
@@ -124,7 +124,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
-            AssertReceivedEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+            AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
         [Fact]
@@ -152,7 +152,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
-            AssertReceivedEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+            AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
 
@@ -179,14 +179,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .PublishManyAsync(events);
 
             // Assert
-            Assert.All(
-                events,
-                e =>
-                {
-                    TracePublishedEvent(e.Id, events);
-                    string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(e.Id, 5);
-                    AssertReceivedEvent(e.Id, e.EventType, e.Subject, e.Data.LicensePlate, receivedEvent);
-                });
+            Assert.All(events, AssertReceivedNewRegisteredCarEventWithRetryCount);
+        }
+
+        private void AssertReceivedNewRegisteredCarEventWithRetryCount(NewCarRegistered @event)
+        {
+            TracePublishedEvent(@event.Id, @event);
+            string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(@event.Id, 5);
+            AssertReceivedNewCarRegisteredEvent(@event.Id, @event.EventType, @event.Subject, @event.Data.LicensePlate, receivedEvent);
         }
 
         [Fact]
@@ -212,14 +212,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .PublishManyAsync(events);
 
             // Assert
-            Assert.All(
-                events,
-                e =>
-                {
-                    TracePublishedEvent(e.Id, events);
-                    string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(e.Id, TimeSpan.FromMinutes(10));
-                    AssertReceivedEvent(e.Id, e.EventType, e.Subject, e.Data.LicensePlate, receivedEvent);
-                });
+            Assert.All(events, AssertReceivedNewRegisteredCarEventWithTimeout);
+        }
+
+        private void AssertReceivedNewRegisteredCarEventWithTimeout(NewCarRegistered @event)
+        {
+            TracePublishedEvent(@event.Id, @event);
+            string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(@event.Id, TimeSpan.FromSeconds(10));
+            AssertReceivedNewCarRegisteredEvent(@event.Id, @event.EventType, @event.Subject, @event.Data.LicensePlate, receivedEvent);
         }
 
         [Fact]
@@ -249,14 +249,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .PublishManyAsync(events);
 
             // Assert
-            Assert.All(
-                events,
-                rawEvent =>
-                {
-                    TracePublishedEvent(rawEvent.Id, events);
-                    string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(rawEvent.Id, 5);
-                    AssertReceivedEvent(rawEvent.Id, rawEvent.EventType, rawEvent.Subject, licensePlate, receivedEvent);
-                });
+            Assert.All(events, rawEvent => AssertReceivedRawEventWithRetryCount(rawEvent, licensePlate));
+        }
+
+        private void AssertReceivedRawEventWithRetryCount(RawEvent rawEvent, string licensePlate)
+        {
+            TracePublishedEvent(rawEvent.Id, rawEvent);
+            string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(rawEvent.Id, 5);
+            AssertReceivedNewCarRegisteredEvent(rawEvent.Id, rawEvent.EventType, rawEvent.Subject, licensePlate, receivedEvent);
         }
 
         [Fact]
@@ -286,19 +286,19 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .PublishManyRawAsync(events);
 
             // Assert
-            Assert.All(
-                events,
-                rawEvent =>
-                {
-                    TracePublishedEvent(rawEvent.Id, events);
-                    string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(rawEvent.Id, TimeSpan.FromMinutes(10));
-                    AssertReceivedEvent(rawEvent.Id, rawEvent.EventType, rawEvent.Subject, licensePlate, receivedEvent);
-                });
+            Assert.All(events, rawEvent => AssertReceivedRawEventWithTimeout(rawEvent, licensePlate));
         }
 
-        private static void AssertReceivedEvent(string eventId, string eventType, string eventSubject, string licensePlate, string receivedEvent)
+        private void AssertReceivedRawEventWithTimeout(RawEvent rawEvent, string licensePlate)
         {
-            Assert.NotEqual(string.Empty, receivedEvent);
+            TracePublishedEvent(rawEvent.Id, rawEvent);
+            string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(rawEvent.Id, TimeSpan.FromSeconds(10));
+            AssertReceivedNewCarRegisteredEvent(rawEvent.Id, rawEvent.EventType, rawEvent.Subject, licensePlate, receivedEvent);
+        }
+
+        private static void AssertReceivedNewCarRegisteredEvent(string eventId, string eventType, string eventSubject, string licensePlate, string receivedEvent)
+        {
+            Assert.NotEqual(String.Empty, receivedEvent);
 
             EventGridMessage<NewCarRegistered> deserializedEventGridMessage = EventGridParser.Parse<NewCarRegistered>(receivedEvent);
             Assert.NotNull(deserializedEventGridMessage);
