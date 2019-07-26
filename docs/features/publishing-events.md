@@ -52,7 +52,31 @@ string eventSubject = $"/cars/{licensePlate}";
 string eventId = Guid.NewGuid().ToString();
 string rawEventPayload = String.Format("{ \"licensePlate\": \"{0}\"}", licensePlate);
 
-await eventGridPublisher.PublishRaw(eventId, eventSubject, rawEventPayload);
+await eventGridPublisher.PublishRawAsync(eventId, eventSubject, rawEventPayload);
+```
+
+or with a specific `RawEvent` type
+
+```csharp
+string licensePlate = "1-TOM-337";
+string eventSubject = $"/cars/{licensePlate}";
+string eventId = Guid.NewGuid().ToString();
+string rawEventPayload = String.Format("{ \"licensePlate\": \"{0}\"}", licensePlate);
+string eventType = "Arcus.Samples.Cars.NewCarRegitered";
+string dataVersion = "1.0";
+DateTimeOffset eventTime = DateTimeOffset.Now;
+
+var rawEvent = new RawEvent(eventId, eventSubject, rawEventPayload, eventType, dataVersion, eventTime);
+
+await eventGridPublisher.PublishRawAsync(rawEvent);
+```
+
+Alternatively you can publish a list of raw events by using
+
+```csharp
+IEnumerable<RawEvent> rawEvents = ...;
+
+await eventGridPublisher.PublishManyRawAsync(rawEvents);
 ```
 
 ### Resilient Publishing
