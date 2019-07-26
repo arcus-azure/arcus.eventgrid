@@ -89,12 +89,33 @@ namespace Arcus.EventGrid.Publishing
 
             var rawEvent = new RawEvent(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime);
 
-            IEnumerable<RawEvent> eventList = new List<RawEvent>
-            {
-                rawEvent
-            };
+            await PublishRawAsync(rawEvent);
+        }
+
+        /// <summary>
+        ///     Publish a raw JSON payload as event
+        /// </summary>
+        /// <param name="rawEvent">The event to publish</param>
+        public async Task PublishRawAsync(RawEvent rawEvent)
+        {
+            Guard.NotNull(rawEvent, nameof(rawEvent), "No event was specified");
+
+            IEnumerable<RawEvent> eventList = new[] { rawEvent };
 
             await PublishEventToTopicAsync(eventList);
+        }
+
+        /// <summary>
+        ///     Publish a many raw JSON payload as events
+        /// </summary>
+        /// <param name="rawEvents">The events to publish.</param>
+        public async Task PublishManyRawAsync(IEnumerable<RawEvent> rawEvents)
+        {
+            Guard.NotNull(rawEvents, nameof(rawEvents), "No raw events were specified");
+            Guard.For<ArgumentException>(() => !rawEvents.Any(), "No raw events were specified");
+            Guard.For<ArgumentException>(() => rawEvents.Any(rawEvent => rawEvent is null), "Some raw events are 'null'");
+
+            await PublishEventToTopicAsync(rawEvents);
         }
 
         /// <summary>
@@ -124,7 +145,8 @@ namespace Arcus.EventGrid.Publishing
             where TEvent : class, IEvent, new()
         {
             Guard.NotNull(events, nameof(events), "No events was specified");
-            Guard.For(() => events.Any() == false, new ArgumentException("No events were specified", nameof(events)));
+            Guard.For<ArgumentException>(() => !events.Any(), "No events were specified");
+            Guard.For<ArgumentException>(() => events.Any(@event => @event is null), "Some events are 'null'");
 
             await PublishEventToTopicAsync(events);
         }
@@ -140,15 +162,16 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent, new()
+        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent, new()
         {
-            return TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey)
+            return await TopicEndpoint
+                .WithHeader(name: "aeg-sas-key", value: _authenticationKey)
                 .PostJsonAsync(events);
         }
 
-        private async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
+        private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
         {
-            var rawResponse = string.Empty;
+            var rawResponse = String.Empty;
 
             try
             {

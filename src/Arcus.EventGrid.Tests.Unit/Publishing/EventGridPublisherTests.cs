@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Publishing;
 using Arcus.EventGrid.Tests.Core.Events;
 using Xunit;
@@ -9,6 +10,23 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
 {
     public class EventGridPublisherTests
     {
+        [Fact]
+        public async Task PublishRaw_NoRawEventWasSpecified_ShouldFailWithArgumentNullException()
+        {
+            // Arrange
+            const string topicEndpoint = "http://myTopic";
+            const string authenticationKey = "myKey";
+
+            var eventGridPublisher =
+                EventGridPublisherBuilder
+                    .ForTopic(topicEndpoint)
+                    .UsingAuthenticationKey(authenticationKey)
+                    .Build();
+
+            // Act / Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.PublishRawAsync(rawEvent: null));
+        }
+
         [Fact]
         public async Task PublishRaw_NoEventIdWasSpecified_ShouldFailWithArgumentException()
         {
@@ -348,6 +366,53 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             // Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.PublishAsync(@event));
         }
+
+        [Fact]
+        public async Task PublishManyRaw_NoRawEventsWasSpecified_ShouldFailWithArgumentNullException()
+        {
+            // Arrange
+            const string topicEndpoint = "http://myTopic";
+            const string authenticationKey = "myKey";
+
+            var eventGridPublisher =
+                EventGridPublisherBuilder
+                    .ForTopic(topicEndpoint)
+                    .UsingAuthenticationKey(authenticationKey)
+                    .Build();
+
+            // Act / Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridPublisher.PublishManyRawAsync(rawEvents: null));
+        }
+
+        [Fact]
+        public async Task PublishManyRaw_AnyNullRawEventWasSpecified_ShouldFailWithArgumentException()
+        {
+            // Arrange
+            const string topicEndpoint = "http://myTopic";
+            const string authenticationKey = "myKey";
+            string eventId = Guid.NewGuid().ToString();
+            string eventType = "Arcus.Samples.Cars.NewCarRegistered";
+            string eventBody = "{\"licensePlate\": \"1-TOM-1337\"}";
+            string eventSubject = "/cars/volvo";
+            string dataVersion = "1.0";
+            DateTimeOffset eventTime = DateTimeOffset.UtcNow;
+
+            var eventGridPublisher =
+                EventGridPublisherBuilder
+                    .ForTopic(topicEndpoint)
+                    .UsingAuthenticationKey(authenticationKey)
+                    .Build();
+
+            IEnumerable<RawEvent> eventList = new[]
+            {
+                new RawEvent(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime),
+                null
+            };
+
+            // Act / Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => eventGridPublisher.PublishManyRawAsync(eventList));
+        }
+
 
         [Fact]
         public async Task Publish_NoEventsSpecified_ShouldFailWithArgumentNullException()
