@@ -55,7 +55,7 @@ string rawEventPayload = String.Format("{ \"licensePlate\": \"{0}\"}", licensePl
 await eventGridPublisher.PublishRawAsync(eventId, eventSubject, rawEventPayload);
 ```
 
-or with a specific `RawEvent` type
+As an alternative, you can also create a `RawEvent` instance and use that instead.
 
 ```csharp
 string licensePlate = "1-TOM-337";
