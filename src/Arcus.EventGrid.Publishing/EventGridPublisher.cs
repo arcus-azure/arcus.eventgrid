@@ -79,7 +79,7 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="eventSubject">Subject of the event</param>
         /// <param name="dataVersion">Data version of the event body</param>
         /// <param name="eventTime">Time when the event occured</param>
-        public Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
+        public async Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId), "No event id was specified");
             Guard.NotNullOrWhitespace(eventType, nameof(eventType), "No event type was specified");
@@ -89,7 +89,7 @@ namespace Arcus.EventGrid.Publishing
 
             var rawEvent = new RawEvent(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime);
 
-            return PublishRawAsync(rawEvent);
+            await PublishRawAsync(rawEvent);
         }
 
         /// <summary>
@@ -162,15 +162,16 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent, new()
+        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent, new()
         {
-            return TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey)
+            return await TopicEndpoint
+                .WithHeader(name: "aeg-sas-key", value: _authenticationKey)
                 .PostJsonAsync(events);
         }
 
-        private async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
+        private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
         {
-            var rawResponse = string.Empty;
+            var rawResponse = String.Empty;
 
             try
             {
