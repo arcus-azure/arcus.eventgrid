@@ -32,9 +32,9 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <param name="hybridConnectionName">Name of the Azure Relay Hybrid Connection</param>
         /// <param name="accessPolicyName">Name of the access policy</param>
         /// <param name="accessPolicyKey">Key of the access policy to authenticate with</param>
-        public static async Task<HybridConnectionHost> Start(string relayNamespaceName, string hybridConnectionName, string accessPolicyName, string accessPolicyKey)
+        public static async Task<HybridConnectionHost> StartAsync(string relayNamespaceName, string hybridConnectionName, string accessPolicyName, string accessPolicyKey)
         {
-            var hybridConnectionHost = await Start(relayNamespaceName, hybridConnectionName, accessPolicyName, accessPolicyKey, new NoOpLogger());
+            var hybridConnectionHost = await StartAsync(relayNamespaceName, hybridConnectionName, accessPolicyName, accessPolicyKey, new NoOpLogger());
             return hybridConnectionHost;
         }
 
@@ -46,7 +46,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <param name="accessPolicyName">Name of the access policy</param>
         /// <param name="accessPolicyKey">Key of the access policy to authenticate with</param>
         /// <param name="logger">Logger to use for writing event information during the hybrid connection</param>
-        public static async Task<HybridConnectionHost> Start(string relayNamespaceName, string hybridConnectionName, string accessPolicyName, string accessPolicyKey, ILogger logger)
+        public static async Task<HybridConnectionHost> StartAsync(string relayNamespaceName, string hybridConnectionName, string accessPolicyName, string accessPolicyKey, ILogger logger)
         {
             Guard.NotNullOrWhitespace(relayNamespaceName, nameof(relayNamespaceName));
             Guard.NotNullOrWhitespace(hybridConnectionName, nameof(hybridConnectionName));

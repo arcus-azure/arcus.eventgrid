@@ -92,16 +92,16 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
 
         private static void StartMessagePump(SubscriptionClient subscriptionClient, ILogger logger)
         {
-            var messageHandlerOptions = new MessageHandlerOptions(async exceptionReceivedEventArgs => await HandleException(exceptionReceivedEventArgs, logger))
+            var messageHandlerOptions = new MessageHandlerOptions(async exceptionReceivedEventArgs => await HandleExceptionAsync(exceptionReceivedEventArgs, logger))
             {
                 AutoComplete = false,
                 MaxConcurrentCalls = 10
             };
 
-            subscriptionClient.RegisterMessageHandler(async (receivedMessage, cancellationToken) => await HandleNewMessage(receivedMessage, subscriptionClient, cancellationToken, logger), messageHandlerOptions);
+            subscriptionClient.RegisterMessageHandler(async (receivedMessage, cancellationToken) => await HandleNewMessageAsync(receivedMessage, subscriptionClient, cancellationToken, logger), messageHandlerOptions);
         }
 
-        private static async Task HandleNewMessage(Message receivedMessage, SubscriptionClient subscriptionClient, CancellationToken cancellationToken, ILogger logger)
+        private static async Task HandleNewMessageAsync(Message receivedMessage, SubscriptionClient subscriptionClient, CancellationToken cancellationToken, ILogger logger)
         {
             if (receivedMessage == null)
             {
@@ -126,7 +126,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             }
         }
 
-        private static Task HandleException(ExceptionReceivedEventArgs exceptionReceivedEventArgs, ILogger logger)
+        private static Task HandleExceptionAsync(ExceptionReceivedEventArgs exceptionReceivedEventArgs, ILogger logger)
         {
             logger.LogCritical(exceptionReceivedEventArgs.Exception.Message);
             return Task.CompletedTask;
