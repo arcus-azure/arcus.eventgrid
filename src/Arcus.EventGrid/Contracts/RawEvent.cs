@@ -7,7 +7,7 @@ namespace Arcus.EventGrid.Contracts
     /// <summary>
     /// Representation of an event with raw JSON content.
     /// </summary>
-    public class RawEvent : EventGridEvent<JToken>
+    public class RawEvent : EventGridEvent<object>
     {
         private RawEvent() { }
 
