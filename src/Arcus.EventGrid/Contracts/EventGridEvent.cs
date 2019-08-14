@@ -75,7 +75,7 @@ namespace Arcus.EventGrid.Contracts
             {
                 if (base.Data is null)
                 {
-                    return default;
+                    return default(TData);
                 }
 
                 if (base.Data is TData data)
