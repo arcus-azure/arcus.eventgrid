@@ -26,7 +26,7 @@ namespace Arcus.EventGrid.Contracts
         /// <param name="dataVersion">The schema version of the data object. The publisher defines the schema version.</param>
         /// <param name="eventType">The one of the registered event types for this event source.</param>
         public EventGridEvent(string id, string dataVersion, string eventType)
-            : base(id, subject: null, data: default(TData), eventType, eventTime: DateTime.UtcNow, dataVersion)
+            : base(id, subject: null, data: default(TData), eventType: eventType, eventTime: DateTime.UtcNow, dataVersion: dataVersion)
         {
             Guard.NotNullOrWhitespace(id, nameof(id));
             Guard.NotNullOrWhitespace(dataVersion, nameof(dataVersion));
@@ -41,7 +41,7 @@ namespace Arcus.EventGrid.Contracts
         /// <param name="dataVersion">The schema version of the data object. The publisher defines the schema version.</param>
         /// <param name="eventType">The one of the registered event types for this event source.</param>
         public EventGridEvent(string id, TData data, string dataVersion, string eventType)
-            : base(id, subject: null, data, eventType, eventTime: DateTime.UtcNow, dataVersion)
+            : base(id, subject: null, data: data, eventType: eventType, eventTime: DateTime.UtcNow, dataVersion: dataVersion)
         {
             Guard.NotNullOrWhitespace(id, nameof(id));
             Guard.NotNullOrWhitespace(dataVersion, nameof(dataVersion));
