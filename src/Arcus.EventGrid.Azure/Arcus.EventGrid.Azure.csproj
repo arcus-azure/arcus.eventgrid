@@ -16,4 +16,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
+  </ItemGroup>
+
 </Project>

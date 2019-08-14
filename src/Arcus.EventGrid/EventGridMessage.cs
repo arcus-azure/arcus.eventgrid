@@ -1,11 +1,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Arcus.EventGrid.Contracts.Interfaces;
 using GuardNet;
 
 namespace Arcus.EventGrid
 {
-    public class EventGridMessage<TEvent> where TEvent : IEvent, new()
+    /// <summary>
+    /// Representation of an message received from event grid containing a <see cref="SessionId"/> and a series of <see cref="Events"/>.
+    /// </summary>
+    /// <typeparam name="TEvent">The type of the event that was received.</typeparam>
+    public class EventGridMessage<TEvent>
     {
         /// <summary>
         /// Creates event grid message with passed session Id

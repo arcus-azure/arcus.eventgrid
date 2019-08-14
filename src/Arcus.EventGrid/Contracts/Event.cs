@@ -9,13 +9,23 @@ namespace Arcus.EventGrid.Contracts
     ///     (Official schema documentation - https://docs.microsoft.com/en-us/azure/event-grid/event-schema#event-schema)
     /// </summary>
     /// <typeparam name="TData">Type of data payload</typeparam>
+    [Obsolete(
+        "Azure Event Grid events are now used in favor of specific Arcus event types, use " 
+        + nameof(EventGridEvent<TData>) + "<" + nameof(TData) + "> as base class for typed events")]
     public abstract class Event<TData> : IEvent
         where TData : new()
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Event{TData}"/> class.
+        /// </summary>
         protected Event()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Event{TData}"/> class.
+        /// </summary>
+        /// <param name="id">The unique identifier of the event.</param>
         protected Event(string id)
         {
             Guard.NotNullOrWhitespace(id, nameof(id));
@@ -23,6 +33,11 @@ namespace Arcus.EventGrid.Contracts
             Id = id;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Event{TData}"/> class.
+        /// </summary>
+        /// <param name="id">The unique identifier of the event.</param>
+        /// <param name="subject">The publisher-defined path of the event subject.</param>
         protected Event(string id, string subject) : this(id)
         {
             Guard.NotNullOrWhitespace(subject, nameof(subject));

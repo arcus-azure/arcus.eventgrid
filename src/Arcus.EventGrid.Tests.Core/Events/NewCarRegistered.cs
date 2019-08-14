@@ -4,27 +4,26 @@ using GuardNet;
 
 namespace Arcus.EventGrid.Tests.Core.Events
 {
-    public class NewCarRegistered : Event<CarEventData>
+    public class NewCarRegistered : EventGridEvent<CarEventData>
     {
-        public NewCarRegistered()
+        private const string DefaultDataVersion = "1", 
+                             DefaultEventType = "Arcus.Samples.Cars.NewCarRegistered";
+
+
+        private NewCarRegistered()
         {
         }
 
-        public NewCarRegistered(string id, string licensePlate) : base(id)
-        {
-            Guard.NotNullOrWhitespace(licensePlate, nameof(licensePlate));
-
-            Data.LicensePlate = licensePlate;
-        }
-
-        public NewCarRegistered(string id, string subject, string licensePlate) : base(id, subject)
+        public NewCarRegistered(string id, string licensePlate) : base(id, DefaultDataVersion, DefaultEventType)
         {
             Guard.NotNullOrWhitespace(licensePlate, nameof(licensePlate));
 
-            Data.LicensePlate = licensePlate;
+            Data = new CarEventData(licensePlate);
         }
 
-        public override string DataVersion { get;  } = "1";
-        public override string EventType { get;  } = "Arcus.Samples.Cars.NewCarRegistered";
+        public NewCarRegistered(string id, string subject, string licensePlate) 
+            : base(id, subject, new CarEventData(licensePlate), DefaultDataVersion, DefaultEventType) 
+        {
+        }
     }
 }
