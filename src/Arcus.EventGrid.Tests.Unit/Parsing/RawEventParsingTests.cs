@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Tests.Core.Events;
@@ -52,7 +54,6 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const string licensePlate = "1-TOM-337";
             var originalEvent = new NewCarRegistered(eventId, licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(originalEvent.Data);
-            var expectedEventPayload = JToken.Parse(rawEventBody);
             var rawEvent = new RawEvent(eventId, originalEvent.EventType, rawEventBody, originalEvent.Subject, originalEvent.DataVersion, originalEvent.EventTime);
             IEnumerable<RawEvent> events = new List<RawEvent>
             {
@@ -75,7 +76,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.Equal(originalEvent.EventTime, eventPayload.EventTime);
             Assert.Equal(originalEvent.DataVersion, eventPayload.DataVersion);
             Assert.NotNull(eventPayload.Data);
-            Assert.Equal(expectedEventPayload, eventPayload.Data);
+            Assert.Equal(rawEventBody, Regex.Replace(eventPayload.Data.ToString(), "\\s+", String.Empty));
         }
     }
 }
