@@ -53,7 +53,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const string eventId = "2d1781af-3a4c-4d7c-bd0c-e34b19da4e66";
             const string licensePlate = "1-TOM-337";
             var originalEvent = new NewCarRegistered(eventId, licensePlate);
-            var rawEventBody = JsonConvert.SerializeObject(originalEvent.Data);
+            var rawEventBody = JsonConvert.SerializeObject(originalEvent.Data, Formatting.Indented);
             var rawEvent = new RawEvent(eventId, originalEvent.EventType, rawEventBody, originalEvent.Subject, originalEvent.DataVersion, originalEvent.EventTime);
             IEnumerable<RawEvent> events = new List<RawEvent>
             {
@@ -76,7 +76,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.Equal(originalEvent.EventTime, eventPayload.EventTime);
             Assert.Equal(originalEvent.DataVersion, eventPayload.DataVersion);
             Assert.NotNull(eventPayload.Data);
-            Assert.Equal(rawEventBody, Regex.Replace(eventPayload.Data.ToString(), "\\s+", String.Empty));
+            Assert.Equal(rawEventBody, eventPayload.Data.ToString());
         }
     }
 }
