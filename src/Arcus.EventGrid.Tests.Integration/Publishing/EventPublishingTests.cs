@@ -195,10 +195,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
                     .Select(newGuid => new RawEvent(
                                 newGuid().ToString(),
-                                subject: "integration-test",
-                                data: $"{{\"licensePlate\": \"{licensePlate}\"}}",
+                                eventSubject: "integration-test",
+                                eventData: $"{{\"licensePlate\": \"{licensePlate}\"}}",
                                 eventType: "Arcus.Samples.Cars.NewCarRegistered",
-                                dataVersion:"1.0",
+                                eventVersion:"1.0",
                                 eventTime: DateTimeOffset.Now))
                     .ToArray();
 
@@ -258,10 +258,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
                     .Select(newGuid => new RawEvent(
                                 newGuid().ToString(),
-                                subject: "integration-test",
-                                data: $"{{\"licensePlate\": \"{licensePlate}\"}}",
+                                eventSubject: "integration-test",
+                                eventData: $"{{\"licensePlate\": \"{licensePlate}\"}}",
                                 eventType: "Arcus.Samples.Cars.NewCarRegistered",
-                                dataVersion:"1.0",
+                                eventVersion:"1.0",
                                 eventTime: DateTimeOffset.Now))
                     .ToArray();
 
