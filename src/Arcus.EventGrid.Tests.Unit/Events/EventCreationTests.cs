@@ -58,7 +58,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
         {
             // Arrange
             string eventId = Guid.NewGuid().ToString();
-            string subject = null;
+            string subject = " ";
             const string licensePlate = "1-TOM-337";
 
             // Act & Assert
