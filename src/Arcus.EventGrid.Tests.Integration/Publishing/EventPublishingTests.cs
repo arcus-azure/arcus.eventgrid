@@ -8,6 +8,7 @@ using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Publishing;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
 using Arcus.EventGrid.Tests.Core.Events;
+using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Integration.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -180,7 +181,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .PublishManyAsync(events);
 
             // Assert
-            Assert.All(events, @event => AssertReceivedEventWithRetryCount(@event, @event.Data.LicensePlate));
+            Assert.All(events, @event => AssertReceivedEventWithRetryCount(@event, @event.GetPayload().LicensePlate));
         }
 
         [Fact]
@@ -243,7 +244,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .PublishManyAsync(events);
 
             // Assert
-            Assert.All(events, @event => AssertReceivedEventWithTimeout(@event, @event.Data.LicensePlate));
+            Assert.All(events, @event => AssertReceivedEventWithTimeout(@event, @event.GetPayload().LicensePlate));
         }
 
         [Fact]
@@ -299,7 +300,8 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             Assert.Equal(eventType, deserializedEvent.EventType);
 
             Assert.NotNull(deserializedEvent.Data);
-            Assert.Equal(licensePlate, deserializedEvent.Data.LicensePlate);
+            Assert.Equal(JsonConvert.DeserializeObject<CarEventData>(deserializedEvent.Data.ToString()), deserializedEvent.GetPayload());
+            Assert.Equal(licensePlate, deserializedEvent.GetPayload().LicensePlate);
         }
 
         private void TracePublishedEvent(string eventId, object events)

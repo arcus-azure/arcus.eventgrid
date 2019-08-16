@@ -61,32 +61,19 @@ namespace Arcus.EventGrid.Contracts
         /// <summary>
         ///     Event data specific to the resource provider.
         /// </summary>
-        [JsonIgnore]
-        public new TData Data
+        public TData GetPayload()
         {
-            get
+            if (base.Data is null)
             {
-                if (base.Data is null)
-                {
-                    return default(TData);
-                }
-
-                if (base.Data is TData data)
-                {
-                    return data;
-                }
-
-                try
-                {
-                    return JObject.Parse(base.Data.ToString()).ToObject<TData>();
-                }
-                catch
-                {
-                    return default(TData);
-                }
+                return default(TData);
             }
 
-            set => base.Data = value;
+            if (base.Data is TData data)
+            {
+                return data;
+            }
+
+            return JObject.Parse(base.Data.ToString()).ToObject<TData>();
         }
 
         /// <summary>

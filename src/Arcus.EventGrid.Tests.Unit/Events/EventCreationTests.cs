@@ -81,7 +81,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             Assert.Equal(eventId, createdEvent.Id);
             Assert.Equal(subject, createdEvent.Subject);
             Assert.NotNull(createdEvent.Data);
-            Assert.Equal(licensePlate, createdEvent.Data.LicensePlate);
+            Assert.Equal(licensePlate, createdEvent.GetPayload().LicensePlate);
             Assert.NotEqual(default(DateTimeOffset), createdEvent.EventTime);
         }
 
@@ -100,7 +100,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             Assert.Equal(eventId, createdEvent.Id);
             Assert.Null(createdEvent.Subject);
             Assert.NotNull(createdEvent.Data);
-            Assert.Equal(licensePlate, createdEvent.Data.LicensePlate);
+            Assert.Equal(licensePlate, createdEvent.GetPayload().LicensePlate);
             Assert.NotEqual(default(DateTimeOffset), createdEvent.EventTime);
         }
     }

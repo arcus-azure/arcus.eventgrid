@@ -69,7 +69,7 @@ namespace Arcus.EventGrid.Security
 
             var subscriptionEvent = gridMessage.Events.Single();
 
-            var validationCode = subscriptionEvent.Data?.ValidationCode;
+            var validationCode = subscriptionEvent.GetPayload().ValidationCode;
             if (validationCode == null)
             {
                 return null;
