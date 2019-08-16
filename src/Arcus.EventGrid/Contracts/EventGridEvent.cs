@@ -28,9 +28,7 @@ namespace Arcus.EventGrid.Contracts
         public EventGridEvent(string id, string dataVersion, string eventType)
             : base(id, subject: null, data: default(TData), eventType: eventType, eventTime: DateTime.UtcNow, dataVersion: dataVersion)
         {
-            Guard.NotNullOrWhitespace(id, nameof(id));
-            Guard.NotNullOrWhitespace(dataVersion, nameof(dataVersion));
-            Guard.NotNullOrWhitespace(eventType, nameof(eventType));
+            Validate();
         }
 
         /// <summary>
@@ -43,9 +41,7 @@ namespace Arcus.EventGrid.Contracts
         public EventGridEvent(string id, TData data, string dataVersion, string eventType)
             : base(id, subject: null, data: data, eventType: eventType, eventTime: DateTime.UtcNow, dataVersion: dataVersion)
         {
-            Guard.NotNullOrWhitespace(id, nameof(id));
-            Guard.NotNullOrWhitespace(dataVersion, nameof(dataVersion));
-            Guard.NotNullOrWhitespace(eventType, nameof(eventType));
+            Validate();
         }
 
         /// <summary>
@@ -59,10 +55,7 @@ namespace Arcus.EventGrid.Contracts
         public EventGridEvent(string id, string subject, TData data, string dataVersion, string eventType)
             : base(id, subject, data: data, eventType: eventType, eventTime: DateTime.UtcNow, dataVersion: dataVersion, metadataVersion: "1")
         {
-            Guard.NotNullOrWhitespace(id, nameof(id));
-            Guard.NotNullOrWhitespace(subject, nameof(subject));
-            Guard.NotNullOrWhitespace(dataVersion, nameof(dataVersion));
-            Guard.NotNullOrWhitespace(eventType, nameof(eventType));
+            Validate();
         }
 
         /// <summary>
@@ -104,6 +97,17 @@ namespace Arcus.EventGrid.Contracts
         DateTimeOffset IEvent.EventTime
         {
             get => base.EventTime;
+        }
+
+        /// <summary>
+        /// Verify if this event instance is considered valid, throw otherwise for failures.
+        /// </summary>
+        public override void Validate()
+        {
+            Guard.NotNullOrWhitespace(Id, nameof(Id), "Unique event identifier cannot be null or blank");
+            Guard.NotNullOrWhitespace(DataVersion, nameof(DataVersion), "Data version of the event cannot be null or blank");
+            Guard.NotNullOrWhitespace(EventType, nameof(EventType), "Type of the event cannot be null or blank");
+            Guard.For<ArgumentException>(() => Subject != null && String.IsNullOrWhiteSpace(Subject), "Subject name of the event can only be specified with a non-blank value");
         }
     }
 }
