@@ -23,18 +23,6 @@ namespace Arcus.EventGrid.Contracts
         /// Initializes a new instance of the <see cref="EventGridEvent{TData}"/> class.
         /// </summary>
         /// <param name="id">The unique identifier of the event.</param>
-        /// <param name="dataVersion">The schema version of the data object. The publisher defines the schema version.</param>
-        /// <param name="eventType">The one of the registered event types for this event source.</param>
-        public EventGridEvent(string id, string dataVersion, string eventType)
-            : base(id, subject: null, data: default(TData), eventType: eventType, eventTime: DateTime.UtcNow, dataVersion: dataVersion)
-        {
-            Validate();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EventGridEvent{TData}"/> class.
-        /// </summary>
-        /// <param name="id">The unique identifier of the event.</param>
         /// <param name="data">The event data specific to the resource provider.</param>
         /// <param name="dataVersion">The schema version of the data object. The publisher defines the schema version.</param>
         /// <param name="eventType">The one of the registered event types for this event source.</param>
@@ -84,17 +72,6 @@ namespace Arcus.EventGrid.Contracts
         DateTimeOffset IEvent.EventTime
         {
             get => base.EventTime;
-        }
-
-        /// <summary>
-        /// Verify if this event instance is considered valid, throw otherwise for failures.
-        /// </summary>
-        public override void Validate()
-        {
-            Guard.NotNullOrWhitespace(Id, nameof(Id), "Unique event identifier cannot be null or blank");
-            Guard.NotNullOrWhitespace(DataVersion, nameof(DataVersion), "Data version of the event cannot be null or blank");
-            Guard.NotNullOrWhitespace(EventType, nameof(EventType), "Type of the event cannot be null or blank");
-            Guard.For<ArgumentException>(() => Subject != null && String.IsNullOrWhiteSpace(Subject), "Subject name of the event can only be specified with a non-blank value");
         }
     }
 }

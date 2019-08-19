@@ -14,11 +14,8 @@ namespace Arcus.EventGrid.Tests.Core.Events
         {
         }
 
-        public NewCarRegistered(string id, string licensePlate) : base(id, DefaultDataVersion, DefaultEventType)
+        public NewCarRegistered(string id, string licensePlate) : this(id, "New registered car", licensePlate)
         {
-            Guard.NotNullOrWhitespace(licensePlate, nameof(licensePlate));
-
-            Data = new CarEventData(licensePlate);
         }
 
         public NewCarRegistered(string id, string subject, string licensePlate) 
