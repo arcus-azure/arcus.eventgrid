@@ -33,15 +33,21 @@ namespace Arcus.EventGrid.Contracts
         /// <param name="eventVersion">Data version of the event body</param>
         /// <param name="eventTime">Time when the event occured</param>
         public RawEvent(string eventId, string eventType, string eventData, string eventSubject, string eventVersion, DateTime eventTime)
-            : base(eventId,
-                  eventSubject,
-                   eventData.TryParseJson(out JToken payload)
-                    ? payload
-                    : throw new ArgumentException("The event body is not a valid JSON payload"),
-                   eventVersion,
-                   eventType)
+            : base(eventId, eventSubject, ParseToken(eventData, "The event body is not a valid JSON payload"), eventVersion, eventType)
         {
             EventTime = eventTime;
+        }
+
+        private static JToken ParseToken(string payload, string message)
+        {
+            try
+            {
+                return JToken.Parse(payload);
+            }
+            catch
+            {
+                throw new ArgumentException(message);
+            }
         }
     }
 }

@@ -17,7 +17,8 @@ namespace Arcus.EventGrid.Contracts
         /// <summary>
         /// Initializes a new instance of the <see cref="EventGridEvent{TData}"/> class.
         /// </summary>
-        protected EventGridEvent() { }
+        protected EventGridEvent() 
+            { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventGridEvent{TData}"/> class.
