@@ -1,4 +1,4 @@
-name: $(date:yyyyMMdd)$(rev:.r)
+name: $(Package.Version)
 
 trigger: none
 
@@ -11,6 +11,8 @@ variables:
     value: '2.2.105'
   - name: 'Project'
     value: 'Arcus.EventGrid'
+  - name: 'Package.Version'
+    value: '1.0.0'
 
 stages:
   - stage: Build
