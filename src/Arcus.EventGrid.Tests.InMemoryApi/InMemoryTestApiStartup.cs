@@ -11,7 +11,7 @@ namespace Arcus.EventGrid.Tests.InMemoryApi
 
         public void Configuration(IAppBuilder app)
         {
-            var config = new HttpConfiguration
+            var config = new Htonfiguration
             {
                 IncludeErrorDetailPolicy = IncludeErrorDetailPolicy.Always
             };
