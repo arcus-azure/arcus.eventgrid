@@ -1,6 +1,7 @@
 name: $(Package.Version)
 
 trigger: none
+pr: none
 
 variables:
   - group: 'Arcus Event Grid - Integration Testing'
