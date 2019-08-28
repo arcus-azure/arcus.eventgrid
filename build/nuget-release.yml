@@ -155,6 +155,7 @@ stages:
                 > Install-Package Arcus.EventGrid.All -Version $(Build.BuildNumber)
                 ```
               isPreRelease: true
+              compareWith: 'lastRelease'
             condition: contains(variables['Build.BuildNumber'], '-')
           - task: NuGetCommand@2
             displayName: 'Push to MyGet.org'
