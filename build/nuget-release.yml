@@ -129,7 +129,7 @@ stages:
             displayName: 'Create GitHub Release (Conditional Step)'
             inputs:
               gitHubConnection: 'GitHub (arcus-automation - OAuth)'
-              repositoryName: 'arcus-azure/arcus.temp'
+              repositoryName: 'arcus-sandbox/arcus.temp'
               tagSource: manual
               tag: 'v$(Build.BuildNumber)'
               title: 'v$(Build.BuildNumber)'
@@ -144,7 +144,7 @@ stages:
             displayName: 'Create GitHub Pre-Release (Conditional Step)'
             inputs:
               gitHubConnection: 'GitHub (arcus-automation - OAuth)'
-              repositoryName: 'arcus-azure/arcus.temp'
+              repositoryName: 'arcus-sandbox/arcus.temp'
               tagSource: manual
               tag: 'v$(Build.BuildNumber)'
               title: 'v$(Build.BuildNumber)'
