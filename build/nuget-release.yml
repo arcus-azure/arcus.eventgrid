@@ -129,7 +129,7 @@ stages:
             displayName: 'Create GitHub Release (Conditional Step)'
             inputs:
               gitHubConnection: 'GitHub (arcus-automation - OAuth)'
-              repositoryName: 'arcus-azure/arcus.eventgrid'
+              repositoryName: 'arcus-azure/arcus.temp'
               tagSource: manual
               tag: 'v$(Build.BuildNumber)'
               title: 'v$(Build.BuildNumber)'
@@ -144,7 +144,7 @@ stages:
             displayName: 'Create GitHub Pre-Release (Conditional Step)'
             inputs:
               gitHubConnection: 'GitHub (arcus-automation - OAuth)'
-              repositoryName: 'arcus-azure/arcus.eventgrid'
+              repositoryName: 'arcus-azure/arcus.temp'
               tagSource: manual
               tag: 'v$(Build.BuildNumber)'
               title: 'v$(Build.BuildNumber)'
@@ -158,7 +158,7 @@ stages:
               compareWith: 'lastRelease'
             condition: contains(variables['Build.BuildNumber'], '-')
           - task: NuGetCommand@2
-            displayName: 'Push to MyGet.org'
+            displayName: 'Push to NuGet.org'
             inputs:
               command: push
               packagesToPush: 'src/**/*.nupkg'
