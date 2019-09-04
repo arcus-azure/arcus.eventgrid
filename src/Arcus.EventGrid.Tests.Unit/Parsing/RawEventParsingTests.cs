@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Tests.Core.Events;
+using Arcus.EventGrid.Tests.Core.Events.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -43,7 +44,13 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.Equal(originalEvent.EventTime, eventPayload.EventTime);
             Assert.Equal(originalEvent.DataVersion, eventPayload.DataVersion);
             Assert.NotNull(eventPayload.Data);
-            Assert.Equal(originalEvent.GetPayload().LicensePlate, eventPayload.GetPayload().LicensePlate);
+
+            CarEventData expectedEventData = originalEvent.GetPayload();
+            CarEventData actualEventData = eventPayload.GetPayload();
+            
+            Assert.NotNull(expectedEventData);
+            Assert.NotNull(actualEventData);
+            Assert.Equal(expectedEventData, actualEventData);
         }
 
         [Fact]
