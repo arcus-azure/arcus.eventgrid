@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
+using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Parsers;
-using Arcus.EventGrid.Security.Contracts.Events.v1;
+using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
+using Microsoft.Azure.EventGrid.Models;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
@@ -22,20 +25,45 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             var eventTime = DateTimeOffset.Parse("2017-08-06T22:09:30.740323Z");
 
             // Act
-            var eventGridMessage = EventGridParser.Parse<SubscriptionValidation>(rawEvent);
+            var eventGridBatch = EventGridParser.ParseFromData<SubscriptionValidationEventData>(rawEvent);
 
             // Assert
-            Assert.NotNull(eventGridMessage);
-            Assert.NotNull(eventGridMessage.Events);
-            Assert.Single(eventGridMessage.Events);
-            var eventPayload = eventGridMessage.Events.Single();
+            Assert.NotNull(eventGridBatch);
+            Assert.NotNull(eventGridBatch.Events);
+            var eventPayload = Assert.Single(eventGridBatch.Events);
             Assert.Equal(eventId, eventPayload.Id);
             Assert.Equal(topic, eventPayload.Topic);
             Assert.Equal(subject, eventPayload.Subject);
             Assert.Equal(eventType, eventPayload.EventType);
             Assert.Equal(eventTime, eventPayload.EventTime);
             Assert.NotNull(eventPayload.Data);
-            Assert.Equal(validationCode, eventPayload.Data.ValidationCode);
+            Assert.Equal(validationCode, eventPayload.GetPayload()?.ValidationCode);
+        }
+
+        [Fact]
+        public void Parse_ValidNewCarRegisteredEvent_ShouldSucceed()
+        {
+            // Arrange
+            string eventId = Guid.NewGuid().ToString();
+            const string licensePlate = "1-TOM-337";
+            const string subject = licensePlate;
+            
+            var @event = new NewCarRegistered(eventId, subject, licensePlate);
+            var rawEvent = JsonConvert.SerializeObject(new[] {@event});
+
+            // Act
+            var eventGridBatch = EventGridParser.Parse<NewCarRegistered>(rawEvent);
+
+            // Assert
+            Assert.NotNull(eventGridBatch);
+            Assert.NotNull(eventGridBatch.Events);
+            var eventPayload = Assert.Single(eventGridBatch.Events);
+            Assert.Equal(eventId, eventPayload.Id);
+            Assert.Equal(subject, eventPayload.Subject);
+            Assert.Equal(@event.EventType, eventPayload.EventType);
+            Assert.Equal(@event.EventTime, eventPayload.EventTime);
+            Assert.NotNull(eventPayload.Data);
+            Assert.Equal(licensePlate, eventPayload.GetPayload()?.LicensePlate);
         }
 
         [Fact]
@@ -52,85 +80,121 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             string sessionId = Guid.NewGuid().ToString();
 
             // Act
-            var eventGridMessage = EventGridParser.Parse<SubscriptionValidation>(rawEvent, sessionId);
+            var eventGridBatch = EventGridParser.ParseFromData<SubscriptionValidationEventData>(rawEvent, sessionId);
 
             // Assert
-            Assert.NotNull(eventGridMessage);
-            Assert.Equal(sessionId, eventGridMessage.SessionId);
-            Assert.NotNull(eventGridMessage.Events);
-            Assert.Single(eventGridMessage.Events);
-            var eventPayload = eventGridMessage.Events.Single();
+            Assert.NotNull(eventGridBatch);
+            Assert.Equal(sessionId, eventGridBatch.SessionId);
+            Assert.NotNull(eventGridBatch.Events);
+            Assert.Single(eventGridBatch.Events);
+            var eventPayload = eventGridBatch.Events.Single();
             Assert.Equal(eventId, eventPayload.Id);
             Assert.Equal(topic, eventPayload.Topic);
             Assert.Equal(subject, eventPayload.Subject);
             Assert.Equal(eventType, eventPayload.EventType);
             Assert.Equal(eventTime, eventPayload.EventTime);
             Assert.NotNull(eventPayload.Data);
-            Assert.Equal(validationCode, eventPayload.Data.ValidationCode);
+            Assert.Equal(validationCode, eventPayload.GetPayload()?.ValidationCode);
         }
 
         [Fact]
-        public void Parse_EmptyEventSpecified_ThrowsException()
+        public void Parse_ValidNewCarRegisteredEventWithSessionId_ShouldSucceed()
         {
             // Arrange
-            string rawEvent = string.Empty;
+            string eventId = Guid.NewGuid().ToString();
+            const string licensePlate = "1-TOM-337";
+            const string subject = licensePlate;
+            
+            var @event = new NewCarRegistered(eventId, subject, licensePlate);
+            var rawEvent = JsonConvert.SerializeObject(new[] {@event});
+            string sessionId = Guid.NewGuid().ToString();
 
+            // Act
+            var eventGridBatch = EventGridParser.Parse<NewCarRegistered>(rawEvent, sessionId);
+
+            // Assert
+            Assert.NotNull(eventGridBatch);
+            Assert.Equal(sessionId, eventGridBatch.SessionId);
+            Assert.NotNull(eventGridBatch.Events);
+            var eventPayload = Assert.Single(eventGridBatch.Events);
+            Assert.Equal(eventId, eventPayload.Id);
+            Assert.Equal(subject, eventPayload.Subject);
+            Assert.Equal(@event.EventType, eventPayload.EventType);
+            Assert.Equal(@event.EventTime, eventPayload.EventTime);
+            Assert.NotNull(eventPayload.Data);
+            Assert.Equal(licensePlate, eventPayload.GetPayload()?.LicensePlate);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void Parse_BlankEventDataSpecified_ThrowsException(string rawEvent)
+        {
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => EventGridParser.Parse<SubscriptionValidation>(rawEvent));
+            Assert.Throws<ArgumentException>(() => EventGridParser.ParseFromData<SubscriptionValidationEventData>(rawEvent));
         }
 
-        [Fact]
-        public void Parse_NoEventSpecified_ThrowsException()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void Parse_BlankEventSpecified_ThrowsException(string rawEvent)
         {
-            // Arrange
-            string rawEvent = null;
-
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => EventGridParser.Parse<SubscriptionValidation>(rawEvent));
+            Assert.Throws<ArgumentException>(() => EventGridParser.Parse<NewCarRegistered>(rawEvent));
         }
 
-        [Fact]
-        public void Parse_EmptyEventWithValidSessionIdSpecified_ThrowsException()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void Parse_BlankEventDataWithValidSessionIdSpecified_ThrowsException(string rawEvent)
         {
             // Arrange
-            string rawEvent = string.Empty;
             string sessionId = Guid.NewGuid().ToString();
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => EventGridParser.Parse<SubscriptionValidation>(rawEvent, sessionId));
+            Assert.Throws<ArgumentException>(() => EventGridParser.ParseFromData<SubscriptionValidationEventData>(rawEvent, sessionId));
         }
 
-        [Fact]
-        public void Parse_NoEventWithValidSessionIdSpecified_ThrowsException()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void Parse_BlankEventWithValidSessionIdSpecified_ThrowsException(string rawEvent)
         {
             // Arrange
-            string rawEvent = null;
             string sessionId = Guid.NewGuid().ToString();
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => EventGridParser.Parse<SubscriptionValidation>(rawEvent, sessionId));
+            Assert.Throws<ArgumentException>(() => EventGridParser.Parse<NewCarRegistered>(rawEvent, sessionId));
         }
-
-        [Fact]
-        public void Parse_ValidEventWithEmptySessionIdSpecified_ThrowsException()
+        
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void Parse_ValidEventDataWithBlankSessionIdSpecified_ThrowsException(string sessionId)
         {
             // Arrange
             string rawEvent = EventSamples.SubscriptionValidationEvent;
-            string sessionId = string.Empty;
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => EventGridParser.Parse<SubscriptionValidation>(rawEvent, sessionId));
+            Assert.Throws<ArgumentException>(() => EventGridParser.ParseFromData<SubscriptionValidationEventData>(rawEvent, sessionId));
         }
 
-        [Fact]
-        public void Parse_ValidEventWithoutSessionIdSpecified_ThrowsException()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void Parse_ValidEventWithBlankSessionIdSpecified_ThrowsException(string sessionId)
         {
             // Arrange
-            string rawEvent = EventSamples.SubscriptionValidationEvent;
-            string sessionId = null;
+            string rawEvent = EventSamples.IoTDeviceCreateEvent;
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => EventGridParser.Parse<SubscriptionValidation>(rawEvent, sessionId));
+            Assert.Throws<ArgumentException>(() => EventGridParser.Parse<EventGridEvent<IotHubDeviceCreatedEventData>>(rawEvent, sessionId));
         }
     }
 }

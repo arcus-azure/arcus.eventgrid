@@ -20,6 +20,9 @@ namespace Arcus.EventGrid.Security
     /// </summary>
     public class EventGridSubscriptionValidator : ActionFilterAttribute
     {
+        /// <summary>
+        /// Occurs before the action method is invoked.
+        /// </summary>
         public override async Task OnActionExecutingAsync(HttpActionContext actionContext, CancellationToken cancellationToken)
         {
             try
@@ -55,7 +58,7 @@ namespace Arcus.EventGrid.Security
         {
             // Parsing the incoming message to a typed EventGrid message
             var rawRequest = await actionContext.Request.Content.ReadAsStringAsync();
-            var gridMessage = EventGridParser.Parse<EventGridEvent<SubscriptionValidationEventData>>(rawRequest);
+            var gridMessage = EventGridParser.ParseFromData<SubscriptionValidationEventData>(rawRequest);
 
             if (gridMessage.Events == null || gridMessage.Events.Any() == false)
             {
