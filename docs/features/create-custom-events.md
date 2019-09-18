@@ -44,6 +44,7 @@ public class NewCarRegistered : EventGridEvent<CarEventData>
 }
 ```
 
-See [deserializing events](features/deserializing-events.md) for information on how custom events are deserialized.
+Read ["Deserializing Events"](features/deserializing-events.md) for information on how custom events are deserialized.
+
 
 [&larr; back](/arcus.eventgrid)
