@@ -86,7 +86,7 @@ namespace Arcus.EventGrid.Publishing
 
         /// <summary>
         ///     Makes the <see cref="IEventGridPublisher" /> resilient by breaking the circuit/function if the
-        ///     <param name="exceptionsAllowedBeforeBreaking"></param>
+        ///     <paramref name="exceptionsAllowedBeforeBreaking" />
         ///     are handled by the policy. The circuit will stay broken for <paramref name="durationOfBreak" />.
         ///     Any attempt to execute the function while the circuit is broken will result in a
         ///     <see cref="BrokenCircuitException" />.

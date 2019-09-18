@@ -46,7 +46,7 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific event</typeparam>
         /// <param name="event">Event to publish</param>
-        Task PublishAsync<TEvent>(TEvent @event) where TEvent : class, IEvent, new();
+        Task PublishAsync<TEvent>(TEvent @event) where TEvent : class, IEvent;
 
         /// <summary>
         ///     Publish a many raw JSON payload as events
@@ -59,6 +59,6 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific event</typeparam>
         /// <param name="events">Events to publish</param>
-        Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent, new();
+        Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent;
     }
 }

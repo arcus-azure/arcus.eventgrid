@@ -1,8 +1,14 @@
-﻿namespace Arcus.EventGrid.Storage.Contracts.Events.v1.Data
+﻿using Microsoft.Azure.EventGrid.Models;
+using System;
+
+namespace Arcus.EventGrid.Storage.Contracts.Events.v1.Data
 {
     /// <summary>
     ///     Event data contract for Azure Blob Storage events
     /// </summary>
+    [Obsolete(
+        "Azure Event Grid events are now being used in favor of specific Arcus event types, use " 
+        + nameof(StorageBlobCreatedEventData) + " for example or any  other  'StorageBlob...' event data models" )]
     public class BlobEventData
     {
         public string Api { get; set; }

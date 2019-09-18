@@ -7,8 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
+using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Security.Contracts.Events.v1;
+using Microsoft.Azure.EventGrid.Models;
 
 namespace Arcus.EventGrid.Security
 {
@@ -18,6 +20,9 @@ namespace Arcus.EventGrid.Security
     /// </summary>
     public class EventGridSubscriptionValidator : ActionFilterAttribute
     {
+        /// <summary>
+        /// Occurs before the action method is invoked.
+        /// </summary>
         public override async Task OnActionExecutingAsync(HttpActionContext actionContext, CancellationToken cancellationToken)
         {
             try
@@ -53,7 +58,7 @@ namespace Arcus.EventGrid.Security
         {
             // Parsing the incoming message to a typed EventGrid message
             var rawRequest = await actionContext.Request.Content.ReadAsStringAsync();
-            var gridMessage = EventGridParser.Parse<SubscriptionValidation>(rawRequest);
+            var gridMessage = EventGridParser.ParseFromData<SubscriptionValidationEventData>(rawRequest);
 
             if (gridMessage.Events == null || gridMessage.Events.Any() == false)
             {
@@ -67,7 +72,7 @@ namespace Arcus.EventGrid.Security
 
             var subscriptionEvent = gridMessage.Events.Single();
 
-            var validationCode = subscriptionEvent.Data?.ValidationCode;
+            var validationCode = subscriptionEvent.GetPayload()?.ValidationCode;
             if (validationCode == null)
             {
                 return null;
