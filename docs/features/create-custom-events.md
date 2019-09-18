@@ -6,7 +6,7 @@ layout: default
 ## Create Custom Events
 We allow you to create custom events next to the [official Azure SDK event schemas](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.eventgrid.models?view=azure-dotnet).
 
-The official SDK provides a parent class called `EventGridEvent` which provides the data as an ordinary .NET `object`.
+The official SDK provides a class called `EventGridEvent` which provides your event data as an ordinary .NET `object`.
 We provide a variation of the official `EventGridEvent` which provides your data as an typed instance instead.
 
 This makes sure that your new custom events are both type-safe and are supported by any offical functions that uses the official `EventGridEvent`.
