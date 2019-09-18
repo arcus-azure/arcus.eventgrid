@@ -63,7 +63,9 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.Equal(@event.EventType, eventPayload.EventType);
             Assert.Equal(@event.EventTime, eventPayload.EventTime);
             Assert.NotNull(eventPayload.Data);
-            Assert.Equal(licensePlate, eventPayload.GetPayload()?.LicensePlate);
+            var eventInformation = eventPayload.GetPayload();
+            Assert.NotNull(eventInformation);
+            Assert.Equal(licensePlate, eventInformation.LicensePlate);
         }
 
         [Fact]
