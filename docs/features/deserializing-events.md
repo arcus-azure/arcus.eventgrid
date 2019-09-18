@@ -6,7 +6,7 @@ layout: default
 ## Deserializing Events
 
 We provide support for deserializing events to typed event objects where the custom event payload is available via the `.GetPayload()` method.
-The original event payload can also be accessed via the `.Data` property.
+If you want to have the original raw JSON event payload, you can get it via the `.Data` property.
 
 ```csharp
 // Parse from your custom event implementation with the `.Parse<>` function.
