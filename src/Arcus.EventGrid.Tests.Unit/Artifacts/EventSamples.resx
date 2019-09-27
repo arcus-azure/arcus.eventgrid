@@ -167,16 +167,16 @@
       "version": 2,
       "properties": {
         "desired": {
-          "$metadata": {
-            "$lastUpdated": "2018-03-16T05:47:28.1359543Z"
+          "metadata": {
+            "lastUpdated": "2018-03-16T05:47:28.1359543Z"
           },
-          "$version": 1
+          "version": 1
         },
         "reported": {
-          "$metadata": {
-            "$lastUpdated": "2018-03-16T05:47:28.1359543Z"
+          "metadata": {
+            "lastUpdated": "2018-03-16T05:47:28.1359543Z"
           },
-          "$version": 1
+          "version": 1
         }
       }
     },

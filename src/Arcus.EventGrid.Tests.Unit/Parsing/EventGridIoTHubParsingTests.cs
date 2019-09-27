@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
-using Arcus.EventGrid.IoTHub.Contracts.Events.v1;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
+using Microsoft.Azure.EventGrid.Models;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
@@ -18,14 +19,13 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const string topic = "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
             const string subject = "devices/grid-test-01";
             const string eventType = "Microsoft.Devices.DeviceCreated";
-            var stamp = DateTimeOffset.Parse("2018-03-16T05:47:28.1359543Z");
+            const string eventTime = "2018-03-16T05:47:28.1359543Z";
+            const string stamp = "03/16/2018 05:47:28";
             const string dataVersion = "1";
             const string metadataVersion = "1";
             const string hubName = "savanh-eventgrid-iothub";
             const string deviceId = "grid-test-01";
-            const string opType = "DeviceCreated";
             const string etag = "AAAAAAAAAAE=";
-            const string deviceEtag = null;
             const string status = "enabled";
             const string connectionState = "Disconnected";
             const int cloudToDeviceMessageCount = 0;
@@ -36,7 +36,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const int twinPropertyVersion = 1;
 
             // Act
-            var eventGridMessage = EventGridParser.Parse<DeviceCreated>(rawEvent);
+            var eventGridMessage = EventGridParser.ParseFromData<IotHubDeviceCreatedEventData>(rawEvent);
 
             // Assert
             Assert.NotNull(eventGridMessage);
@@ -47,20 +47,19 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.Equal(topic, eventGridEvent.Topic);
             Assert.Equal(subject, eventGridEvent.Subject);
             Assert.Equal(eventType, eventGridEvent.EventType);
-            Assert.Equal(stamp, eventGridEvent.EventTime);
+            Assert.Equal(DateTimeOffset.Parse(eventTime), eventGridEvent.EventTime);
             Assert.Equal(dataVersion, eventGridEvent.DataVersion);
             Assert.Equal(metadataVersion, eventGridEvent.MetadataVersion);
             var eventGridEventData = eventGridEvent.Data;
             Assert.NotNull(eventGridEventData);
-            Assert.Equal(hubName, eventGridEventData.HubName);
-            Assert.Equal(deviceId, eventGridEventData.DeviceId);
-            Assert.Equal(stamp, eventGridEventData.OperationTimestamp);
-            Assert.Equal(opType, eventGridEventData.OpType);
-            var twin = eventGridEventData.Twin;
+            IotHubDeviceCreatedEventData eventPayload = eventGridEvent.GetPayload();
+            Assert.NotNull(eventPayload);
+            Assert.Equal(hubName, eventPayload.HubName);
+            Assert.Equal(deviceId, eventPayload.DeviceId);
+            var twin = eventPayload.Twin;
             Assert.NotNull(twin);
             Assert.Equal(deviceId, twin.DeviceId);
             Assert.Equal(etag, twin.Etag);
-            Assert.Equal(deviceEtag, twin.DeviceEtag);
             Assert.Equal(status, twin.Status);
             Assert.Equal(stamp, twin.StatusUpdateTime);
             Assert.Equal(connectionState, twin.ConnectionState);
@@ -75,19 +74,17 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.NotNull(twin.Properties.Desired);
             Assert.NotNull(twin.Properties.Desired.Metadata);
             Assert.Equal(twinPropertyVersion, twin.Properties.Desired.Version);
-            Assert.True(twin.Properties.Desired.Metadata.ContainsKey("$lastUpdated"));
-            var rawDesiredLastUpdated = twin.Properties.Desired.Metadata["$lastUpdated"];
+            Assert.NotNull(twin.Properties.Desired.Metadata.LastUpdated);
+            var rawDesiredLastUpdated = twin.Properties.Desired.Metadata.LastUpdated;
             Assert.NotNull(rawDesiredLastUpdated);
-            var desiredLastUpdated = DateTimeOffset.Parse(rawDesiredLastUpdated);
-            Assert.Equal(stamp, desiredLastUpdated);
+            Assert.Equal(stamp, rawDesiredLastUpdated);
             Assert.NotNull(twin.Properties.Reported);
             Assert.NotNull(twin.Properties.Reported.Metadata);
             Assert.Equal(twinPropertyVersion, twin.Properties.Reported.Version);
-            Assert.True(twin.Properties.Reported.Metadata.ContainsKey("$lastUpdated"));
-            var rawReportedLastUpdated = twin.Properties.Reported.Metadata["$lastUpdated"];
+            Assert.NotNull(twin.Properties.Reported.Metadata.LastUpdated);
+            var rawReportedLastUpdated = twin.Properties.Reported.Metadata.LastUpdated;
             Assert.NotNull(rawReportedLastUpdated);
-            var reportedLastUpdated = DateTimeOffset.Parse(rawReportedLastUpdated);
-            Assert.Equal(stamp, reportedLastUpdated);
+            Assert.Equal(stamp, rawReportedLastUpdated);
         }
     }
 }
