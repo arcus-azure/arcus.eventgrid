@@ -6,6 +6,7 @@ layout: default
 ## Deserializing Events
 
 We provide support for deserializing events to typed event objects where the custom event payload is available via the `.GetPayload()` method.
+
 If you want to have the original raw JSON event payload, you can get it via the `.Data` property.
 
 ```csharp
@@ -21,6 +22,7 @@ object untypedEventPaylaod = eventGridMessage.Data;
 ```
 
 Or from event data type objects where the event data payload is available via the `.GetPayload()` method.
+
 The `.ParseFromData<>` function is especially useful when using directly the Azure services built-in types as shown in the example:
 
 ```csharp
