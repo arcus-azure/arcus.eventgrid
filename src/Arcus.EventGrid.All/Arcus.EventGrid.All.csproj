@@ -14,12 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Arcus.EventGrid.Azure\Arcus.EventGrid.Azure.csproj" />
-    <ProjectReference Include="..\Arcus.EventGrid.EventHubs\Arcus.EventGrid.EventHubs.csproj" />
-    <ProjectReference Include="..\Arcus.EventGrid.IoTHub\Arcus.EventGrid.IoTHub.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Security\Arcus.EventGrid.Security.csproj" />
-    <ProjectReference Include="..\Arcus.EventGrid.Storage\Arcus.EventGrid.Storage.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
 
