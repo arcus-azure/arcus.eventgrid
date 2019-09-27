@@ -8,11 +8,11 @@ using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Publishing;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
 using Arcus.EventGrid.Tests.Core.Events;
+using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Integration.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -180,7 +180,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .PublishManyAsync(events);
 
             // Assert
-            Assert.All(events, @event => AssertReceivedEventWithRetryCount(@event, @event.Data.LicensePlate));
+            Assert.All(events, @event => AssertReceivedEventWithRetryCount(@event, @event.GetPayload()?.LicensePlate));
         }
 
         [Fact]
@@ -195,10 +195,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
                     .Select(newGuid => new RawEvent(
                                 newGuid().ToString(),
-                                subject: "integration-test",
-                                body: $"{{\"licensePlate\": \"{licensePlate}\"}}",
-                                type: "Arcus.Samples.Cars.NewCarRegistered",
-                                dataVersion:"1.0",
+                                eventSubject: "integration-test",
+                                eventData: $"{{\"licensePlate\": \"{licensePlate}\"}}",
+                                eventType: "Arcus.Samples.Cars.NewCarRegistered",
+                                eventVersion:"1.0",
                                 eventTime: DateTimeOffset.Now))
                     .ToArray();
 
@@ -243,7 +243,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .PublishManyAsync(events);
 
             // Assert
-            Assert.All(events, @event => AssertReceivedEventWithTimeout(@event, @event.Data.LicensePlate));
+            Assert.All(events, @event => AssertReceivedEventWithTimeout(@event, @event.GetPayload()?.LicensePlate));
         }
 
         [Fact]
@@ -258,10 +258,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
                     .Select(newGuid => new RawEvent(
                                 newGuid().ToString(),
-                                subject: "integration-test",
-                                body: $"{{\"licensePlate\": \"{licensePlate}\"}}",
-                                type: "Arcus.Samples.Cars.NewCarRegistered",
-                                dataVersion:"1.0",
+                                eventSubject: "integration-test",
+                                eventData: $"{{\"licensePlate\": \"{licensePlate}\"}}",
+                                eventType: "Arcus.Samples.Cars.NewCarRegistered",
+                                eventVersion:"1.0",
                                 eventTime: DateTimeOffset.Now))
                     .ToArray();
 
@@ -287,7 +287,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             Assert.NotEqual(String.Empty, receivedEvent);
 
-            EventGridMessage<NewCarRegistered> deserializedEventGridMessage = EventGridParser.Parse<NewCarRegistered>(receivedEvent);
+            EventGridEventBatch<NewCarRegistered> deserializedEventGridMessage = EventGridParser.Parse<NewCarRegistered>(receivedEvent);
             Assert.NotNull(deserializedEventGridMessage);
             Assert.NotEmpty(deserializedEventGridMessage.SessionId);
             Assert.NotNull(deserializedEventGridMessage.Events);
@@ -299,7 +299,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             Assert.Equal(eventType, deserializedEvent.EventType);
 
             Assert.NotNull(deserializedEvent.Data);
-            Assert.Equal(licensePlate, deserializedEvent.Data.LicensePlate);
+            CarEventData eventData = deserializedEvent.GetPayload();
+            Assert.NotNull(eventData);
+            Assert.Equal(JsonConvert.DeserializeObject<CarEventData>(deserializedEvent.Data.ToString()), eventData);
+            Assert.Equal(licensePlate, eventData.LicensePlate);
         }
 
         private void TracePublishedEvent(string eventId, object events)

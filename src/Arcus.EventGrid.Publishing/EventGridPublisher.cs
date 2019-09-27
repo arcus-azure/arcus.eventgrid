@@ -124,7 +124,7 @@ namespace Arcus.EventGrid.Publishing
         /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
         /// <param name="event">Event to publish</param>
         public async Task PublishAsync<TEvent>(TEvent @event)
-            where TEvent : class, IEvent, new()
+            where TEvent : class, IEvent
         {
             Guard.NotNull(@event, nameof(@event), "No event was specified");
 
@@ -142,7 +142,7 @@ namespace Arcus.EventGrid.Publishing
         /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
         /// <param name="events">Events to publish</param>
         public async Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events)
-            where TEvent : class, IEvent, new()
+            where TEvent : class, IEvent
         {
             Guard.NotNull(events, nameof(events), "No events was specified");
             Guard.For<ArgumentException>(() => !events.Any(), "No events were specified");
@@ -151,7 +151,7 @@ namespace Arcus.EventGrid.Publishing
             await PublishEventToTopicAsync(events);
         }
 
-        private async Task PublishEventToTopicAsync<TEvent>(IEnumerable<TEvent> eventList) where TEvent : class, IEvent, new()
+        private async Task PublishEventToTopicAsync<TEvent>(IEnumerable<TEvent> eventList) where TEvent : class, IEvent
         {
             // Calling HTTP endpoint
             var response = await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequestAsync(eventList));
@@ -162,7 +162,7 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent, new()
+        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
         {
             return await TopicEndpoint
                 .WithHeader(name: "aeg-sas-key", value: _authenticationKey)

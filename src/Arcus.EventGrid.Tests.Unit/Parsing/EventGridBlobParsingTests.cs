@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using Arcus.EventGrid.Parsers;
-using Arcus.EventGrid.Storage.Contracts.Events.v1;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
+using Microsoft.Azure.EventGrid.Models;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
@@ -33,7 +34,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274Z");
 
             // Act
-            var eventGridMessage = EventGridParser.Parse<BlobCreated>(rawEvent);
+            var eventGridMessage = EventGridParser.ParseFromData<StorageBlobCreatedEventData>(rawEvent);
 
             // Assert
             Assert.NotNull(eventGridMessage);
@@ -48,17 +49,20 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.Equal(dataVersion, eventGridEvent.DataVersion);
             Assert.Equal(metadataVersion, eventGridEvent.MetadataVersion);
             Assert.NotNull(eventGridEvent.Data);
-            Assert.Equal(api, eventGridEvent.Data.Api);
-            Assert.Equal(clientRequestId, eventGridEvent.Data.ClientRequestId);
-            Assert.Equal(requestId, eventGridEvent.Data.RequestId);
-            Assert.Equal(eTag, eventGridEvent.Data.ETag);
-            Assert.Equal(contentType, eventGridEvent.Data.ContentType);
-            Assert.Equal(contentLength, eventGridEvent.Data.ContentLength);
-            Assert.Equal(blobType, eventGridEvent.Data.BlobType);
-            Assert.Equal(url, eventGridEvent.Data.Url);
-            Assert.Equal(sequencer, eventGridEvent.Data.Sequencer);
-            Assert.NotNull(eventGridEvent.Data.StorageDiagnostics);
-            Assert.Equal(batchId, eventGridEvent.Data.StorageDiagnostics.BatchId);
+            StorageBlobCreatedEventData eventPayload = eventGridEvent.GetPayload();
+            Assert.NotNull(eventPayload);
+            Assert.Equal(api, eventPayload.Api);
+            Assert.Equal(clientRequestId, eventPayload.ClientRequestId);
+            Assert.Equal(requestId, eventPayload.RequestId);
+            Assert.Equal(eTag, eventPayload.ETag);
+            Assert.Equal(contentType, eventPayload.ContentType);
+            Assert.Equal(contentLength, eventPayload.ContentLength);
+            Assert.Equal(blobType, eventPayload.BlobType);
+            Assert.Equal(url, eventPayload.Url);
+            Assert.Equal(sequencer, eventPayload.Sequencer);
+            Assert.NotNull(eventPayload.StorageDiagnostics);
+            var storageDiagnostics = Assert.IsType<JObject>(eventPayload.StorageDiagnostics);
+            Assert.Equal(batchId, storageDiagnostics["batchId"]);
         }
     }
 }

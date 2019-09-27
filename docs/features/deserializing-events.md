@@ -26,13 +26,6 @@ The `.ParseFromData<>` function is especially useful when using directly the Azu
 ```csharp
 // Parse directly from an event data type with the `.ParseFromData<>` function.
 EventGridBatch<EventGridEvent<StorageBlobCreatedEventData>> eventGridBatch = EventGridParser.ParseFromData<StorageBlobCreatedEventData>(rawEvent);
-
-// The event data type will be wrapped inside an `EventGridEvent<>` instance.
-EventGridEvent<StorageBlobCreatedEventData> eventGridMessage = eventGridBatch.Events.First();
-
-// The original event payload can now be accessed.
-StorageBlobCreatedEventData typedEventPayload = eventGridMessage.GetPayload();
-object untypedEventPaylaod = eventGridMessage.Data;
 ```
 
 [&larr; back](/arcus.eventgrid)
