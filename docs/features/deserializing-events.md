@@ -23,7 +23,7 @@ object untypedEventPaylaod = eventGridMessage.Data;
 
 Or from event data type objects where the event data payload is available via the `.GetPayload()` method.
 
-The `.ParseFromData<>` function is especially useful when using directly the Azure services built-in types as shown in the example:
+When using official Azure events, you can use `.ParseFromData<>` to deserialize them based on the built-in types as shown in the example:
 
 ```csharp
 // Parse directly from an event data type with the `.ParseFromData<>` function.
