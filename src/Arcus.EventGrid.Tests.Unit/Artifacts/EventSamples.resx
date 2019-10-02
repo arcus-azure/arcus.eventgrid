@@ -117,6 +117,30 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AzureBlobStorageCreatedCloudEvent" xml:space="preserve">
+    <value>[{
+    "cloudEventsVersion" : "0.1",
+    "eventType" : "Microsoft.Storage.BlobCreated",
+    "eventTypeVersion" : "v1",
+    "source" : "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account}#blobServices/default/containers/{storage-container}/blobs/{new-file}",
+    "eventID" : "173d9985-401e-0075-2497-de268c06ff25",
+    "eventTime" : "2018-04-28T02:18:47.1281675Z",
+    "data" : {
+      "api": "PutBlockList",
+      "clientRequestId": "6d79dbfb-0e37-4fc4-981f-442c9ca65760",
+      "requestId": "831e1650-001e-001b-66ab-eeb76e000000",
+      "eTag": "0x8D4BCC2E4835CD0",
+      "contentType": "application/octet-stream",
+      "contentLength": 524288,
+      "blobType": "BlockBlob",
+      "url": "https://oc2d2817345i60006.blob.core.windows.net/oc2d2817345i200097container/oc2d2817345i20002296blob",
+      "sequencer": "00000000000004420000000000028963",
+      "storageDiagnostics": {
+        "batchId": "b68529f3-68cd-4744-baa4-3c0498ec19f0"
+      }
+    }
+}]</value>
+  </data>
   <data name="BlobCreateEvent" xml:space="preserve">
     <value>[{
   "topic": "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
