@@ -77,6 +77,31 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
+        public async Task PublishSingleCloudEvent_WithBuilder_ValidParameters_Succeeds()
+        {
+            // Arrange
+            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
+            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            const string eventSubject = "integration-test";
+            const string licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var @event = new NewCarPurchased(eventId, eventSubject, licensePlate);
+
+            // Act
+            await EventGridPublisherBuilder
+                  .ForTopic(topicEndpoint)
+                  .UsingAuthenticationKey(endpointKey)
+                  .Build()
+                  .PublishAsync(@event);
+
+            TracePublishedEvent(eventId, @event);
+
+            // Assert
+            var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
+            AssertReceivedNewCarPurchasedEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
         public async Task PublishSingleRawEvent_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
@@ -100,6 +125,32 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
             AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, expectedSubject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
+        public async Task PublishSingleRawCloudEvent_WithBuilder_ValidParameters_Succeeds()
+        {
+            // Arrange
+            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
+            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            const string licensePlate = "1-TOM-337";
+            const string expectedSubject = "/";
+            var eventId = Guid.NewGuid().ToString();
+            var @event = new NewCarPurchased(eventId, licensePlate);
+            var rawEventBody = JsonConvert.SerializeObject(@event.Data);
+
+            // Act
+            await EventGridPublisherBuilder
+                  .ForTopic(topicEndpoint)
+                  .UsingAuthenticationKey(endpointKey)
+                  .Build()
+                  .PublishRawAsync(@event.Id, @event.EventType, rawEventBody);
+
+            TracePublishedEvent(eventId, @event);
+
+            // Assert
+            var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
+            AssertReceivedNewCarPurchasedEvent(eventId, @event.EventType, expectedSubject, licensePlate, receivedEvent);
         }
 
         [Fact]
@@ -243,7 +294,33 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .PublishManyAsync(events);
 
             // Assert
-            Assert.All(events, @event => AssertReceivedEventWithTimeout(@event, @event.GetPayload()?.LicensePlate));
+            Assert.All(events, @event => AssertReceivedNewCarRegisteredEventWithTimeout(@event, @event.GetPayload()?.LicensePlate));
+        }
+
+        [Fact]
+        public async Task PublishMultipleCloudEvents_WithBuilder_ValidParameters_SucceedsWithTimeout()
+        {
+            // Arrange
+            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
+            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
+            var events =
+                Enumerable
+                    .Repeat<Func<Guid>>(Guid.NewGuid, 2)
+                    .Select(newGuid => new NewCarPurchased(
+                                newGuid().ToString(),
+                                subject: "integration-test",
+                                licensePlate: "1-TOM-337"))
+                    .ToArray();
+
+            // Act
+            await EventGridPublisherBuilder
+                  .ForTopic(topicEndpoint)
+                  .UsingAuthenticationKey(endpointKey)
+                  .Build()
+                  .PublishManyAsync(events);
+
+            // Assert
+            Assert.All(events, @event => AssertReceivedNewCarPurchasedEventWithTimeout(@event, @event.GetPayload()?.LicensePlate));
         }
 
         [Fact]
@@ -273,10 +350,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .PublishManyRawAsync(events);
 
             // Assert
-            Assert.All(events, rawEvent => AssertReceivedEventWithTimeout(rawEvent, licensePlate));
+            Assert.All(events, rawEvent => AssertReceivedNewCarRegisteredEventWithTimeout(rawEvent, licensePlate));
         }
 
-        private void AssertReceivedEventWithTimeout(IEvent @event, string licensePlate)
+        private void AssertReceivedNewCarRegisteredEventWithTimeout(IEvent @event, string licensePlate)
         {
             TracePublishedEvent(@event.Id, @event);
             string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(@event.Id, timeout: TimeSpan.FromSeconds(10));
@@ -293,6 +370,35 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             Assert.NotNull(deserializedEventGridMessage.Events);
 
             NewCarRegistered deserializedEvent = Assert.Single(deserializedEventGridMessage.Events);
+            Assert.NotNull(deserializedEvent);
+            Assert.Equal(eventId, deserializedEvent.Id);
+            Assert.Equal(eventSubject, deserializedEvent.Subject);
+            Assert.Equal(eventType, deserializedEvent.EventType);
+
+            Assert.NotNull(deserializedEvent.Data);
+            CarEventData eventData = deserializedEvent.GetPayload();
+            Assert.NotNull(eventData);
+            Assert.Equal(JsonConvert.DeserializeObject<CarEventData>(deserializedEvent.Data.ToString()), eventData);
+            Assert.Equal(licensePlate, eventData.LicensePlate);
+        }
+
+        private void AssertReceivedNewCarPurchasedEventWithTimeout(IEvent @event, string licensePlate)
+        {
+            TracePublishedEvent(@event.Id, @event);
+            string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(@event.Id, timeout: TimeSpan.FromSeconds(10));
+            AssertReceivedNewCarPurchasedEvent(@event.Id, @event.EventType, @event.Subject, licensePlate, receivedEvent);
+        }
+
+        private static void AssertReceivedNewCarPurchasedEvent(string eventId, string eventType, string eventSubject, string licensePlate, string receivedEvent)
+        {
+            Assert.NotEqual(String.Empty, receivedEvent);
+
+            EventGridEventBatch<NewCarPurchased> deserializedEventGridMessage = EventGridParser.Parse<NewCarPurchased>(receivedEvent);
+            Assert.NotNull(deserializedEventGridMessage);
+            Assert.NotEmpty(deserializedEventGridMessage.SessionId);
+            Assert.NotNull(deserializedEventGridMessage.Events);
+
+            NewCarPurchased deserializedEvent = Assert.Single(deserializedEventGridMessage.Events);
             Assert.NotNull(deserializedEvent);
             Assert.Equal(eventId, deserializedEvent.Id);
             Assert.Equal(eventSubject, deserializedEvent.Subject);
