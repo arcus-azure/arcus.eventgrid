@@ -130,7 +130,6 @@ stages:
               arguments: '--configuration $(Build.Configuration)'
               nobuild: true
               publishTestResults: true
-
   - stage: ReleaseToMyget
     displayName: 'Release to MyGet'
     dependsOn:
