@@ -3,6 +3,13 @@ name: $(Package.Version)
 trigger: none
 pr: none
 
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: arcus-azure/azure-devops-templates
+      endpoint: arcus-azure
+
 variables:
   - group: 'Arcus Event Grid - Integration Testing'
   - group: 'Arcus - GitHub Package Registry'
@@ -58,18 +65,10 @@ stages:
             inputs:
               artifact: 'Build'
               path: '$(Build.SourcesDirectory)'
-          - task: DotNetCoreInstaller@0
-            displayName: 'Import .NET Core SDK ($(DotNet.Sdk.Version))'
-            inputs:
-              version: '$(DotNet.Sdk.Version)'
-          - task: DotNetCoreCLI@2
-            displayName: 'Run unit tests'
-            inputs:
-              command: test
-              projects: 'src/**/$(Project).Tests.Unit.csproj'
-              arguments: '--configuration $(Build.Configuration)'
-              nobuild: true
-              publishTestResults: true
+          - template: test/run-unit-tests.yaml@templates
+            parameters:
+              dotnetSdkVersion: '$(DotNet.Sdk.Version)'
+              projectName: '$(Project).Tests.Unit'
 
   - stage: IntegrationTests
     displayName: Integration Tests
@@ -86,29 +85,10 @@ stages:
             inputs:
               artifact: 'Build'
               path: '$(Build.SourcesDirectory)'
-          - task: DotNetCoreInstaller@0
-            displayName: 'Import .NET Core SDK ($(DotNet.Sdk.Version))'
-            inputs:
-              version: '$(DotNet.Sdk.Version)'
-          - task: qetza.replacetokens.replacetokens-task.replacetokens@3
-            displayName: 'Replace integration test tokens'
-            inputs:
-              rootDirectory: 'src/$(Project).Tests.Integration/'
-              targetFiles: 'appsettings.json'
-              encoding: 'auto'
-              writeBOM: true
-              actionOnMissing: 'fail'
-              keepToken: false
-              tokenPrefix: '#{'
-              tokenSuffix: '}#'
-          - task: DotNetCoreCLI@2
-            displayName: 'Run integration tests'
-            inputs:
-              command: test
-              projects: 'src/**/$(Project).Tests.Integration.csproj'
-              arguments: '--configuration $(Build.Configuration)'
-              nobuild: true
-              publishTestResults: true
+          - template: test/run-integration-tests.yaml@templates
+            parameters:
+              dotnetSdkVersion: '$(DotNet.Sdk.Version)'
+              projectName: '$(Project).Tests.Integration'
 
   - stage: Release
     displayName: 'Release'
@@ -127,42 +107,26 @@ stages:
             inputs:
               artifact: 'Build'
               path: '$(Build.SourcesDirectory)'
-          - task: GitHubRelease@0
-            displayName: 'Create GitHub Release (Conditional Step)'
-            inputs:
-              gitHubConnection: 'GitHub (arcus-automation - OAuth)'
-              repositoryName: 'stijnmoreels/arcus.eventgrid'
-              tagSource: manual
+          - template: github/create-release.yml@templates
+            parameters:
+              repositoryName: 'azure-arcus/arcus.eventgrid'
               tag: 'v$(Build.BuildNumber)'
-              title: 'v$(Build.BuildNumber)'
-              releaseNotesSource: input
+              releaseTitle: 'v$(Build.BuildNumber)'
               releaseNotes: |
                 Install new version via [NuGet](https://www.nuget.org/packages/Arcus.EventGrid.All/$(Build.BuildNumber))
                 ```shell
                 > Install-Package Arcus.EventGrid.All -Version $(Build.BuildNumber)
                 ```
             condition: not(contains(variables['Build.BuildNumber'], '-'))
-          - task: GitHubRelease@0
-            displayName: 'Create GitHub Pre-Release (Conditional Step)'
-            inputs:
-              gitHubConnection: 'GitHub (arcus-automation - OAuth)'
-              repositoryName: 'stijnmoreels/arcus.eventgrid'
-              tagSource: manual
+          - template: create-pre-release.yml@templates
+            parameters:
+              repositoryName: 'azure-arcus/arcus.eventgrid'
               tag: 'v$(Build.BuildNumber)'
-              title: 'v$(Build.BuildNumber)'
-              releaseNotesSource: input
+              releaseTitle: 'v$(Build.BuildNumber)'
               releaseNotes: |
                 Install new version via [NuGet](https://www.nuget.org/packages/Arcus.EventGrid.All/$(Build.BuildNumber))
                 ```shell
                 > Install-Package Arcus.EventGrid.All -Version $(Build.BuildNumber)
                 ```
-              isPreRelease: true
-              compareWith: 'lastRelease'
             condition: contains(variables['Build.BuildNumber'], '-')
-          - task: NuGetCommand@2
-            displayName: 'Push to NuGet.org'
-            inputs:
-              command: push
-              packagesToPush: 'src/**/*.nupkg'
-              nuGetFeedType: external
-              publishFeedCredentials: 'MyGet.org (Push)'
+          - template: 'nuget/publish-official-package/yml@templates'
