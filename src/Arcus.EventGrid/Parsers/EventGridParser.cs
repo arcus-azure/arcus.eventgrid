@@ -54,7 +54,7 @@ namespace Arcus.EventGrid.Parsers
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
         public static EventGridEventBatch<TEvent> Parse<TEvent>(string rawJsonBody)
-            where TEvent : class, IEvent
+            where TEvent : IEvent
         {
             Guard.NotNullOrWhitespace(rawJsonBody, nameof(rawJsonBody));
 
@@ -70,7 +70,7 @@ namespace Arcus.EventGrid.Parsers
         /// <param name="rawJsonBody">Raw JSON body</param>
         /// <param name="sessionId">Session id for event grid message</param>
         public static EventGridEventBatch<TEvent> Parse<TEvent>(string rawJsonBody, string sessionId)
-            where TEvent : class, IEvent
+            where TEvent : IEvent
         {
             Guard.NotNullOrWhitespace(rawJsonBody, nameof(rawJsonBody));
             Guard.NotNullOrWhitespace(sessionId, nameof(sessionId));
