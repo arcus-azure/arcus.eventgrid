@@ -44,15 +44,7 @@ public class NewCarRegistered : EventGridEvent<CarEventData>
 }
 ```
 
-The typed data is now available as method called `.GetPayload()`:
+Read ["Deserializing Events"](features/deserializing-events.md) for information on how custom events are deserialized.
 
-```csharp
-EventGridBatch<NewCarRegistered> eventGridBatch = EventGridParser.Parse<NewCarRegistered>(rawEvent);
-
-IEnumerable<NewCarRegistered> events = eventGridBatch.Events;
-NewRegisteredEvent firstEvent = events.First();
-
-CarEventData eventPayload = firstEvent.GetPayload();
-```
 
 [&larr; back](/arcus.eventgrid)
