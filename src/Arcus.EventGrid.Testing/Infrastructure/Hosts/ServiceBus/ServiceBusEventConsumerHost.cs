@@ -141,7 +141,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
                 UserMetadata = "Subscription created by Arcus in order to run integration tests"
             };
 
-            var ruleDescription = new RuleDescription("Accept All", new TrueFilter());
+            var ruleDescription = new RuleDescription("Accept-All", new TrueFilter());
 
             await managementClient.CreateSubscriptionAsync(subscriptionDescription, ruleDescription).ConfigureAwait(continueOnCapturedContext: false);
         }

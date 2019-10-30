@@ -1,5 +1,6 @@
 ﻿using System;
 using Arcus.EventGrid.Tests.Core.Events;
+using Microsoft.Rest;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Unit.Events
@@ -15,7 +16,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             const string subject = licensePlate;
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, subject, licensePlate));
+            Assert.Throws<ValidationException>(() => new NewCarRegistered(eventId, subject, licensePlate));
         }
 
         [Fact]
@@ -26,11 +27,11 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             const string licensePlate = "1-TOM-337";
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, licensePlate));
+            Assert.Throws<ValidationException>(() => new NewCarRegistered(eventId, licensePlate));
         }
 
         [Fact]
-        public void Event_CreateWithEmptyId_ShouldFailWithArgumentException()
+        public void Event_CreateWithEmptyId_ShouldSucceed()
         {
             // Arrange
             string eventId = string.Empty;
@@ -38,11 +39,11 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             const string subject = licensePlate;
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, subject, licensePlate));
+            new NewCarRegistered(eventId, subject, licensePlate);
         }
 
         [Fact]
-        public void Event_CreateWithEmptySubject_ShouldFailWithArgumentException()
+        public void Event_CreateWithEmptySubject_ShouldSucceed()
         {
             // Arrange
             string eventId = Guid.NewGuid().ToString();
@@ -50,19 +51,19 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             const string licensePlate = "1-TOM-337";
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, subject, licensePlate));
+            new NewCarRegistered(eventId, subject, licensePlate);
         }
 
         [Fact]
-        public void Event_CreateWithoutSubject_ShouldFailWithArgumentException()
+        public void Event_CreateWithoutSubject_ShouldSucceed()
         {
             // Arrange
             string eventId = Guid.NewGuid().ToString();
-            string subject = null;
+            string subject = " ";
             const string licensePlate = "1-TOM-337";
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => new NewCarRegistered(eventId, subject, licensePlate));
+            new NewCarRegistered(eventId, subject, licensePlate);
         }
 
         [Fact]
@@ -81,7 +82,7 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             Assert.Equal(eventId, createdEvent.Id);
             Assert.Equal(subject, createdEvent.Subject);
             Assert.NotNull(createdEvent.Data);
-            Assert.Equal(licensePlate, createdEvent.Data.LicensePlate);
+            Assert.Equal(licensePlate, createdEvent.GetPayload().LicensePlate);
             Assert.NotEqual(default(DateTimeOffset), createdEvent.EventTime);
         }
 
@@ -98,9 +99,9 @@ namespace Arcus.EventGrid.Tests.Unit.Events
             // Assert
             Assert.NotNull(createdEvent);
             Assert.Equal(eventId, createdEvent.Id);
-            Assert.Null(createdEvent.Subject);
+            Assert.NotNull(createdEvent.Subject);
             Assert.NotNull(createdEvent.Data);
-            Assert.Equal(licensePlate, createdEvent.Data.LicensePlate);
+            Assert.Equal(licensePlate, createdEvent.GetPayload().LicensePlate);
             Assert.NotEqual(default(DateTimeOffset), createdEvent.EventTime);
         }
     }
