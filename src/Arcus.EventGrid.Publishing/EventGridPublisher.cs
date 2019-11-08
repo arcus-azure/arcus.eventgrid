@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
+using Arcus.EventGrid.Extensions;
 using Arcus.EventGrid.Publishing.Interfaces;
+using CloudNative.CloudEvents;
 using Flurl.Http;
 using GuardNet;
+using Newtonsoft.Json;
 using Polly;
 
 namespace Arcus.EventGrid.Publishing
@@ -106,6 +110,22 @@ namespace Arcus.EventGrid.Publishing
         }
 
         /// <summary>
+        ///     Publish an event grid message
+        /// </summary>
+        /// <param name="cloudEvent">Event to publish</param>
+        public async Task PublishAsync(CloudEvent cloudEvent)
+        {
+            Guard.NotNull(cloudEvent, nameof(cloudEvent));
+
+            IEnumerable<CloudEvent> eventList = new List<CloudEvent>
+            {
+                cloudEvent
+            };
+
+            await PublishEventToTopicAsync(eventList);
+        }
+
+        /// <summary>
         ///     Publish a many raw JSON payload as events
         /// </summary>
         /// <param name="rawEvents">The events to publish.</param>
@@ -151,9 +171,19 @@ namespace Arcus.EventGrid.Publishing
             await PublishEventToTopicAsync(events);
         }
 
-        private async Task PublishEventToTopicAsync<TEvent>(IEnumerable<TEvent> eventList) where TEvent : class, IEvent
+        /// <summary>
+        ///     Publish an event grid message
+        /// </summary>
+        /// <param name="events">Events to publish</param>
+        public async Task PublishManyAsync(IEnumerable<CloudEvent> events)
         {
-            // Calling HTTP endpoint
+            Guard.NotNull(events, nameof(events));
+
+            await PublishEventToTopicAsync(events);
+        }
+
+        private async Task PublishEventToTopicAsync<TEvent>(IEnumerable<TEvent> eventList) where TEvent : class
+        {
             var response = await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequestAsync(eventList));
 
             if (!response.IsSuccessStatusCode)
@@ -162,11 +192,24 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
+        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class
         {
-            return await TopicEndpoint
-                .WithHeader(name: "aeg-sas-key", value: _authenticationKey)
-                .PostJsonAsync(events);
+            IFlurlRequest authorizedRequest = 
+                TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey);
+
+            if (events.Any(@event => @event is CloudEvent))
+            {
+                var converter = new CloudEventJsonConverter();
+                string content = JsonConvert.SerializeObject(events, converter);
+                using (var jsonContent = new StringContent(content, Encoding.UTF8, "application/cloudevents+json; charset=utf-8"))
+                {
+                    return await authorizedRequest.PostAsync(jsonContent);
+                }
+            }
+            else
+            {
+                return await authorizedRequest.PostJsonAsync(events);
+            }
         }
 
         private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
