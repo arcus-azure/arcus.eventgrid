@@ -30,4 +30,4 @@ When using official Azure events, you can use `.ParseFromData<>` to deserialize 
 EventGridBatch<EventGridEvent<StorageBlobCreatedEventData>> eventGridBatch = EventGridParser.ParseFromData<StorageBlobCreatedEventData>(rawEvent);
 ```
 
-[&larr; back](/arcus.eventgrid)
+[&larr; back](/)
