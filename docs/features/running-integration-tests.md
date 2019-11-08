@@ -124,4 +124,4 @@ var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(
 };
 ```
 
-[&larr; back](/arcus.eventgrid)
+[&larr; back](/)
