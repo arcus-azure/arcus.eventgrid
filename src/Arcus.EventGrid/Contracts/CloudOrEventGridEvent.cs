@@ -26,6 +26,9 @@ namespace Arcus.EventGrid.Contracts
         public CloudOrEventGridEvent(CloudEvent cloudEvent)
         {
             Guard.NotNull(cloudEvent, nameof(cloudEvent));
+            Guard.For<ArgumentException>(
+                () => String.Equals(cloudEvent.DataContentType.MediaType, "application/json", StringComparison.OrdinalIgnoreCase),
+                "Only Cloud Events with a 'application/json' content type are supported");
 
             _cloudEvent = cloudEvent;
         }
@@ -45,6 +48,11 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public CloudEvent AsCloudEvent()
         {
+            if (_cloudEvent is null)
+            {
+                throw new InvalidOperationException("Cannot transform this event to a Cloud Event because it is an Event Grid Event");
+            }
+
             return _cloudEvent;
         }
 
@@ -53,6 +61,11 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public EventGridEvent AsEventGridEvent()
         {
+            if (_eventGridEvent is null)
+            {
+                throw new InvalidOperationException("Cannot transform this event to an Event Grid Event because it is a Cloud Event");
+            }
+
             return _eventGridEvent;
         }
 
@@ -61,7 +74,7 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public static implicit operator CloudEvent(CloudOrEventGridEvent @event)
         {
-            return @event._cloudEvent;
+            return @event.AsCloudEvent();
         }
 
         /// <summary>
@@ -69,7 +82,7 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public static implicit operator EventGridEvent(CloudOrEventGridEvent @event)
         {
-            return @event._eventGridEvent;
+            return @event.AsEventGridEvent();
         }
 
         /// <summary>
@@ -91,7 +104,19 @@ namespace Arcus.EventGrid.Contracts
         /// <summary>
         ///     The schema version of the data object. The publisher defines the schema version.
         /// </summary>
-        public string DataVersion => _eventGridEvent?.DataVersion;
+        public string DataVersion
+        {
+            get
+            {
+                if (_eventGridEvent is null)
+                {
+                    throw new InvalidOperationException(
+                        "Cannot get the data version of this event because it represents a Cloud Event; which don't have any schema version of the data object information");
+                }
+
+                return _eventGridEvent.DataVersion;
+            }
+        }
 
         /// <summary>
         ///     The time the event is generated based on the provider's UTC time.
@@ -112,7 +137,19 @@ namespace Arcus.EventGrid.Contracts
         ///     The schema version of the event metadata. Event Grid defines the schema of the top-level properties. Event Grid
         ///     provides this value.
         /// </summary>
-        public string MetadataVersion => _eventGridEvent?.MetadataVersion;
+        public string MetadataVersion
+        {
+            get
+            {
+                if (_eventGridEvent is null)
+                {
+                    throw new InvalidOperationException(
+                        "Cannot get the meta-data version of this event because it represents a Cloud Event, which don't have any schema version of the event meta-data information");
+                }
+                
+                return _eventGridEvent.MetadataVersion;
+            }
+        }
 
         /// <summary>
         ///     Publisher-defined path to the event subject.

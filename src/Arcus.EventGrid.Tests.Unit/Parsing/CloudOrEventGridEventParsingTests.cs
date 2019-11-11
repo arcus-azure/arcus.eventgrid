@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Linq;
 using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.Contracts.Interfaces;
 using Arcus.EventGrid.Parsers;
-using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Unit.Artifacts;
 using CloudNative.CloudEvents;
 using Microsoft.Azure.EventGrid.Models;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -15,6 +11,38 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
 {
     public class CloudOrEventGridEventParsingTests
     {
+        [Fact]
+        public void ParseAsCloudEvent_ValidBlobCreatedEvent_ShouldFail()
+        {
+            // Arrange
+            string rawEvent = EventSamples.BlobCreateEvent;
+
+            // Act
+            var eventGridEventBatch = EventGridParser.Parse(rawEvent);
+
+            // Assert
+            Assert.NotNull(eventGridEventBatch);
+            CloudOrEventGridEvent @event = Assert.Single(eventGridEventBatch.Events);
+            Assert.NotNull(@event);
+            Assert.Throws<InvalidOperationException>(() => @event.AsCloudEvent());
+        }
+
+        [Fact]
+        public void ParseAsEventGridEvent_ValidStorageBlobCreatedCloudEvent_ShouldFail()
+        {
+            // Arrange
+            string rawEvent = EventSamples.AzureBlobStorageCreatedCloudEvent;
+
+            // Act
+            EventGridEventBatch<CloudOrEventGridEvent> eventBatch = EventGridParser.Parse(rawEvent);
+
+            // Assert
+            Assert.NotNull(eventBatch);
+            CloudOrEventGridEvent @event = Assert.Single(eventBatch.Events);
+            Assert.NotNull(@event);
+            Assert.Throws<InvalidOperationException>(() => @event.AsEventGridEvent());
+        }
+
        [Fact]
         public void Parse_ValidBlobCreatedEvent_ShouldSucceed()
         {
