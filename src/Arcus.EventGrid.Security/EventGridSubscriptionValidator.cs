@@ -7,9 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
-using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Parsers;
-using Arcus.EventGrid.Security.Contracts.Events.v1;
 using Microsoft.Azure.EventGrid.Models;
 
 namespace Arcus.EventGrid.Security
