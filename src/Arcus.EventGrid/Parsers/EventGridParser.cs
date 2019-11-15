@@ -94,7 +94,7 @@ namespace Arcus.EventGrid.Parsers
         ///     Parses a string to a <see cref="EventGridEventBatch{TEvent}"/> from either a <see cref="CloudEvent"/> or <see cref="EventGridEvent"/> implementation.
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
-        public static EventGridEventBatch<CloudOrEventGridEvent> Parse(string rawJsonBody)
+        public static EventGridEventBatch<Event> Parse(string rawJsonBody)
         {
             string sessionId = Guid.NewGuid().ToString();
 
@@ -107,14 +107,14 @@ namespace Arcus.EventGrid.Parsers
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
         /// <param name="sessionId">Session id for event grid message</param>
-        public static EventGridEventBatch<CloudOrEventGridEvent> Parse(string rawJsonBody, string sessionId)
+        public static EventGridEventBatch<Event> Parse(string rawJsonBody, string sessionId)
         {
             Guard.NotNullOrWhitespace(rawJsonBody, nameof(rawJsonBody));
             Guard.NotNullOrWhitespace(sessionId, nameof(sessionId));
 
             var array = JArray.Parse(rawJsonBody);
 
-            var deserializedEvents = new List<CloudOrEventGridEvent>();
+            var deserializedEvents = new List<Event>();
             foreach (var eventObject in array.Children<JObject>())
             {
                 var rawEvent = eventObject.ToString();
@@ -133,7 +133,7 @@ namespace Arcus.EventGrid.Parsers
                 }
             }
 
-            var result = new EventGridEventBatch<CloudOrEventGridEvent>(sessionId, deserializedEvents);
+            var result = new EventGridEventBatch<Event>(sessionId, deserializedEvents);
             return result;
         }
     }

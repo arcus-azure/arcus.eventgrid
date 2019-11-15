@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
 {
-    public class CloudOrEventGridEventParsingTests
+    public class EventParsingTests
     {
         [Fact]
         public void ParseAsCloudEvent_ValidBlobCreatedEvent_ShouldFail()
@@ -22,7 +22,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
 
             // Assert
             Assert.NotNull(eventGridEventBatch);
-            CloudOrEventGridEvent @event = Assert.Single(eventGridEventBatch.Events);
+            Event @event = Assert.Single(eventGridEventBatch.Events);
             Assert.NotNull(@event);
             Assert.Throws<InvalidOperationException>(() => @event.AsCloudEvent());
         }
@@ -34,11 +34,11 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             string rawEvent = EventSamples.AzureBlobStorageCreatedCloudEvent;
 
             // Act
-            EventGridEventBatch<CloudOrEventGridEvent> eventBatch = EventGridParser.Parse(rawEvent);
+            EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(rawEvent);
 
             // Assert
             Assert.NotNull(eventBatch);
-            CloudOrEventGridEvent @event = Assert.Single(eventBatch.Events);
+            Event @event = Assert.Single(eventBatch.Events);
             Assert.NotNull(@event);
             Assert.Throws<InvalidOperationException>(() => @event.AsEventGridEvent());
         }
@@ -122,7 +122,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             string rawEvent = EventSamples.AzureBlobStorageCreatedCloudEvent;
 
             // Act
-            EventGridEventBatch<CloudOrEventGridEvent> eventBatch = EventGridParser.Parse(rawEvent);
+            EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(rawEvent);
 
             // Assert
             Assert.NotNull(eventBatch);
