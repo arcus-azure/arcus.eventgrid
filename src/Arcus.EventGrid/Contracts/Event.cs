@@ -27,7 +27,7 @@ namespace Arcus.EventGrid.Contracts
         {
             Guard.NotNull(cloudEvent, nameof(cloudEvent));
             Guard.For<ArgumentException>(
-                () => String.Equals(cloudEvent.DataContentType.MediaType, "application/json", StringComparison.OrdinalIgnoreCase),
+                () => String.Equals(cloudEvent.DataContentType?.MediaType, "application/json", StringComparison.OrdinalIgnoreCase),
                 "Only Cloud Events with a 'application/json' content type are supported");
 
             _cloudEvent = cloudEvent;
