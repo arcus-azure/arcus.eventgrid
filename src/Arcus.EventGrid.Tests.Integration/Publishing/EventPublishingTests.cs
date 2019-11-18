@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
@@ -243,7 +242,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .PublishManyAsync(events);
 
             // Assert
-            Assert.All(events, @event => AssertReceivedEventWithTimeout(@event, @event.GetPayload()?.LicensePlate));
+            Assert.All(events, @event => AssertReceivedNewCarRegisteredEventWithTimeout(@event, @event.GetPayload()?.LicensePlate));
         }
 
         [Fact]
@@ -273,10 +272,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                   .PublishManyRawAsync(events);
 
             // Assert
-            Assert.All(events, rawEvent => AssertReceivedEventWithTimeout(rawEvent, licensePlate));
+            Assert.All(events, rawEvent => AssertReceivedNewCarRegisteredEventWithTimeout(rawEvent, licensePlate));
         }
 
-        private void AssertReceivedEventWithTimeout(IEvent @event, string licensePlate)
+        private void AssertReceivedNewCarRegisteredEventWithTimeout(IEvent @event, string licensePlate)
         {
             TracePublishedEvent(@event.Id, @event);
             string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(@event.Id, timeout: TimeSpan.FromSeconds(10));

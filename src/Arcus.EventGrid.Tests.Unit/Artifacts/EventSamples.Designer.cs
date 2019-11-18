@@ -62,6 +62,24 @@ namespace Arcus.EventGrid.Tests.Unit.Artifacts {
         
         /// <summary>
         ///   Looks up a localized string similar to [{
+        ///    &quot;cloudEventsVersion&quot; : &quot;0.1&quot;,
+        ///    &quot;eventType&quot; : &quot;Microsoft.Storage.BlobCreated&quot;,
+        ///    &quot;eventTypeVersion&quot; : &quot;v1&quot;,
+        ///    &quot;source&quot; : &quot;/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account}#blobServices/default/containers/{storage-container}/blobs/{new-file}&quot;,
+        ///    &quot;eventID&quot; : &quot;173d9985-401e-0075-2497-de268c06ff25&quot;,
+        ///    &quot;eventTime&quot; : &quot;2018-04-28T02:18:47.1281675Z&quot;,
+        ///    &quot;data&quot; : {
+        ///      &quot;api&quot;: &quot;PutBlockList&quot;,
+        ///      &quot;clientRequest [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string AzureBlobStorageCreatedCloudEvent {
+            get {
+                return ResourceManager.GetString("AzureBlobStorageCreatedCloudEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{
         ///  &quot;topic&quot;: &quot;/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx&quot;,
         ///  &quot;subject&quot;: &quot;/blobServices/default/containers/event-container/blobs/finnishjpeg&quot;,
         ///  &quot;eventType&quot;: &quot;Microsoft.Storage.BlobCreated&quot;,

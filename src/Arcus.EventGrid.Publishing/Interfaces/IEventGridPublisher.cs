@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
+using CloudNative.CloudEvents;
 
 namespace Arcus.EventGrid.Publishing.Interfaces
 {
@@ -49,6 +50,12 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         Task PublishAsync<TEvent>(TEvent @event) where TEvent : class, IEvent;
 
         /// <summary>
+        ///     Publish an event grid message
+        /// </summary>
+        /// <param name="cloudEvent">Event to publish</param>
+        Task PublishAsync(CloudEvent cloudEvent);
+
+        /// <summary>
         ///     Publish a many raw JSON payload as events
         /// </summary>
         /// <param name="rawEvents">The events to publish.</param>
@@ -60,5 +67,12 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// <typeparam name="TEvent">Type of the specific event</typeparam>
         /// <param name="events">Events to publish</param>
         Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent;
+
+        /// <summary>
+        ///     Publish an event grid message
+        /// </summary>
+        /// <param name="events">Events to publish</param>
+        Task PublishManyAsync(IEnumerable<CloudEvent> events);
+
     }
 }

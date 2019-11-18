@@ -17,9 +17,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CloudNative.CloudEvents" Version="0.1.31" />
     <PackageReference Include="Guard.NET" Version="1.2.0" />
     <PackageReference Include="Microsoft.Azure.EventGrid" Version="3.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
 </Project>
