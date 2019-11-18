@@ -49,4 +49,4 @@ Important for this authorization method to work, is to set the static property `
 DynamicEventGridAuthorizationAttribute.RetrieveAuthenticationSecret = () => Task.FromResult("my-secret-key");
 ```
 
-[&larr; back](/arcus.eventgrid)
+[&larr; back](/)
