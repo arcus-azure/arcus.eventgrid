@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
@@ -10,7 +9,6 @@ using Arcus.EventGrid.Publishing.Interfaces;
 using CloudNative.CloudEvents;
 using Flurl.Http;
 using GuardNet;
-using Newtonsoft.Json;
 using Polly;
 
 namespace Arcus.EventGrid.Publishing
