@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
-using Arcus.EventGrid.Extensions;
 using Arcus.EventGrid.Publishing.Interfaces;
 using CloudNative.CloudEvents;
 using Flurl.Http;
@@ -197,19 +196,7 @@ namespace Arcus.EventGrid.Publishing
             IFlurlRequest authorizedRequest = 
                 TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey);
 
-            if (events.Any(@event => @event is CloudEvent))
-            {
-                var converter = new CloudEventJsonConverter();
-                string content = JsonConvert.SerializeObject(events, converter);
-                using (var jsonContent = new StringContent(content, Encoding.UTF8, "application/cloudevents+json; charset=utf-8"))
-                {
-                    return await authorizedRequest.PostAsync(jsonContent);
-                }
-            }
-            else
-            {
-                return await authorizedRequest.PostJsonAsync(events);
-            }
+            return await authorizedRequest.PostJsonAsync(events);
         }
 
         private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
