@@ -66,7 +66,7 @@ EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(eventGridEventJson
 
 var events = eventBatch.Events;
 
-// The `EventGridEvent` can be cast implicitlyl like so, 
+// The `EventGridEvent` can be cast implicitly like so, 
 EventGridEvent eventGridEvent = events.First();
 
 // Or explicitly.
