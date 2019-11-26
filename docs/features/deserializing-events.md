@@ -5,6 +5,55 @@ layout: default
 
 ## Deserializing Events
 
+The `Arcus.EventGrid` package provides several ways to deserializing events.
+Following paragraphs describe each supported type of event.
+
+- [Deserializing EventGrid Events](#deserializing-eventgrid-events)
+- [Deserializing CloudEvent Events](#deserializing-cloudevent-events)
+- [Deserializing Custom Events](#deserializing-custom-events)
+- [Deserializing Built-In Azure Events](#deserializing-built-in-azure-events)
+
+
+### Deserializing EventGrid Events
+
+We provide support for deserializing [EventGrid events](https://docs.microsoft.com/en-us/azure/event-grid/event-schema).
+
+```csharp
+string eventGridEventJson = ...
+
+EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(eventGridEventJson);
+
+var events = eventBatch.Events;
+
+// The `EventGridEvent` can be cast implicitly like so, 
+EventGridEvent eventGridEvent = events.First();
+
+// Or explicitly.
+EventGridEvent eventGridEvent = events.First().AsEventGridEvent();
+```
+
+
+### Deserializing CloudEvent Events
+
+We provide support for deserializing CloudEvents using the [official SDK for C#](https://github.com/cloudevents/sdk-csharp).
+
+Upon receiving of CloudEvent events:
+
+```csharp
+string cloudEventJson = ...
+
+EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(cloudEventJson);
+
+var events = eventBatch.Events;
+
+// The type `CloudEvent` comes directly from the official SDK package
+// And can be cast implicitly like so, 
+CloudEvent cloudEvent = events.First();
+
+// Or explictly.
+CloudEvent cloudEvent = events.First().AsCloudEvent();
+```
+
 ### Deserializing Custom Events
 
 We provide support for deserializing events to typed event objects where the custom event payload is available via the `.GetPayload()` method.
@@ -23,7 +72,7 @@ CarEventData typedEventPayload = eventGridMessage.GetPayload();
 object untypedEventPaylaod = eventGridMessage.Data;
 ```
 
-### Deserializing Azure Events
+### Deserializing Built-In Azure Events
 
 Or from event data type objects where the event data payload is available via the `.GetPayload()` method.
 
@@ -32,45 +81,6 @@ When using official Azure events, you can use `.ParseFromData<>` to deserialize 
 ```csharp
 // Parse directly from an event data type with the `.ParseFromData<>` function.
 EventGridBatch<EventGridEvent<StorageBlobCreatedEventData>> eventGridBatch = EventGridParser.ParseFromData<StorageBlobCreatedEventData>(rawEvent);
-```
-
-### Deserializing Both Cloud and EventGrid Events
-
-We provide support for deserializing Cloud Events using the [official SDK for C#](https://github.com/cloudevents/sdk-csharp).
-
-Upon receiving of EventGrid events and Cloud events, you can use the same deserialization functionality.
-
-Deserializing Cloud events:
-
-```csharp
-string cloudEventJson = ...
-
-EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(cloudEventJson);
-
-var events = eventBatch.Events;
-
-// The type `CloudEvent` comes directly from the official SDK package
-// And can be cast implicitly like so, 
-CloudEvent cloudEvent = events.First();
-
-// Or explictly.
-CloudEvent cloudEvent = events.First().AsCloudEvent();
-```
-
-Deserializing EventGrid events:
-
-```csharp
-string eventGridEventJson = ...
-
-EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(eventGridEventJson);
-
-var events = eventBatch.Events;
-
-// The `EventGridEvent` can be cast implicitly like so, 
-EventGridEvent eventGridEvent = events.First();
-
-// Or explicitly.
-EventGridEvent eventGridEvent = events.First().AsEventGridEvent();
 ```
 
 [&larr; back](/)
