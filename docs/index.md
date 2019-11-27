@@ -17,7 +17,7 @@ PM > Install-Package Arcus.EventGrid.All
 - Support for publishing events to an Event Grid Topic ([docs](features/publishing-events))
 - Support for handling endpoint validation handshake ([docs](features/endpoint-validation))
 - Provides tooling for writing integration tests ([docs](features/running-integration-tests))
-- Support for deserializing EventGrid, CloudEvent, custom & official Azure events ([docs](features/deserializing-events))
+- Support for deserializing official Azure or custom events according to Event Grid & CloudEvent schema ([docs](features/deserializing-events))
 - Support for creating your own events
 
 # License
