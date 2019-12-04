@@ -18,7 +18,7 @@ PM > Install-Package Arcus.EventGrid.All
 - Support for handling endpoint validation handshake ([docs](features/endpoint-validation))
 - Provides tooling for writing integration tests ([docs](features/running-integration-tests))
 - Support for deserializing official Azure or custom events according to Event Grid & CloudEvent schema ([docs](features/deserializing-events))
-- Support for creating your own events
+- Support for creating your own events ([docs](features/create-custom-events))
 
 # License
 This is licensed under The MIT License (MIT). Which means that you can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the web application. But you always need to state that Codit is the original author of this web application.
