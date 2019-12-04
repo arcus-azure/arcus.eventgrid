@@ -120,4 +120,4 @@ stages:
                     ```shell
                     > Install-Package Arcus.EventGrid.All -Version $(Build.BuildNumber)
                     ```
-          - template: 'nuget/publish-official-package/yml@templates'
+          - template: 'nuget/publish-official-package.yml@templates'
