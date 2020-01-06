@@ -14,8 +14,9 @@ variables:
   - group: 'Arcus Event Grid - Integration Testing'
   - group: 'Arcus - GitHub Package Registry'
   - group: 'Build Configuration'
-  # Always use fixed version for .NET Core SDK
   - name: 'DotNet.Sdk.Version'
+    value: '3.0.101'
+  - name: 'DotNet.Sdk.VersionBC'
     value: '2.2.105'
   - name: 'Project'
     value: 'Arcus.EventGrid'
@@ -30,15 +31,15 @@ stages:
         pool:
           vmImage: 'ubuntu-16.04'
         steps:
-          - task: DotNetCoreInstaller@0
-            displayName: 'Import .NET Core SDK ($(DotNet.Sdk.Version))'
+          - task: UseDotNet@2
+            displayName: 'Import .NET Core SDK ($(DotNet.Sdk.VersionBC))'
             inputs:
-              version: '$(DotNet.Sdk.Version)'
-          - task: DotNetCoreCLI@2
-            displayName: 'Compile'
-            inputs:
-              projects: 'src/*.sln'
-              arguments: '--configuration release /property:Version=$(Build.BuildNumber)'
+              packageType: 'sdk'
+              version: '$(DotNet.Sdk.VersionBC)'
+          - template: 'build/build-solution.yml@templates'
+            parameters:
+              dotnetSdkVersion: '$(DotNet.Sdk.Version)'
+              version: '$(Build.BuildNumber)'
           - task: CopyFiles@2
             displayName: 'Copy build artifacts'
             inputs:
@@ -65,6 +66,11 @@ stages:
             inputs:
               artifact: 'Build'
               path: '$(Build.SourcesDirectory)'
+          - task: UseDotNet@2
+            displayName: 'Import .NET Core SDK ($(DotNet.Sdk.VersionBC))'
+            inputs:
+              packageType: 'sdk'
+              version: '$(DotNet.Sdk.VersionBC)'
           - template: test/run-unit-tests.yaml@templates
             parameters:
               dotnetSdkVersion: '$(DotNet.Sdk.Version)'
@@ -85,6 +91,11 @@ stages:
             inputs:
               artifact: 'Build'
               path: '$(Build.SourcesDirectory)'
+          - task: UseDotNet@2
+            displayName: 'Import .NET Core SDK ($(DotNet.Sdk.VersionBC))'
+            inputs:
+              packageType: 'sdk'
+              version: '$(DotNet.Sdk.VersionBC)'
           - template: test/run-integration-tests.yaml@templates
             parameters:
               dotnetSdkVersion: '$(DotNet.Sdk.Version)'
