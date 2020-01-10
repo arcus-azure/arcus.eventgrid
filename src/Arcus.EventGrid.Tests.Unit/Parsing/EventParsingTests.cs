@@ -152,6 +152,54 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
         }
 
         [Fact]
+        public void Parse_ValidNewSecretVersionCreatedCloudEvent_ShouldSucceed()
+        {
+            // Arrange
+            const CloudEventsSpecVersion cloudEventsVersion = CloudEventsSpecVersion.Default;
+            const string eventType = "Microsoft.KeyVault.SecretNewVersionCreated",
+                         source = "/subscriptions/76126fd3-49df-5d7e-a74f-9d638f94a1e6/resourceGroups/arcus/providers/Microsoft.KeyVault/vaults/arcus",
+                         eventId = "c041a355-5a1d-4ada-b562-e80f73e1f315",
+                         eventTime = "2020-01-10T07:00:21.1747955Z",
+                         subject = "81fdcb24317034asdf119b2ef83335f13a837";
+
+            const string id = "https://arcus.vault.azure.net/secrets/81fdcb24317034asdf119b2ef83335f13a837/853c8c87asdfasdfasdf7dec439a8f59c88050d02e3fdab",
+                         vaultName = "arcus",
+                         objectName = "81fdcb24317034asdf119b2ef83335f13a837",
+                         objectType = "Secret",
+                         version = "853c8c87asdfasdfasdf7dec439a8f59c88050d02e3fdab",
+                         nbf = null,
+                         exp = null;
+
+            string rawEvent = EventSamples.NewSecretVersionCreatedCloudEvent;
+
+            // Act
+            EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(rawEvent);
+            
+            // Assert
+            Assert.NotNull(eventBatch);
+            Assert.NotNull(eventBatch.Events);
+            
+            CloudEvent cloudEvent = Assert.Single(eventBatch.Events);
+            Assert.NotNull(cloudEvent);
+            Assert.NotNull(cloudEvent);
+            Assert.Equal(cloudEventsVersion, cloudEvent.SpecVersion);
+            Assert.Equal(eventType, cloudEvent.Type);
+            Assert.Equal(source, cloudEvent.Source.OriginalString);
+            Assert.Equal(eventId, cloudEvent.Id);
+            Assert.Equal(eventTime, cloudEvent.Time.GetValueOrDefault().ToString("O"));
+            Assert.Equal(subject, cloudEvent.Subject);
+
+            JObject eventPayload = JObject.Parse(cloudEvent.Data.ToString());
+            Assert.Equal(id, eventPayload.Property("Id").Value);
+            Assert.Equal(vaultName, eventPayload.Property("VaultName").Value);
+            Assert.Equal(objectName, eventPayload.Property("ObjectName").Value);
+            Assert.Equal(objectType, eventPayload.Property("ObjectType").Value);
+            Assert.Equal(version, eventPayload.Property("Version").Value);
+            Assert.Equal(nbf, eventPayload.Property("NBF").Value);
+            Assert.Equal(exp, eventPayload.Property("EXP").Value);
+        }
+
+        [Fact]
         public void Parse_WithNullRawJsonEventBody_ShouldThrowArgumentException()
         {
             Assert.Throws<ArgumentException>(() => EventGridParser.Parse(rawJsonBody: null));

@@ -143,6 +143,15 @@ namespace Arcus.EventGrid.Tests.Unit.Artifacts {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [{&quot;id&quot;:&quot;c041a355-5a1d-4ada-b562-e80f73e1f315&quot;,&quot;source&quot;:&quot;/subscriptions/76126fd3-49df-5d7e-a74f-9d638f94a1e6/resourceGroups/arcus/providers/Microsoft.KeyVault/vaults/arcus&quot;,&quot;specversion&quot;:&quot;1.0&quot;,&quot;type&quot;:&quot;Microsoft.KeyVault.SecretNewVersionCreated&quot;,&quot;dataschema&quot;:&quot;#1&quot;,&quot;subject&quot;:&quot;81fdcb24317034asdf119b2ef83335f13a837&quot;,&quot;time&quot;:&quot;2020-01-10T07:00:21.1747955Z&quot;,&quot;data&quot;:&quot;{\&quot;Id\&quot;:\&quot;https://arcus.vault.azure.net/secrets/81fdcb24317034asdf119b2ef83335f13a837/853c8c87asdfasdfasdf7dec439a8f59c88050d02e3fdab\&quot;,\&quot;VaultName\&quot;:\&quot;ar [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string NewSecretVersionCreatedCloudEvent {
+            get {
+                return ResourceManager.GetString("NewSecretVersionCreatedCloudEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [
         ///                  {
         ///                    &quot;id&quot;: &quot;2d1781af-3a4c-4d7c-bd0c-e34b19da4e66&quot;,

@@ -260,6 +260,9 @@
   "metadataVersion": "1"
 }]</value>
   </data>
+  <data name="NewSecretVersionCreatedCloudEvent" xml:space="preserve">
+    <value>[{"id":"c041a355-5a1d-4ada-b562-e80f73e1f315","source":"/subscriptions/76126fd3-49df-5d7e-a74f-9d638f94a1e6/resourceGroups/arcus/providers/Microsoft.KeyVault/vaults/arcus","specversion":"1.0","type":"Microsoft.KeyVault.SecretNewVersionCreated","dataschema":"#1","subject":"81fdcb24317034asdf119b2ef83335f13a837","time":"2020-01-10T07:00:21.1747955Z","data":"{\"Id\":\"https://arcus.vault.azure.net/secrets/81fdcb24317034asdf119b2ef83335f13a837/853c8c87asdfasdfasdf7dec439a8f59c88050d02e3fdab\",\"VaultName\":\"arcus\",\"ObjectType\":\"Secret\",\"ObjectName\":\"81fdcb24317034asdf119b2ef83335f13a837\",\"Version\":\"853c8c87asdfasdfasdf7dec439a8f59c88050d02e3fdab\",\"NBF\":null,\"EXP\":null}"}]</value>
+  </data>
   <data name="SubscriptionValidationEvent" xml:space="preserve">
     <value>[
                   {

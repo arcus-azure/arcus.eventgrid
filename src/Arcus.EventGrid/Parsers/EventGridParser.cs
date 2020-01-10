@@ -119,7 +119,9 @@ namespace Arcus.EventGrid.Parsers
             {
                 var rawEvent = eventObject.ToString();
 
-                if (eventObject.ContainsKey("cloudEventsVersion"))
+                if (eventObject.ContainsKey("cloudEventsVersion")
+                    || eventObject.ContainsKey("specversion")
+                    || eventObject.ContainsKey("dataschema"))
                 {
                     var jsonFormatter = new JsonEventFormatter();
                     var cloudEvent = jsonFormatter.DecodeStructuredEvent(Encoding.UTF8.GetBytes(rawEvent));
