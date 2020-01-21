@@ -16,8 +16,6 @@ Following paragraphs describe each supported type of event.
 
 ### Deserializing Built-In Azure Events
 
-Or from event data type objects where the event data payload is available via the `.GetPayload()` method.
-
 When using official Azure events, you can use `.ParseFromData<>` to deserialize them based on the built-in types as shown in the example:
 
 ```csharp
