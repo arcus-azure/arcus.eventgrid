@@ -22,6 +22,35 @@ namespace Arcus.EventGrid.Parsers
         };
 
         /// <summary>
+        /// Start composing a parsing approach form a text representation.
+        /// </summary>
+        /// <param name="rawJsonBody">The raw JSON payload to parse.</param>
+        /// <returns>
+        ///     The parsing builder to further define the approach how the <paramref name="rawJsonBody"/> should be parsed.
+        /// </returns>
+        public static EventGridParserBuilder FromRawJson(string rawJsonBody)
+        {
+            Guard.NotNullOrWhitespace(rawJsonBody, nameof(rawJsonBody), "Requires a non-blank raw JSON body to be parsed to an event");
+            
+            return new EventGridParserBuilder(rawJsonBody);
+        }
+
+        /// <summary>
+        /// Start composing a parsing approach form a initial series of bytes.
+        /// </summary>
+        /// <param name="rawJsonBody">The raw JSON payload to parse.</param>
+        /// <returns>
+        ///     The parsing builder to further define the approach how the <paramref name="rawJsonBody"/> should be parsed.
+        /// </returns>
+        public static EventGridParserBuilder FromRawJson(byte[] rawJsonBody)
+        {
+            Guard.NotNull(rawJsonBody, nameof(rawJsonBody), "Requires a non-empty raw JSON payload to be parsed to an event");
+            Guard.For<ArgumentException>(() => rawJsonBody.Length == 0, "Requires a non-empty raw JSON payload to be parsed to an event");
+        
+            return new EventGridParserBuilder(rawJsonBody);
+        }
+
+        /// <summary>
         ///     Parses a string to a <see cref="EventGridEventBatch{TEvent}"/> with typed data payload
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
