@@ -90,15 +90,17 @@ namespace Arcus.EventGrid.Parsers
         /// </summary>
         public EventGridEventBatch<Event> ToEvent()
         {
-            return ParseOneOrMany(jObject =>
+            return ParseOneOrMany<Event>(jObject =>
             {
                 bool isCloudEventV01 = jObject.ContainsKey("cloudEventsVersion");
                 if (isCloudEventV01)
                 {
-                    return (Event) JsonFormatter.DecodeJObject(jObject);
+                    CloudEvent cloudEvent = JsonFormatter.DecodeJObject(jObject);
+                    return cloudEvent;
                 }
 
-                return (Event) jObject.ToObject<EventGridEvent>(JsonSerializer);
+                var eventGridEvent = jObject.ToObject<EventGridEvent>(JsonSerializer);
+                return eventGridEvent;
             });
         }
 

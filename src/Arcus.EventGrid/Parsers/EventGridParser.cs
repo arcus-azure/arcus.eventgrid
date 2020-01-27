@@ -54,6 +54,7 @@ namespace Arcus.EventGrid.Parsers
         ///     Parses a string to a <see cref="EventGridEventBatch{TEvent}"/> with typed data payload
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
+        [Obsolete("Use " + nameof(FromRawJson) + " instead and call " + nameof(EventGridParserBuilder.ToEventGridEvent) + " on the result")]
         public static EventGridEventBatch<EventGridEvent<TEventData>> ParseFromData<TEventData>(string rawJsonBody)
             where TEventData : class
         {
@@ -68,6 +69,7 @@ namespace Arcus.EventGrid.Parsers
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
         /// <param name="sessionId">Session id for event grid message</param>
+        [Obsolete("Use " + nameof(FromRawJson) + " instead and call " + nameof(EventGridParserBuilder.ToEventGridEvent) + " on the result")]
         public static EventGridEventBatch<EventGridEvent<TEventData>> ParseFromData<TEventData>(string rawJsonBody, string sessionId)
             where TEventData : class
         {
@@ -82,6 +84,7 @@ namespace Arcus.EventGrid.Parsers
         ///     Parses a string to a <see cref="EventGridEventBatch{TEvent}"/> with a custom <typeparamref name="TEvent"/> event implementation.
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
+        [Obsolete("Use " + nameof(FromRawJson) + " instead and call " + nameof(EventGridParserBuilder.ToCustomEvent) + " on the result")]
         public static EventGridEventBatch<TEvent> Parse<TEvent>(string rawJsonBody)
             where TEvent : IEvent
         {
@@ -98,6 +101,7 @@ namespace Arcus.EventGrid.Parsers
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
         /// <param name="sessionId">Session id for event grid message</param>
+        [Obsolete("Use " + nameof(FromRawJson) + " instead and call " + nameof(EventGridParserBuilder.ToCustomEvent) + " on the result")]
         public static EventGridEventBatch<TEvent> Parse<TEvent>(string rawJsonBody, string sessionId)
             where TEvent : IEvent
         {
@@ -123,6 +127,7 @@ namespace Arcus.EventGrid.Parsers
         ///     Parses a string to a <see cref="EventGridEventBatch{TEvent}"/> from either a <see cref="CloudEvent"/> or <see cref="EventGridEvent"/> implementation.
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
+        [Obsolete("Use " + nameof(FromRawJson) + " instead and call " + nameof(EventGridParserBuilder.ToEvent) + " on the result")]
         public static EventGridEventBatch<Event> Parse(string rawJsonBody)
         {
             string sessionId = Guid.NewGuid().ToString();
@@ -136,6 +141,7 @@ namespace Arcus.EventGrid.Parsers
         /// </summary>
         /// <param name="rawJsonBody">Raw JSON body</param>
         /// <param name="sessionId">Session id for event grid message</param>
+        [Obsolete("Use " + nameof(FromRawJson) + " instead and call " + nameof(EventGridParserBuilder.ToEvent) + " on the result")]
         public static EventGridEventBatch<Event> Parse(string rawJsonBody, string sessionId)
         {
             Guard.NotNullOrWhitespace(rawJsonBody, nameof(rawJsonBody));

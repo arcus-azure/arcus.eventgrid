@@ -41,9 +41,26 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             TestParseCloudEvent(rawEvent => EventGridParser.FromRawJson(Encoding.UTF8.GetBytes(rawEvent.Trim('[', ']'))).ToCloudEvent());
         }
 
-        private static void TestParseCloudEvent(Func<string, EventGridEventBatch<CloudEvent>> act)
+        [Fact]
+        public void ParseByteArray_ValidStorageBlobCreatedCloudEventWithSessionId_ShouldSucceed()
         {
-            TestParseCloudEvent(rawEvent =>
+            // Arrange
+            var expectedSessionId = Guid.NewGuid().ToString();
+
+            // Act
+            EventGridEventBatch<Event> eventBatch = 
+                TestParseCloudEvent(rawEvent => 
+                    EventGridParser.FromRawJson(Encoding.UTF8.GetBytes(rawEvent.Trim('[', ']')))
+                                   .WithSessionId(expectedSessionId)
+                                   .ToCloudEvent());
+
+            // Assert
+            Assert.Equal(expectedSessionId, eventBatch.SessionId);
+        }
+
+        private static EventGridEventBatch<Event> TestParseCloudEvent(Func<string, EventGridEventBatch<CloudEvent>> act)
+        {
+            return TestParseCloudEvent(rawEvent =>
             {
                 EventGridEventBatch<CloudEvent> eventGridEventBatch = act(rawEvent);
                 return new EventGridEventBatch<Event>(
@@ -76,7 +93,24 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             TestParseCloudEvent(rawEvent => EventGridParser.FromRawJson(Encoding.UTF8.GetBytes(rawEvent.Trim('[', ']'))).ToEvent());
         }
 
-        private static void TestParseCloudEvent(Func<string, EventGridEventBatch<Event>> act)
+        [Fact]
+        public void ParseStringEvents_ValidStorageBlobCreatedEventWithSessionId_ShouldSucceed()
+        {
+            // Arrange
+            var expectedSessionId = Guid.NewGuid().ToString();
+
+            // Act
+            EventGridEventBatch<Event> eventBatch = 
+                TestParseCloudEvent(rawEvent => 
+                    EventGridParser.FromRawJson(rawEvent)
+                                   .WithSessionId(expectedSessionId)
+                                   .ToEvent());
+
+            // Assert
+            Assert.Equal(expectedSessionId, eventBatch.SessionId);
+        }
+
+        private static EventGridEventBatch<Event> TestParseCloudEvent(Func<string, EventGridEventBatch<Event>> act)
         {
             const CloudEventsSpecVersion cloudEventsVersion = CloudEventsSpecVersion.V0_1;
             const string eventType = "Microsoft.Storage.BlobCreated",
@@ -126,6 +160,8 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.NotNull(eventPayload.StorageDiagnostics);
             var storageDiagnostics = Assert.IsType<JObject>(eventPayload.StorageDiagnostics);
             Assert.Equal(batchId, storageDiagnostics["batchId"]);
+
+            return eventBatch;
         }
 
         [Fact]
@@ -169,7 +205,25 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             });
         }
 
-        private static void TestParseEventGridEvent(Func<string, EventGridEventBatch<EventGridEvent<SubscriptionValidationEventData>>> act)
+        [Fact]
+        public void ParseStringEvents_ValidSubscriptionValidationEventDataEventGridEventWithSessionId_ShouldSucceed()
+        {
+            // Arrange
+            var expectedSessionId = Guid.NewGuid().ToString();
+
+            // Act
+            EventGridEventBatch<EventGridEvent<SubscriptionValidationEventData>> eventBatch = 
+                TestParseEventGridEvent(rawEvent => 
+                    EventGridParser.FromRawJson(rawEvent)
+                                   .WithSessionId(expectedSessionId)
+                                   .ToEventGridEvent<SubscriptionValidationEventData>());
+
+            // Assert
+            Assert.Equal(expectedSessionId, eventBatch.SessionId);
+        }
+
+        private static EventGridEventBatch<EventGridEvent<SubscriptionValidationEventData>> TestParseEventGridEvent(
+            Func<string, EventGridEventBatch<EventGridEvent<SubscriptionValidationEventData>>> act)
         {
             // Arrange
             string rawEvent = EventSamples.SubscriptionValidationEvent;
@@ -198,6 +252,8 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             SubscriptionValidationEventData eventData = eventPayload.GetPayload();
             Assert.NotNull(eventData);
             Assert.Equal(validationCode, eventData?.ValidationCode);
+
+            return eventGridBatch;
         }
 
         [Fact]
@@ -224,7 +280,24 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             TestParseCustomEvent(rawEvent => EventGridParser.FromRawJson(Encoding.UTF8.GetBytes(rawEvent.Trim('[', ']'))).ToCustomEvent<NewCarRegistered>());
         }
 
-        private static void TestParseCustomEvent(Func<string, EventGridEventBatch<NewCarRegistered>> act)
+        [Fact]
+        public void ParseStringEvents_CustomEventWithSessionId_ShouldSucceed()
+        {
+            // Arrange
+            var expectedSessionId = Guid.NewGuid().ToString();
+
+            // Act
+            EventGridEventBatch<NewCarRegistered> eventBatch = 
+                TestParseCustomEvent(rawEvent => 
+                    EventGridParser.FromRawJson(rawEvent)
+                                   .WithSessionId(expectedSessionId)
+                                   .ToCustomEvent<NewCarRegistered>());
+
+            // Assert
+            Assert.Equal(expectedSessionId, eventBatch.SessionId);
+        }
+
+        private static EventGridEventBatch<NewCarRegistered> TestParseCustomEvent(Func<string, EventGridEventBatch<NewCarRegistered>> act)
         {
             // Arrange
             const string eventId = "2d1781af-3a4c-4d7c-bd0c-e34b19da4e66";
@@ -241,9 +314,11 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
 
             // Assert
             Assert.NotNull(eventGridMessage);
+            Assert.NotEmpty(eventGridMessage.SessionId);
             Assert.NotNull(eventGridMessage.Events);
-            Assert.Single(eventGridMessage.Events);
-            var eventPayload = eventGridMessage.Events.Single();
+            
+            NewCarRegistered eventPayload = Assert.Single(eventGridMessage.Events);
+            Assert.NotNull(eventPayload);
             Assert.Equal(eventId, eventPayload.Id);
             Assert.Equal(originalEvent.Subject, eventPayload.Subject);
             Assert.Equal(originalEvent.EventType, eventPayload.EventType);
@@ -257,6 +332,8 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.NotNull(expectedEventData);
             Assert.NotNull(actualEventData);
             Assert.Equal(expectedEventData, actualEventData);
+
+            return eventGridMessage;
         }
     }
 }

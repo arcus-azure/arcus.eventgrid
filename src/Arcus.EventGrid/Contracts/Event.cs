@@ -31,6 +31,7 @@ namespace Arcus.EventGrid.Contracts
                 "Only Cloud Events with a 'application/json' content type are supported");
 
             _cloudEvent = cloudEvent;
+            IsCloudEvent = true;
         }
 
         /// <summary>
@@ -41,19 +42,31 @@ namespace Arcus.EventGrid.Contracts
             Guard.NotNull(eventGridEvent, nameof(eventGridEvent));
 
             _eventGridEvent = eventGridEvent;
+            IsEventGridEvent = true;
         }
+
+        /// <summary>
+        /// Gets the value indicating whether or not the event is a <see cref="CloudEvent"/>.
+        /// </summary>
+        public bool IsCloudEvent { get; }
+
+        /// <summary>
+        /// Gets the value indicating whether or not the event is a <see cref="EventGridEvent"/>.
+        /// </summary>
+        public bool IsEventGridEvent { get; }
 
         /// <summary>
         /// Represent this model as a <see cref="CloudEvent"/> or <c>null</c>.
         /// </summary>
         public CloudEvent AsCloudEvent()
         {
-            if (_cloudEvent is null)
+            if (IsCloudEvent)
             {
-                throw new InvalidOperationException("Cannot transform this event to a Cloud Event because it is an Event Grid Event");
+                return _cloudEvent;
             }
 
-            return _cloudEvent;
+            throw new InvalidOperationException("Cannot transform this event to a Cloud Event because it is an Event Grid Event");
+
         }
 
         /// <summary>
@@ -61,12 +74,13 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public EventGridEvent AsEventGridEvent()
         {
-            if (_eventGridEvent is null)
+            if (IsEventGridEvent)
             {
-                throw new InvalidOperationException("Cannot transform this event to an Event Grid Event because it is a Cloud Event");
+                return _eventGridEvent;
             }
 
-            return _eventGridEvent;
+            throw new InvalidOperationException("Cannot transform this event to an Event Grid Event because it is a Cloud Event");
+
         }
 
         /// <summary>
@@ -108,13 +122,14 @@ namespace Arcus.EventGrid.Contracts
         {
             get
             {
-                if (_eventGridEvent is null)
+                if (IsEventGridEvent)
                 {
-                    throw new InvalidOperationException(
-                        "Cannot get the data version of this event because it represents a Cloud Event; which don't have any schema version of the data object information");
+                    return _eventGridEvent.DataVersion;
                 }
 
-                return _eventGridEvent.DataVersion;
+                throw new InvalidOperationException(
+                    "Cannot get the data version of this event because it represents a Cloud Event; which don't have any schema version of the data object information");
+
             }
         }
 
@@ -141,13 +156,14 @@ namespace Arcus.EventGrid.Contracts
         {
             get
             {
-                if (_eventGridEvent is null)
+                if (IsEventGridEvent)
                 {
-                    throw new InvalidOperationException(
-                        "Cannot get the meta-data version of this event because it represents a Cloud Event, which don't have any schema version of the event meta-data information");
+                    return _eventGridEvent.MetadataVersion;
                 }
-                
-                return _eventGridEvent.MetadataVersion;
+
+                throw new InvalidOperationException(
+                    "Cannot get the meta-data version of this event because it represents a Cloud Event, which don't have any schema version of the event meta-data information");
+
             }
         }
 
