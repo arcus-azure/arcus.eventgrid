@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Mime;
+using System.Text;
 using Arcus.EventGrid.Contracts.Interfaces;
+using Arcus.EventGrid.Parsers;
 using CloudNative.CloudEvents;
 using GuardNet;
 using Microsoft.Azure.EventGrid.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Arcus.EventGrid.Contracts
 {
@@ -15,10 +20,16 @@ namespace Arcus.EventGrid.Contracts
     ///     This model is not build for custom events.
     ///     Create your own event by inheriting from <see cref="EventGridEvent{TData}"/>.
     /// </remarks>
+    [JsonConverter(typeof(EventConverter))]
     public sealed class Event : IEvent
     {
-        private readonly CloudEvent _cloudEvent;
-        private readonly EventGridEvent _eventGridEvent;
+        private readonly JObject _rawInput;
+
+        private CloudEvent _cloudEvent;
+        private EventGridEvent _eventGridEvent;
+        private bool _isCloudEvent, _isEventGridEvent, _isPending;
+
+        private static readonly JsonEventFormatter JsonFormatter = new JsonEventFormatter();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Event"/> class.
@@ -31,7 +42,8 @@ namespace Arcus.EventGrid.Contracts
                 "Only Cloud Events with a 'application/json' content type are supported");
 
             _cloudEvent = cloudEvent;
-            IsCloudEvent = true;
+            _isCloudEvent = true;
+            _isPending = false;
         }
 
         /// <summary>
@@ -42,27 +54,31 @@ namespace Arcus.EventGrid.Contracts
             Guard.NotNull(eventGridEvent, nameof(eventGridEvent));
 
             _eventGridEvent = eventGridEvent;
-            IsEventGridEvent = true;
+            _isEventGridEvent = true;
+            _isPending = false;
         }
 
-        /// <summary>
-        /// Gets the value indicating whether or not the event is a <see cref="CloudEvent"/>.
-        /// </summary>
-        public bool IsCloudEvent { get; }
+        internal Event(JObject rawInput)
+        {
+            Guard.NotNull(rawInput, nameof(rawInput));
 
-        /// <summary>
-        /// Gets the value indicating whether or not the event is a <see cref="EventGridEvent"/>.
-        /// </summary>
-        public bool IsEventGridEvent { get; }
+            _rawInput = rawInput;
+            _isPending = true;
+        }
 
         /// <summary>
         /// Represent this model as a <see cref="CloudEvent"/> or <c>null</c>.
         /// </summary>
         public CloudEvent AsCloudEvent()
         {
-            if (IsCloudEvent)
+            if (_isCloudEvent)
             {
                 return _cloudEvent;
+            }
+
+            if (_isPending)
+            {
+                return JsonFormatter.DecodeJObject(_rawInput);
             }
 
             throw new InvalidOperationException("Cannot transform this event to a Cloud Event because it is an Event Grid Event");
@@ -74,9 +90,14 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public EventGridEvent AsEventGridEvent()
         {
-            if (IsEventGridEvent)
+            if (_isEventGridEvent)
             {
                 return _eventGridEvent;
+            }
+
+            if (_isPending)
+            {
+                return _rawInput.ToObject<EventGridEvent>();
             }
 
             throw new InvalidOperationException("Cannot transform this event to an Event Grid Event because it is a Cloud Event");
@@ -122,7 +143,9 @@ namespace Arcus.EventGrid.Contracts
         {
             get
             {
-                if (IsEventGridEvent)
+                LoadRawInput();
+
+                if (_isEventGridEvent)
                 {
                     return _eventGridEvent.DataVersion;
                 }
@@ -136,17 +159,62 @@ namespace Arcus.EventGrid.Contracts
         /// <summary>
         ///     The time the event is generated based on the provider's UTC time.
         /// </summary>
-        public DateTimeOffset EventTime => _eventGridEvent?.EventTime ?? _cloudEvent?.Time ?? default(DateTimeOffset);
+        public DateTimeOffset EventTime
+        {
+            get
+            {
+                LoadRawInput();
+
+                if (_isCloudEvent)
+                {
+                    return _cloudEvent.Time ?? default(DateTimeOffset);
+                }
+                else
+                {
+                    return _eventGridEvent.EventTime;
+                }
+            }
+        }
 
         /// <summary>
         ///     One of the registered event types for this event source.
         /// </summary>
-        public string EventType => _eventGridEvent?.EventType ?? _cloudEvent?.Type;
+        public string EventType
+        {
+            get
+            {
+                LoadRawInput();
+
+                if (_isCloudEvent)
+                {
+                    return _cloudEvent.Type;
+                }
+                else
+                {
+                    return _eventGridEvent.EventType;
+                }
+            }
+        }
 
         /// <summary>
         ///     Unique identifier for the event.
         /// </summary>
-        public string Id => _eventGridEvent?.Id ?? _cloudEvent?.Id;
+        public string Id
+        {
+            get
+            {
+                LoadRawInput();
+
+                if (_isCloudEvent)
+                {
+                    return _cloudEvent.Id;
+                }
+                else
+                {
+                    return _eventGridEvent.Id;
+                }
+            }
+        }
 
         /// <summary>
         ///     The schema version of the event metadata. Event Grid defines the schema of the top-level properties. Event Grid
@@ -156,7 +224,9 @@ namespace Arcus.EventGrid.Contracts
         {
             get
             {
-                if (IsEventGridEvent)
+                LoadRawInput();
+
+                if (_isEventGridEvent)
                 {
                     return _eventGridEvent.MetadataVersion;
                 }
@@ -170,11 +240,157 @@ namespace Arcus.EventGrid.Contracts
         /// <summary>
         ///     Publisher-defined path to the event subject.
         /// </summary>
-        public string Subject => _eventGridEvent?.Subject ?? _cloudEvent?.Subject;
+        public string Subject
+        {
+            get
+            {
+                LoadRawInput();
+
+                if (_isCloudEvent)
+                {
+                    return _cloudEvent.Subject;
+                }
+                else
+                {
+                    return _eventGridEvent.Subject;
+                }
+            }
+        }
 
         /// <summary>
         ///     Full resource path to the event source. This field is not writable. Event Grid provides this value.
         /// </summary>
-        public string Topic => _eventGridEvent?.Topic ?? _cloudEvent?.Source?.OriginalString.Split('#').FirstOrDefault();
+        public string Topic
+        {
+            get
+            {
+                LoadRawInput();
+
+                if (_isCloudEvent)
+                {
+                    return _cloudEvent.Source?.OriginalString.Split('#').FirstOrDefault();
+                }
+                else
+                {
+                    return _eventGridEvent.Topic;
+                }
+            }
+        }
+
+        private void LoadRawInput()
+        {
+            if (_isPending)
+            {
+                bool isCloudEventV01 = _rawInput.ContainsKey("cloudEventsVersion");
+                if (isCloudEventV01)
+                {
+                    _cloudEvent = JsonFormatter.DecodeJObject(_rawInput);
+                    _isCloudEvent = true;
+                }
+                else
+                {
+                    _eventGridEvent = _rawInput.ToObject<EventGridEvent>();
+                    _isEventGridEvent = true;
+                }
+            }
+
+            _isPending = false;
+        }
+
+        /// <summary>
+        /// Gets the typed data payload from the abstracted event.
+        /// </summary>
+        /// <typeparam name="TData">The type of the payload the event is assumed to have.</typeparam>
+        public TData GetPayload<TData>()
+        {
+            LoadRawInput();
+
+            if (_isCloudEvent)
+            {
+                return _cloudEvent.GetPayload<TData>();
+            }
+            else
+            {
+                return _eventGridEvent.GetPayload<TData>();
+            }
+        }
+
+        /// <summary>
+        /// Serializes the abstracted event to a series of bytes.
+        /// </summary>
+        public byte[] SerializeAsBytes()
+        {
+            if (_isPending)
+            {
+                string json = _rawInput.ToString(Formatting.None);
+                return Encoding.UTF8.GetBytes(json);
+            }
+
+            if (_isEventGridEvent)
+            {
+                string json = JsonConvert.SerializeObject(_eventGridEvent);
+                return Encoding.UTF8.GetBytes(json);
+            }
+
+            if (_isCloudEvent)
+            {
+                return JsonFormatter.EncodeStructuredEvent(_cloudEvent, out ContentType contentType);
+            }
+
+            throw new InvalidOperationException(
+                "Can't serialize event to a series of bytes because the type of the event is not either an EventGrid event or a CloudEvent event");
+        }
+
+        /// <summary>
+        /// Serializes the abstracted event to a <c>string</c>.
+        /// </summary>
+        public string SerializeAsString()
+        {
+            if (_isPending)
+            {
+                return _rawInput.ToString(Formatting.None);
+            }
+
+            if (_isEventGridEvent)
+            {
+                return JsonConvert.SerializeObject(_eventGridEvent);
+            }
+
+            if (_isCloudEvent)
+            {
+                byte[] bytes = JsonFormatter.EncodeStructuredEvent(_cloudEvent, out ContentType contentType);
+                return Encoding.UTF8.GetString(bytes);
+            }
+
+            throw new InvalidOperationException(
+                "Can't serialize event to a string because the type of the event is not either an EventGrid event or a CloudEvent event");
+        }
+
+        /// <summary>
+        /// Writes the serialized version of the abstracted event to a JSON writer.
+        /// </summary>
+        /// <param name="writer">The writer instance to send the abstracted event representation to.</param>
+        public void WriteTo(JsonWriter writer)
+        {
+            if (_isPending)
+            {
+                _rawInput.WriteTo(writer);
+            }
+
+            if (_isEventGridEvent)
+            {
+                JObject.FromObject(_eventGridEvent).WriteTo(writer);
+            }
+
+            if (_isCloudEvent)
+            {
+                byte[] bytes = JsonFormatter.EncodeStructuredEvent(_cloudEvent, out ContentType contentType);
+                string json = Encoding.UTF8.GetString(bytes);
+                JObject.Parse(json).WriteTo(writer);
+            }
+
+            throw new InvalidOperationException(
+                "Can't serialize event to a series of bytes because the type of the event is not either an EventGrid event or a CloudEvent event");
+        }
     }
 }
