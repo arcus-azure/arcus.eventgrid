@@ -71,14 +71,11 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public CloudEvent AsCloudEvent()
         {
+            LoadRawInput();
+
             if (_isCloudEvent)
             {
                 return _cloudEvent;
-            }
-
-            if (_isPending)
-            {
-                return JsonFormatter.DecodeJObject(_rawInput);
             }
 
             throw new InvalidOperationException("Cannot transform this event to a Cloud Event because it is an Event Grid Event");
@@ -90,14 +87,11 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public EventGridEvent AsEventGridEvent()
         {
+            LoadRawInput();
+
             if (_isEventGridEvent)
             {
                 return _eventGridEvent;
-            }
-
-            if (_isPending)
-            {
-                return _rawInput.ToObject<EventGridEvent>();
             }
 
             throw new InvalidOperationException("Cannot transform this event to an Event Grid Event because it is a Cloud Event");
