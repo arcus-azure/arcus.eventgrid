@@ -84,7 +84,7 @@ namespace Arcus.EventGrid.Contracts
         private static CloudEvent EventGridEventToCloudEvent(EventGridEvent eventGridEvent)
         {
             // TODO: how do we define the source?
-            string source = $"/{eventGridEvent.Subject}/#{eventGridEvent.Topic}/{eventGridEvent.MetadataVersion}";
+            string source = $"/{eventGridEvent.Subject}/#{eventGridEvent.Topic}";
             var cloudEvent = new CloudEvent(
                 eventGridEvent.EventType,
                 new Uri(source),
