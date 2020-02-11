@@ -304,6 +304,7 @@ namespace Arcus.EventGrid.Contracts
 
         private void LoadRawInput()
         {
+            // TODO: should this be locked?
             if (_isPending)
             {
                 bool isCloudEventV01 = _rawInput.ContainsKey("cloudEventsVersion");
