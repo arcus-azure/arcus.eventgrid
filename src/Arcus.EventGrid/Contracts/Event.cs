@@ -78,8 +78,24 @@ namespace Arcus.EventGrid.Contracts
                 return _cloudEvent;
             }
 
-            throw new InvalidOperationException("Cannot transform this event to a Cloud Event because it is an Event Grid Event");
+            return EventGridEventToCloudEvent(_eventGridEvent);
+        }
 
+        private static CloudEvent EventGridEventToCloudEvent(EventGridEvent eventGridEvent)
+        {
+            // TODO: how do we define the source?
+            string source = $"/{eventGridEvent.Subject}/#{eventGridEvent.Topic}/{eventGridEvent.MetadataVersion}";
+            var cloudEvent = new CloudEvent(
+                eventGridEvent.EventType,
+                new Uri(source),
+                eventGridEvent.Id,
+                eventGridEvent.EventTime)
+            {
+                Subject = eventGridEvent.Subject,
+                Data = eventGridEvent.Data
+            };
+
+            return cloudEvent;
         }
 
         /// <summary>
@@ -94,8 +110,23 @@ namespace Arcus.EventGrid.Contracts
                 return _eventGridEvent;
             }
 
-            throw new InvalidOperationException("Cannot transform this event to an Event Grid Event because it is a Cloud Event");
+            EventGridEvent eventGridEvent = CloudEventToEventGridEvent(_cloudEvent);
+            return eventGridEvent;
+        }
 
+        private static EventGridEvent CloudEventToEventGridEvent(CloudEvent cloudEvent)
+        {
+            string topic = cloudEvent.Source?.OriginalString.Split('#').FirstOrDefault();
+            var eventGridEvent = new EventGridEvent(
+                cloudEvent.Id,
+                cloudEvent.Subject,
+                cloudEvent.Data,
+                cloudEvent.Type,
+                cloudEvent.Time ?? default(DateTime),
+                dataVersion: null,
+                topic: topic);
+
+            return eventGridEvent;
         }
 
         /// <summary>
