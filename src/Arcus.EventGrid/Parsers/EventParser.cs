@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Arcus.EventGrid.Contracts;
+using CloudNative.CloudEvents;
 using GuardNet;
+using Microsoft.Azure.EventGrid.Models;
 using Newtonsoft.Json.Linq;
 
 namespace Arcus.EventGrid.Parsers 
@@ -13,6 +15,8 @@ namespace Arcus.EventGrid.Parsers
     /// </summary>
     public static class EventParser
     {
+        private static readonly JsonEventFormatter JsonFormatter = new JsonEventFormatter();
+
         /// <summary>
         /// Loads a raw JSON payload into an abstracted event.
         /// </summary>
@@ -71,7 +75,7 @@ namespace Arcus.EventGrid.Parsers
             {
                 List<Event> deserializedEvents = 
                     jToken.Children<JObject>()
-                          .Select(jObject => new Event(jObject))
+                          .Select(ParseJObject)
                           .ToList();
 
                 var result = new EventGridEventBatch<Event>(sessionId, deserializedEvents);
@@ -79,7 +83,7 @@ namespace Arcus.EventGrid.Parsers
             }
             else if (jToken.Type == JTokenType.Object)
             {
-                var @event = new Event((JObject) jToken);
+                Event @event = ParseJObject((JObject) jToken);
                 var deserializedEvents = new List<Event> { @event };
 
                 var result = new EventGridEventBatch<Event>(sessionId, deserializedEvents);
@@ -88,6 +92,21 @@ namespace Arcus.EventGrid.Parsers
 
             throw new InvalidOperationException(
                 "Couldn't find a correct JSON structure (array or object) to parse the EventGridEvent/CloudEvents from");
+        }
+
+        internal static Event ParseJObject(JObject rawInput)
+        {
+            bool isCloudEventV01 = rawInput.ContainsKey(propertyName: "cloudEventsVersion");
+            if (isCloudEventV01)
+            {
+                var cloudEvent = JsonFormatter.DecodeJObject(jObject: rawInput);
+                return cloudEvent;
+            }
+            else
+            {
+                var eventGridEvent = rawInput.ToObject<EventGridEvent>();
+                return eventGridEvent;
+            }
         }
     }
 }

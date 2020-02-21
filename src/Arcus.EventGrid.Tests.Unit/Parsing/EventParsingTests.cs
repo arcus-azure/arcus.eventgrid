@@ -31,7 +31,8 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
                          batchId = "69cd1576-e430-4aff-8153-570934a1f6e1";
 
             const int contentLength = 29342;
-            var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274Z");
+            var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274");
+            var source = new Uri("/some/source/not/available/in/event-grid/events", UriKind.Relative);
 
             string rawEvent = EventSamples.BlobCreateEvent;
             var eventGridEventBatch = EventParser.Parse(rawEvent);
@@ -40,7 +41,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             Assert.NotNull(@event);
 
             // Act
-            CloudEvent cloudEvent = @event.AsCloudEvent();
+            CloudEvent cloudEvent = @event.AsCloudEvent(source);
 
             // Assert
             Assert.NotNull(cloudEvent);
@@ -72,7 +73,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             // Arrange
             const string eventType = "Microsoft.Storage.BlobCreated",
                          eventId = "173d9985-401e-0075-2497-de268c06ff25",
-                         eventTime = "2018-04-28T02:18:47.1281675Z";
+                         eventTime = "2018-04-28T02:18:47.1281675";
 
             const string api = "PutBlockList",
                          clientRequestId = "6d79dbfb-0e37-4fc4-981f-442c9ca65760",
@@ -236,7 +237,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const string sequencer = "00000000000000000000000000000094000000000017d503";
             const string batchId = "69cd1576-e430-4aff-8153-570934a1f6e1";
             string rawEvent = EventSamples.BlobCreateEvent;
-            var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274Z");
+            var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274");
 
             // Act
             var eventGridMessage = EventGridParser.Parse(rawEvent);
@@ -290,7 +291,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const string sequencer = "00000000000000000000000000000094000000000017d503";
             const string batchId = "69cd1576-e430-4aff-8153-570934a1f6e1";
             string rawEvent = EventSamples.BlobCreateEvent;
-            var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274Z");
+            var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274");
 
             // Act
             var eventGridMessage = EventParser.Parse(rawEvent);
@@ -386,7 +387,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const string eventType = "Microsoft.Storage.BlobCreated",
                          source = "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account}#blobServices/default/containers/{storage-container}/blobs/{new-file}",
                          eventId = "173d9985-401e-0075-2497-de268c06ff25",
-                         eventTime = "2018-04-28T02:18:47.1281675Z";
+                         eventTime = "2018-04-28T02:18:47.1281675";
 
             const string api = "PutBlockList",
                          clientRequestId = "6d79dbfb-0e37-4fc4-981f-442c9ca65760",
@@ -440,7 +441,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const string eventType = "Microsoft.Storage.BlobCreated",
                          source = "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account}#blobServices/default/containers/{storage-container}/blobs/{new-file}",
                          eventId = "173d9985-401e-0075-2497-de268c06ff25",
-                         eventTime = "2018-04-28T02:18:47.1281675Z";
+                         eventTime = "2018-04-28T02:18:47.1281675";
 
             const string api = "PutBlockList",
                          clientRequestId = "6d79dbfb-0e37-4fc4-981f-442c9ca65760",

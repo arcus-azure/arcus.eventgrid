@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Arcus.EventGrid.Contracts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,7 +17,7 @@ namespace Arcus.EventGrid.Parsers
         /// <param name="serializer">The calling serializer.</param>
         public override void WriteJson(JsonWriter writer, Event value, JsonSerializer serializer)
         {
-            value.WriteTo(writer);
+            JObject.FromObject(value).WriteTo(writer, serializer.Converters.ToArray());
         }
 
         /// <summary>Reads the JSON representation of the object.</summary>
@@ -34,7 +35,7 @@ namespace Arcus.EventGrid.Parsers
             JsonSerializer serializer)
         {
             JObject rawInput = JObject.Load(reader);
-            return new Event(rawInput);
+            return EventParser.ParseJObject(rawInput);
         }
     }
 }
