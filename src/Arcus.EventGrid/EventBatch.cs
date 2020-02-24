@@ -8,14 +8,14 @@ namespace Arcus.EventGrid
     /// Representation of an message received from event grid containing a <see cref="SessionId"/> and a series of <see cref="Events"/>.
     /// </summary>
     /// <typeparam name="TEvent">The type of the event that was received.</typeparam>
-    public class EventGridEventBatch<TEvent>
+    public class EventBatch<TEvent>
     {
         /// <summary>
         /// Creates event grid message with passed session Id
         /// </summary>
         /// <param name="sessionId">Unique session id for all batched messages</param>
         /// <param name="events">List of events that are part of this Event Grid message</param>
-        public EventGridEventBatch(string sessionId, IList<TEvent> events)
+        public EventBatch(string sessionId, IList<TEvent> events)
         {
             Guard.NotNullOrWhitespace(sessionId, nameof(sessionId));
             Guard.NotNull(sessionId, nameof(sessionId));
