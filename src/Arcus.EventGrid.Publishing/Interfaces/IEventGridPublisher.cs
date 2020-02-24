@@ -18,55 +18,10 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         string TopicEndpoint { get; }
 
         /// <summary>
-        ///     Publish a raw JSON payload as event
-        /// </summary>
-        /// <param name="eventId">Id of the event</param>
-        /// <param name="eventType">Type of the event</param>
-        /// <param name="eventBody">Body of the event</param>
-        Task PublishRawAsync(string eventId, string eventType, string eventBody);
-
-        /// <summary>
-        ///     Publish a raw JSON payload as event
-        /// </summary>
-        /// <param name="eventId">Id of the event</param>
-        /// <param name="eventType">Type of the event</param>
-        /// <param name="eventBody">Body of the event</param>
-        /// <param name="eventSubject">Subject of the event</param>
-        /// <param name="dataVersion">Data version of the event body</param>
-        /// <param name="eventTime">Time when the event occured</param>
-        Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime);
-
-        /// <summary>
-        ///     Publish a raw JSON payload as event
-        /// </summary>
-        /// <param name="rawEvent">The event to publish</param>
-        Task PublishRawAsync(RawEvent rawEvent);
-
-        /// <summary>
-        ///     Publish an event grid message
-        /// </summary>
-        /// <typeparam name="TEvent">Type of the specific event</typeparam>
-        /// <param name="event">Event to publish</param>
-        Task PublishAsync<TEvent>(TEvent @event) where TEvent : class, IEvent;
-
-        /// <summary>
         ///     Publish an event grid message
         /// </summary>
         /// <param name="cloudEvent">Event to publish</param>
         Task PublishAsync(CloudEvent cloudEvent);
-
-        /// <summary>
-        ///     Publish a many raw JSON payload as events
-        /// </summary>
-        /// <param name="rawEvents">The events to publish.</param>
-        Task PublishManyRawAsync(IEnumerable<RawEvent> rawEvents);
-
-        /// <summary>
-        ///     Publish an event grid message
-        /// </summary>
-        /// <typeparam name="TEvent">Type of the specific event</typeparam>
-        /// <param name="events">Events to publish</param>
-        Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent;
 
         /// <summary>
         ///     Publish an event grid message
@@ -74,5 +29,45 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// <param name="events">Events to publish</param>
         Task PublishManyAsync(IEnumerable<CloudEvent> events);
 
+        /// <summary>
+        ///     Publish a raw JSON payload as event
+        /// </summary>
+        /// <param name="eventId">Id of the event</param>
+        /// <param name="eventType">Type of the event</param>
+        /// <param name="eventBody">Body of the event</param>
+        /// <param name="eventSchema">The schema in which the event should be published.</param>
+        Task PublishRawAsync(string eventId, string eventType, string eventBody, EventSchema eventSchema = EventSchema.EventGrid);
+
+        /// <summary>
+        ///     Publish a raw JSON payload as event
+        /// </summary>
+        /// <param name="rawEvent">The event to publish</param>
+        /// <param name="eventSchema">The schema in which the <paramref name="rawEvent"/> should be published.</param>
+        Task PublishRawAsync(RawEvent rawEvent, EventSchema eventSchema = EventSchema.EventGrid);
+
+        /// <summary>
+        ///     Publish a many raw JSON payload as events
+        /// </summary>
+        /// <param name="rawEvents">The events to publish.</param>
+        /// <param name="eventSchema">The schema in which the <paramref name="rawEvents"/> should be published.</param>
+        Task PublishManyRawAsync(IEnumerable<RawEvent> rawEvents, EventSchema eventSchema = EventSchema.EventGrid);
+
+        /// <summary>
+        ///     Publish an event grid message
+        /// </summary>
+        /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
+        /// <param name="event">Event to publish</param>
+        /// <param name="eventSchema">The schema in which the <paramref name="event"/> should be published.</param>
+        Task PublishAsync<TEvent>(TEvent @event, EventSchema eventSchema = EventSchema.EventGrid)
+            where TEvent : class, IEvent;
+
+        /// <summary>
+        ///     Publish an event grid message
+        /// </summary>
+        /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
+        /// <param name="events">Events to publish</param>
+        /// <param name="eventSchema">The schema in which the <paramref name="events"/> should be published.</param>
+        Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events, EventSchema eventSchema = EventSchema.EventGrid)
+            where TEvent : class, IEvent;
     }
 }

@@ -66,9 +66,10 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="eventId">Id of the event</param>
         /// <param name="eventType">Type of the event</param>
         /// <param name="eventBody">Body of the event</param>
-        public async Task PublishRawAsync(string eventId, string eventType, string eventBody)
+        /// <param name="eventSchema">The schema in which the event should be published.</param>
+        public async Task PublishRawAsync(string eventId, string eventType, string eventBody, EventSchema eventSchema = EventSchema.EventGrid)
         {
-            await PublishRawAsync(eventId, eventType, eventBody, eventSubject: "/", dataVersion: "1.0", eventTime: DateTimeOffset.UtcNow);
+            await PublishRawAsync(eventId, eventType, eventBody, eventSubject: "/", dataVersion: "1.0", eventTime: DateTimeOffset.UtcNow, eventSchema);
         }
 
         /// <summary>
@@ -80,7 +81,8 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="eventSubject">Subject of the event</param>
         /// <param name="dataVersion">Data version of the event body</param>
         /// <param name="eventTime">Time when the event occured</param>
-        public async Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
+        /// <param name="eventSchema">The schema in which the event should be published.</param>
+        public async Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime, EventSchema eventSchema = EventSchema.EventGrid)
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId), "No event id was specified");
             Guard.NotNullOrWhitespace(eventType, nameof(eventType), "No event type was specified");
@@ -90,20 +92,21 @@ namespace Arcus.EventGrid.Publishing
 
             var rawEvent = new RawEvent(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime);
 
-            await PublishRawAsync(rawEvent);
+            await PublishRawAsync(rawEvent, eventSchema);
         }
 
         /// <summary>
         ///     Publish a raw JSON payload as event
         /// </summary>
         /// <param name="rawEvent">The event to publish</param>
-        public async Task PublishRawAsync(RawEvent rawEvent)
+        /// <param name="eventSchema">The schema in which the <paramref name="rawEvent"/> should be published.</param>
+        public async Task PublishRawAsync(RawEvent rawEvent, EventSchema eventSchema = EventSchema.EventGrid)
         {
             Guard.NotNull(rawEvent, nameof(rawEvent), "No event was specified");
 
             IEnumerable<RawEvent> eventList = new[] { rawEvent };
 
-            await PublishEventToTopicAsync(eventList);
+            await PublishEventToTopicAsync(eventList, eventSchema);
         }
 
         /// <summary>
@@ -119,20 +122,21 @@ namespace Arcus.EventGrid.Publishing
                 cloudEvent
             };
 
-            await PublishEventToTopicAsync(eventList);
+            await PublishEventToTopicAsync(eventList, EventSchema.CloudEvent);
         }
 
         /// <summary>
         ///     Publish a many raw JSON payload as events
         /// </summary>
         /// <param name="rawEvents">The events to publish.</param>
-        public async Task PublishManyRawAsync(IEnumerable<RawEvent> rawEvents)
+        /// <param name="eventSchema">The schema in which the <paramref name="rawEvents"/> should be published.</param>
+        public async Task PublishManyRawAsync(IEnumerable<RawEvent> rawEvents, EventSchema eventSchema = EventSchema.EventGrid)
         {
             Guard.NotNull(rawEvents, nameof(rawEvents), "No raw events were specified");
             Guard.For<ArgumentException>(() => !rawEvents.Any(), "No raw events were specified");
             Guard.For<ArgumentException>(() => rawEvents.Any(rawEvent => rawEvent is null), "Some raw events are 'null'");
 
-            await PublishEventToTopicAsync(rawEvents);
+            await PublishEventToTopicAsync(rawEvents, eventSchema);
         }
 
         /// <summary>
@@ -140,7 +144,8 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
         /// <param name="event">Event to publish</param>
-        public async Task PublishAsync<TEvent>(TEvent @event)
+        /// <param name="eventSchema">The schema in which the <paramref name="event"/> should be published.</param>
+        public async Task PublishAsync<TEvent>(TEvent @event, EventSchema eventSchema = EventSchema.EventGrid)
             where TEvent : class, IEvent
         {
             Guard.NotNull(@event, nameof(@event), "No event was specified");
@@ -150,7 +155,7 @@ namespace Arcus.EventGrid.Publishing
                 @event
             };
 
-            await PublishEventToTopicAsync(eventList);
+            await PublishEventToTopicAsync(eventList, eventSchema);
         }
 
         /// <summary>
@@ -158,14 +163,15 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
         /// <param name="events">Events to publish</param>
-        public async Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events)
+        /// <param name="eventSchema">The schema in which the <paramref name="events"/> should be published.</param>
+        public async Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events, EventSchema eventSchema = EventSchema.EventGrid)
             where TEvent : class, IEvent
         {
             Guard.NotNull(events, nameof(events), "No events was specified");
             Guard.For<ArgumentException>(() => !events.Any(), "No events were specified");
             Guard.For<ArgumentException>(() => events.Any(@event => @event is null), "Some events are 'null'");
 
-            await PublishEventToTopicAsync(events);
+            await PublishEventToTopicAsync(events, eventSchema);
         }
 
         /// <summary>
@@ -176,12 +182,12 @@ namespace Arcus.EventGrid.Publishing
         {
             Guard.NotNull(events, nameof(events));
 
-            await PublishEventToTopicAsync(events);
+            await PublishEventToTopicAsync(events, EventSchema.CloudEvent);
         }
 
-        private async Task PublishEventToTopicAsync<TEvent>(IEnumerable<TEvent> eventList) where TEvent : class
+        private async Task PublishEventToTopicAsync<TEvent>(IEnumerable<TEvent> eventList, EventSchema eventSchema) where TEvent : class
         {
-            var response = await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequestAsync(eventList));
+            var response = await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequestAsync(eventList, eventSchema));
 
             if (!response.IsSuccessStatusCode)
             {
@@ -189,12 +195,42 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class
+        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events, EventSchema eventSchema) where TEvent : class
         {
             IFlurlRequest authorizedRequest = 
                 TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey);
 
-            return await authorizedRequest.PostJsonAsync(events);
+            switch (eventSchema)
+            {
+                case EventSchema.EventGrid:
+                    return await authorizedRequest.PostJsonAsync(events);
+                case EventSchema.CloudEvent:
+                    // TODO: until abstracted event is fixed.
+                    if (typeof(TEvent) == typeof(CloudEvent))
+                    {
+                        IEnumerable<CloudEvent> cloudEvents = events.Cast<CloudEvent>();
+                        HttpContent content = CreateCloudEventHttpContent(cloudEvents);
+                        return await authorizedRequest.SendAsync(HttpMethod.Post, content);
+                    }
+
+                    throw new InvalidOperationException("Can't publish events as cloud events because the passed along events aren't cloud events");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(eventSchema), eventSchema, "Unknown event schema");
+            }
+        }
+
+        private static HttpContent CreateCloudEventHttpContent(IEnumerable<CloudEvent> cloudEvents)
+        {
+            if (cloudEvents.Count() == 1)
+            {
+                var content = new CloudEventContent(cloudEvents.First(), ContentMode.Binary, new JsonEventFormatter());
+                return content;
+            }
+            else
+            {
+                var content = new CloudEventBatchContent(cloudEvents, ContentMode.Binary, new JsonEventFormatter());
+                return content;
+            }
         }
 
         private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
