@@ -18,11 +18,11 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             string rawEvent = EventSamples.BlobCreateEvent;
 
             // Act
-            var EventBatch = EventGridParser.Parse(rawEvent);
+            var eventBatch = EventGridParser.Parse(rawEvent);
 
             // Assert
-            Assert.NotNull(EventBatch);
-            Event @event = Assert.Single(EventBatch.Events);
+            Assert.NotNull(eventBatch);
+            Event @event = Assert.Single(eventBatch.Events);
             Assert.NotNull(@event);
             Assert.Throws<InvalidOperationException>(() => @event.AsCloudEvent());
         }

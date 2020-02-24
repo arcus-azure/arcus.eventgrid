@@ -98,8 +98,8 @@ namespace Arcus.EventGrid.Parsers
         {
             string sessionId = Guid.NewGuid().ToString();
 
-            var EventBatch = Parse(rawJsonBody, sessionId);
-            return EventBatch;
+            var eventBatch = Parse(rawJsonBody, sessionId);
+            return eventBatch;
         }
 
         /// <summary>
