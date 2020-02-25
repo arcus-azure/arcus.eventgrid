@@ -88,7 +88,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const long contentLength = 524_288;
 
             string rawEvent = EventSamples.AzureBlobStorageCreatedCloudEvent;
-            EventGridEventBatch<Event> eventBatch = EventParser.Parse(rawEvent);
+            EventBatch<Event> eventBatch = EventParser.Parse(rawEvent);
             Assert.NotNull(eventBatch);
             Event @event = Assert.Single(eventBatch.Events);
             Assert.NotNull(@event);
@@ -348,7 +348,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             var eventTime = DateTimeOffset.Parse("2018-03-15T10:25:17.7535274Z");
 
             // Act
-            EventGridEventBatch<Event> eventGridMessage = EventParser.Parse(rawEvent);
+            EventBatch<Event> eventGridMessage = EventParser.Parse(rawEvent);
 
             // Assert
             Assert.NotNull(eventGridMessage);
@@ -404,7 +404,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             string rawEvent = EventSamples.AzureBlobStorageCreatedCloudEvent;
 
             // Act
-            EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(rawEvent);
+            EventBatch<Event> eventBatch = EventGridParser.Parse(rawEvent);
 
             // Assert
             Assert.NotNull(eventBatch);
@@ -458,7 +458,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             string rawEvent = EventSamples.AzureBlobStorageCreatedCloudEvent;
 
             // Act
-            EventGridEventBatch<Event> eventBatch = EventParser.Parse(rawEvent);
+            EventBatch<Event> eventBatch = EventParser.Parse(rawEvent);
 
             // Assert
             Assert.NotNull(eventBatch);
@@ -511,7 +511,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             string rawEvent = EventSamples.AzureBlobStorageCreatedCloudEvent;
 
             // Act
-            EventGridEventBatch<Event> eventBatch = EventParser.Parse(rawEvent);
+            EventBatch<Event> eventBatch = EventParser.Parse(rawEvent);
 
             // Assert
             Assert.NotNull(eventBatch);

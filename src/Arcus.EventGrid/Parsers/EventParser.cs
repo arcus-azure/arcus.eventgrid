@@ -21,12 +21,12 @@ namespace Arcus.EventGrid.Parsers
         /// Loads a raw JSON payload into an abstracted event.
         /// </summary>
         /// <param name="rawJson">The raw JSON payload, representing an event that can be handled by EventGrid.</param>
-        public static EventGridEventBatch<Event> Parse(byte[] rawJson)
+        public static EventBatch<Event> Parse(byte[] rawJson)
         {
             Guard.NotNull(rawJson, nameof(rawJson), "Cannot parse a 'null' series of bytes raw JSON payload to an abstracted event");
             Guard.NotLessThanOrEqualTo(rawJson.Length, threshold: 0, "Cannot parse a series of bytes of a length <= 0 to an abstracted event");
 
-            EventGridEventBatch<Event> eventBatch = Parse(rawJson, sessionId: Guid.NewGuid().ToString());
+            EventBatch<Event> eventBatch = Parse(rawJson, sessionId: Guid.NewGuid().ToString());
             return eventBatch;
         }
 
@@ -35,13 +35,13 @@ namespace Arcus.EventGrid.Parsers
         /// </summary>
         /// <param name="rawJson">The raw JSON payload, representing an event that can be handled by EventGrid.</param>
         /// <param name="sessionId">The reference ID for this event parsing session.</param>
-        public static EventGridEventBatch<Event> Parse(byte[] rawJson, string sessionId)
+        public static EventBatch<Event> Parse(byte[] rawJson, string sessionId)
         {
             Guard.NotNull(rawJson, nameof(rawJson), "Cannot parse a 'null' series of bytes raw JSON payload to an abstracted event");
             Guard.NotLessThanOrEqualTo(rawJson.Length, threshold: 0, "Cannot parse a series of bytes of a length <= 0 to an abstracted event");
 
             string json = Encoding.UTF8.GetString(rawJson);
-            EventGridEventBatch<Event> eventBatch = Parse(json, sessionId);
+            EventBatch<Event> eventBatch = Parse(json, sessionId);
 
             return eventBatch;
         }
@@ -50,11 +50,11 @@ namespace Arcus.EventGrid.Parsers
         /// Loads a raw JSON payload into an abstracted event.
         /// </summary>
         /// <param name="rawJson">The raw JSON payload, representing an event that can be handled by EventGrid.</param>
-        public static EventGridEventBatch<Event> Parse(string rawJson)
+        public static EventBatch<Event> Parse(string rawJson)
         {
             Guard.NotNullOrWhitespace(rawJson, nameof(rawJson), "Cannot parse a blank raw JSON payload to an abstracted event");
 
-            EventGridEventBatch<Event> eventBatch = Parse(rawJson, sessionId: Guid.NewGuid().ToString());
+            EventBatch<Event> eventBatch = Parse(rawJson, sessionId: Guid.NewGuid().ToString());
             return eventBatch;
         }
 
@@ -63,7 +63,7 @@ namespace Arcus.EventGrid.Parsers
         /// </summary>
         /// <param name="rawJson">The raw JSON payload, representing an event that can be handled by EventGrid.</param>
         /// <param name="sessionId">The reference ID for this event parsing session.</param>
-        public static EventGridEventBatch<Event> Parse(string rawJson, string sessionId)
+        public static EventBatch<Event> Parse(string rawJson, string sessionId)
         {
             Guard.NotNullOrWhitespace(rawJson, nameof(rawJson), "Cannot parse a blank raw JSON payload to an abstracted event");
             Guard.NotNullOrWhitespace(sessionId, nameof(sessionId), "Cannot parse a raw JSON payload with a blank session ID");
@@ -77,7 +77,7 @@ namespace Arcus.EventGrid.Parsers
                           .Select(ParseJObject)
                           .ToList();
 
-                var result = new EventGridEventBatch<Event>(sessionId, deserializedEvents);
+                var result = new EventBatch<Event>(sessionId, deserializedEvents);
                 return result;
             }
             else if (jToken.Type == JTokenType.Object)
@@ -85,7 +85,7 @@ namespace Arcus.EventGrid.Parsers
                 Event @event = ParseJObject((JObject) jToken);
                 var deserializedEvents = new List<Event> { @event };
 
-                var result = new EventGridEventBatch<Event>(sessionId, deserializedEvents);
+                var result = new EventBatch<Event>(sessionId, deserializedEvents);
                 return result;
             }
 
