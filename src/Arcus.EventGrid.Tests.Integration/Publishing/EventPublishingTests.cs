@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
@@ -9,6 +10,7 @@ using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
 using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Integration.Logging;
+using CloudNative.CloudEvents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -30,6 +32,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             Configuration = new ConfigurationBuilder()
                 .AddJsonFile(path: "appsettings.json")
+                .AddJsonFile(path: "appsettings.local.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build();
         }
@@ -73,6 +76,37 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
             AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
+        public async Task PublishSingleCloudEvent_WithBuilder_ValidParameters_Succeeds()
+        {
+            // Arrange
+            var topicEndpoint = Configuration.GetValue<string>("Arcus:CloudEvent:TopicEndpoint");
+            var endpointKey = Configuration.GetValue<string>("Arcus:CloudEvent:EndpointKey");
+            const string eventSubject = "integration-test";
+            const string licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var source = new Uri("http://testsuite#arcus-eventgrid");
+            var @event = new CloudEvent("NewCarRegistered", source, eventId)
+            {
+                Data = JsonConvert.SerializeObject(new CarEventData(licensePlate)),
+                Subject = eventSubject,
+                DataContentType = new ContentType("application/cloudevents+json; charset=utf-8"),
+            };
+
+            // Act
+            await EventGridPublisherBuilder
+                  .ForTopic(topicEndpoint)
+                  .UsingAuthenticationKey(endpointKey)
+                  .Build()
+                  .PublishManyAsync(new[] { @event, @event });
+
+            TracePublishedEvent(eventId, @event);
+
+            // Assert
+            //var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
+            //AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
         [Fact]

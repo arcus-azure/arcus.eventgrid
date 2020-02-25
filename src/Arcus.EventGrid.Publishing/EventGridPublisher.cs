@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
@@ -212,6 +213,12 @@ namespace Arcus.EventGrid.Publishing
                         HttpContent content = CreateCloudEventHttpContent(cloudEvents);
                         return await authorizedRequest.SendAsync(HttpMethod.Post, content);
                     }
+                    else if (typeof(TEvent) == typeof(RawEvent))
+                    {
+                        IEnumerable<CloudEvent> cloudEvents = events.Cast<RawEvent>().Select(CreateCloudEventFromRawEvent);
+                        HttpContent content = CreateCloudEventHttpContent(cloudEvents);
+                        return await authorizedRequest.SendAsync(HttpMethod.Post, content);
+                    }
 
                     throw new InvalidOperationException("Can't publish events as cloud events because the passed along events aren't cloud events");
                 default:
@@ -231,6 +238,20 @@ namespace Arcus.EventGrid.Publishing
                 var content = new CloudEventBatchContent(cloudEvents, ContentMode.Binary, new JsonEventFormatter());
                 return content;
             }
+        }
+
+        private static CloudEvent CreateCloudEventFromRawEvent(RawEvent rawEvent)
+        {
+            // TODO: what should the source be?
+            var source = new Uri("http://source");
+            var cloudEvent = new CloudEvent(rawEvent.EventType, source, rawEvent.Id, rawEvent.EventTime)
+            {
+                Data = rawEvent.Data,
+                Subject = rawEvent.Subject,
+                DataContentType = new ContentType("application/json")
+            };
+
+            return cloudEvent;
         }
 
         private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
