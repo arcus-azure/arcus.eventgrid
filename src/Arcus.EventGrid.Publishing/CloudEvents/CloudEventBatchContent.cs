@@ -17,7 +17,8 @@ namespace CloudNative.CloudEvents
     /// </summary>
     public class CloudEventBatchContent : HttpContent
     {
-        private const string CloudEventBatchContentType = "application/cloudevents-batch+json; charset=UTF-8";
+        private const string CloudEventContentType = "application/cloudevents+json; charset=UTF-8", 
+                             CloudEventBatchContentType = "application/cloudevents-batch+json; charset=UTF-8";
 
         private readonly IEnumerable<CloudEventContent> _contents;
 
@@ -27,6 +28,11 @@ namespace CloudNative.CloudEvents
         public CloudEventBatchContent(IEnumerable<CloudEvent> cloudEvents, ContentMode contentMode, ICloudEventFormatter formatter)
         {
             _contents = cloudEvents.Select(ev => new CloudEventContent(ev, contentMode, formatter)).ToArray();
+            
+            Headers.ContentType = 
+                _contents.Count() == 1 
+                    ? MediaTypeHeaderValue.Parse(CloudEventContentType)
+                    : MediaTypeHeaderValue.Parse(CloudEventBatchContentType);
         }
 
         /// <summary>Serialize the HTTP content to a stream as an asynchronous operation.</summary>
@@ -44,6 +50,7 @@ namespace CloudNative.CloudEvents
             }
 
             await EncodeStringToStreamAsync(stream, "]", cancellationToken: default);
+            
             Headers.ContentType = MediaTypeHeaderValue.Parse(CloudEventBatchContentType);
         }
 
@@ -63,7 +70,9 @@ namespace CloudNative.CloudEvents
 
             foreach (CloudEventContent content in _contents)
             {
-                result = result && TryComputeCloudEventContentLength(content, out length);
+                long nextLength = 0;
+                result = result && TryComputeCloudEventContentLength(content, out nextLength);
+                length += nextLength;
             }
 
             return result;
@@ -78,7 +87,11 @@ namespace CloudNative.CloudEvents
                 return false;
             }
 
-            return (bool) methodInfo.Invoke(content, new object[] { length });
+            var parameters = new object[] { length };
+            var result = (bool) methodInfo.Invoke(content, parameters);
+
+            length = (long) parameters[0];
+            return result;
         }
     }
 }

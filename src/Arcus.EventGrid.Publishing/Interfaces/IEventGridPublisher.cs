@@ -69,5 +69,17 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// <param name="eventSchema">The schema in which the <paramref name="events"/> should be published.</param>
         Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events, EventSchema eventSchema = EventSchema.EventGrid)
             where TEvent : class, IEvent;
+
+        /// <summary>
+        ///     Publish a raw JSON payload as event
+        /// </summary>
+        /// <param name="eventId">Id of the event</param>
+        /// <param name="eventType">Type of the event</param>
+        /// <param name="eventBody">Body of the event</param>
+        /// <param name="eventSubject">Subject of the event</param>
+        /// <param name="dataVersion">Data version of the event body</param>
+        /// <param name="eventTime">Time when the event occured</param>
+        /// <param name="eventSchema">The schema in which the event should be published.</param>
+        Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime, EventSchema eventSchema = EventSchema.EventGrid);
     }
 }
