@@ -40,7 +40,6 @@ namespace Arcus.EventGrid.Parsers
             Guard.NotNull(rawJson, nameof(rawJson), "Cannot parse a 'null' series of bytes raw JSON payload to an abstracted event");
             Guard.NotLessThanOrEqualTo(rawJson.Length, threshold: 0, "Cannot parse a series of bytes of a length <= 0 to an abstracted event");
 
-            // TODO: CloudEvents SDK can also parse byte arrays directly, but it can also parse directly JObjects (which we use now). Should we use both?
             string json = Encoding.UTF8.GetString(rawJson);
             EventGridEventBatch<Event> eventBatch = Parse(json, sessionId);
 
