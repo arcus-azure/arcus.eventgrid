@@ -66,7 +66,13 @@ namespace Arcus.EventGrid.Contracts
             Uri source = null,
             CloudEventsSpecVersion specVersion = CloudEventsSpecVersion.V0_1)
         {
-            return new CloudEvent(specVersion, EventType, Source ?? source, Subject, Id, EventTime.DateTime)
+            return new CloudEvent(
+                specVersion, 
+                EventType, 
+                Source ?? source, 
+                Subject ?? String.Empty, 
+                Id, 
+                EventTime.DateTime)
             {
                 Data = Data,
             };
