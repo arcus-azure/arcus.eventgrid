@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Mime;
 using Arcus.EventGrid.Contracts.Interfaces;
 using Arcus.EventGrid.Parsers;
 using CloudNative.CloudEvents;
@@ -98,9 +99,11 @@ namespace Arcus.EventGrid.Contracts
                     Source ?? source, 
                     Subject ?? String.Empty, 
                     Id, 
-                    EventTime.DateTime)
+                    EventTime.DateTime,
+                    extensions?.ToArray())
                 {
                     Data = Data,
+                    DataContentType = new ContentType("application/json")
                 };
             }
         }
