@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Arcus.EventGrid.Contracts.Interfaces;
 using Arcus.EventGrid.Parsers;
@@ -19,8 +21,10 @@ namespace Arcus.EventGrid.Contracts
     ///     Create your own event by inheriting from <see cref="EventGridEvent{TData}"/>.
     /// </remarks>
     [JsonConverter(typeof(EventConverter))]
-    public sealed class Event : IEvent
+    public sealed class Event : IEvent, IEquatable<Event>
     {
+        private readonly CloudEventsSpecVersion? _specVersion;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Event"/> class.
         /// </summary>
@@ -33,6 +37,8 @@ namespace Arcus.EventGrid.Contracts
         /// <param name="topic">The full resource path to the event source. This field is not writable. Event Grid provides this value.</param>
         /// <param name="dataVersion">The schema version of the data object. The publisher defines the schema version.</param>
         /// <param name="metaDataVersion">The schema version of the event metadata.</param>
+        /// <param name="attributes">The attributes of this event.</param>
+        /// <param name="specVersion">The CloudEvent spec version if a such a representation is needed.</param>
         public Event(
             string id,
             string subject,
@@ -42,11 +48,15 @@ namespace Arcus.EventGrid.Contracts
             Uri source = null,
             string topic = null,
             string dataVersion = null,
-            string metaDataVersion = null)
+            string metaDataVersion = null,
+            IDictionary<string, object> attributes = null,
+            CloudEventsSpecVersion? specVersion = null)
         {
             Guard.NotNull(id, nameof(id));
             Guard.NotNull(eventType, nameof(eventType));
             Guard.NotNull(data, nameof(data));
+
+            _specVersion = specVersion;
 
             Id = id;
             Subject = subject;
@@ -57,6 +67,7 @@ namespace Arcus.EventGrid.Contracts
             Topic = topic;
             DataVersion = dataVersion;
             MetadataVersion = metaDataVersion;
+            Attributes = new ReadOnlyDictionary<string, object>(attributes ?? new Dictionary<string, object>());
         }
 
         /// <summary>
@@ -64,18 +75,34 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public CloudEvent AsCloudEvent(
             Uri source = null,
-            CloudEventsSpecVersion specVersion = CloudEventsSpecVersion.V0_1)
+            CloudEventsSpecVersion specVersion = CloudEventsSpecVersion.V0_1,
+            IEnumerable<ICloudEventExtension> extensions = null)
         {
-            return new CloudEvent(
-                specVersion, 
-                EventType, 
-                Source ?? source, 
-                Subject ?? String.Empty, 
-                Id, 
-                EventTime.DateTime)
+            if (_specVersion.HasValue && Attributes.Count > 0)
             {
-                Data = Data,
-            };
+                var cloudEvent = new CloudEvent(_specVersion.Value, extensions);
+                IDictionary<string, object> attributes = cloudEvent.GetAttributes();
+                
+                foreach (KeyValuePair<string, object> keyValuePair in Attributes)
+                {
+                    attributes.Add(keyValuePair);
+                }
+
+                return cloudEvent;
+            }
+            else
+            {
+                return new CloudEvent(
+                    specVersion, 
+                    EventType, 
+                    Source ?? source, 
+                    Subject ?? String.Empty, 
+                    Id, 
+                    EventTime.DateTime)
+                {
+                    Data = Data,
+                };
+            }
         }
 
         /// <summary>
@@ -115,7 +142,8 @@ namespace Arcus.EventGrid.Contracts
                 data: cloudEvent.Data,
                 source: cloudEvent.Source,
                 topic: cloudEvent.Source?.OriginalString.Split('#').FirstOrDefault(),
-                metaDataVersion: cloudEvent.SpecVersion.ToString());
+                attributes: cloudEvent.GetAttributes(),
+                specVersion: cloudEvent.SpecVersion);
         }
 
         /// <summary>
@@ -176,6 +204,11 @@ namespace Arcus.EventGrid.Contracts
         public Uri Source { get; }
 
         /// <summary>
+        ///     Gets the attributes of this event.
+        /// </summary>
+        public IReadOnlyDictionary<string, object> Attributes { get; }
+
+        /// <summary>
         ///     Gets the payload of the event.
         /// </summary>
         public object Data { get; }
@@ -197,6 +230,63 @@ namespace Arcus.EventGrid.Contracts
             }
 
             return JObject.Parse(Data.ToString()).ToObject<TData>();
+        }
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>true if the current object is equal to the <paramref name="other">other</paramref> parameter; otherwise, false.</returns>
+        public bool Equals(Event other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Id == other.Id;
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>true if the specified object  is equal to the current object; otherwise, false.</returns>
+        public override bool Equals(object obj)
+        {
+            return ReferenceEquals(this, obj) || obj is Event other && Equals(other);
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
+        /// <summary>Returns a value that indicates whether the values of two <see cref="T:Arcus.EventGrid.Contracts.Event" /> objects are equal.</summary>
+        /// <param name="left">The first value to compare.</param>
+        /// <param name="right">The second value to compare.</param>
+        /// <returns>true if the <paramref name="left" /> and <paramref name="right" /> parameters have the same value; otherwise, false.</returns>
+        public static bool operator ==(Event left, Event right)
+        {
+            return Equals(left, right);
+        }
+
+        /// <summary>Returns a value that indicates whether two <see cref="T:Arcus.EventGrid.Contracts.Event" /> objects have different values.</summary>
+        /// <param name="left">The first value to compare.</param>
+        /// <param name="right">The second value to compare.</param>
+        /// <returns>true if <paramref name="left" /> and <paramref name="right" /> are not equal; otherwise, false.</returns>
+        public static bool operator !=(Event left, Event right)
+        {
+            return !Equals(left, right);
         }
     }
 }
