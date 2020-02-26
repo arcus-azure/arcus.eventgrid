@@ -75,7 +75,7 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public CloudEvent AsCloudEvent(
             Uri source = null,
-            CloudEventsSpecVersion specVersion = CloudEventsSpecVersion.V0_1,
+            CloudEventsSpecVersion? specVersion = null,
             IEnumerable<ICloudEventExtension> extensions = null)
         {
             if (_specVersion.HasValue && Attributes.Count > 0)
@@ -85,7 +85,7 @@ namespace Arcus.EventGrid.Contracts
                 
                 foreach (KeyValuePair<string, object> keyValuePair in Attributes)
                 {
-                    attributes.Add(keyValuePair);
+                    attributes[keyValuePair.Key] = keyValuePair.Value;
                 }
 
                 return cloudEvent;
@@ -93,7 +93,7 @@ namespace Arcus.EventGrid.Contracts
             else
             {
                 return new CloudEvent(
-                    specVersion, 
+                    specVersion.GetValueOrDefault(CloudEventsSpecVersion.Default), 
                     EventType, 
                     Source ?? source, 
                     Subject ?? String.Empty, 

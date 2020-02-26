@@ -387,7 +387,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const string eventType = "Microsoft.Storage.BlobCreated",
                          source = "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account}#blobServices/default/containers/{storage-container}/blobs/{new-file}",
                          eventId = "173d9985-401e-0075-2497-de268c06ff25",
-                         eventTime = "2018-04-28T02:18:47.1281675";
+                         eventTime = "2018-04-28T02:18:47.1281675Z";
 
             const string api = "PutBlockList",
                          clientRequestId = "6d79dbfb-0e37-4fc4-981f-442c9ca65760",
@@ -441,7 +441,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             const string eventType = "Microsoft.Storage.BlobCreated",
                          source = "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account}#blobServices/default/containers/{storage-container}/blobs/{new-file}",
                          eventId = "173d9985-401e-0075-2497-de268c06ff25",
-                         eventTime = "2018-04-28T02:18:47.1281675";
+                         eventTime = "2018-04-28T02:18:47.1281675Z";
 
             const string api = "PutBlockList",
                          clientRequestId = "6d79dbfb-0e37-4fc4-981f-442c9ca65760",
