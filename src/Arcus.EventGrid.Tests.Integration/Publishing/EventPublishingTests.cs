@@ -320,7 +320,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             Assert.NotEqual(String.Empty, receivedEvent);
 
-            EventGridEventBatch<NewCarRegistered> deserializedEventGridMessage = EventGridParser.Parse<NewCarRegistered>(receivedEvent);
+            EventBatch<NewCarRegistered> deserializedEventGridMessage = EventGridParser.Parse<NewCarRegistered>(receivedEvent);
             Assert.NotNull(deserializedEventGridMessage);
             Assert.NotEmpty(deserializedEventGridMessage.SessionId);
             Assert.NotNull(deserializedEventGridMessage.Events);
