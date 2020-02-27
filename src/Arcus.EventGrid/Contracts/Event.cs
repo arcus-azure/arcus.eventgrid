@@ -24,8 +24,6 @@ namespace Arcus.EventGrid.Contracts
     [JsonConverter(typeof(EventConverter))]
     public sealed class Event : IEvent, IEquatable<Event>
     {
-        private readonly CloudEventsSpecVersion? _specVersion;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Event"/> class.
         /// </summary>
@@ -50,14 +48,11 @@ namespace Arcus.EventGrid.Contracts
             string topic = null,
             string dataVersion = null,
             string metaDataVersion = null,
-            IDictionary<string, object> attributes = null,
-            CloudEventsSpecVersion? specVersion = null)
+            IDictionary<string, object> attributes = null)
         {
             Guard.NotNull(id, nameof(id));
             Guard.NotNull(eventType, nameof(eventType));
             Guard.NotNull(data, nameof(data));
-
-            _specVersion = specVersion;
 
             Id = id;
             Subject = subject;
@@ -79,9 +74,10 @@ namespace Arcus.EventGrid.Contracts
             CloudEventsSpecVersion? specVersion = null,
             IEnumerable<ICloudEventExtension> extensions = null)
         {
-            if (_specVersion.HasValue && Attributes.Count > 0)
+            var version = specVersion.GetValueOrDefault(CloudEventsSpecVersion.Default);
+            if (Attributes.Count > 0)
             {
-                var cloudEvent = new CloudEvent(_specVersion.Value, extensions);
+                var cloudEvent = new CloudEvent(version, extensions);
                 IDictionary<string, object> attributes = cloudEvent.GetAttributes();
                 
                 foreach (KeyValuePair<string, object> keyValuePair in Attributes)
@@ -94,7 +90,7 @@ namespace Arcus.EventGrid.Contracts
             else
             {
                 return new CloudEvent(
-                    specVersion.GetValueOrDefault(CloudEventsSpecVersion.Default), 
+                    version, 
                     EventType, 
                     Source ?? source, 
                     Subject ?? String.Empty, 
@@ -145,8 +141,7 @@ namespace Arcus.EventGrid.Contracts
                 data: cloudEvent.Data,
                 source: cloudEvent.Source,
                 topic: cloudEvent.Source?.OriginalString.Split('#').FirstOrDefault(),
-                attributes: cloudEvent.GetAttributes(),
-                specVersion: cloudEvent.SpecVersion);
+                attributes: cloudEvent.GetAttributes());
         }
 
         /// <summary>
