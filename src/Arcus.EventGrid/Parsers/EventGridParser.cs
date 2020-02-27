@@ -14,6 +14,7 @@ namespace Arcus.EventGrid.Parsers
     /// <summary>
     /// Expose parsing operations on raw Event Grid events with custom <see cref="IEvent"/> implementations.
     /// </summary>
+    [Obsolete("Use " + nameof(EventParser) + " instead to parse raw JSON payloads to abstracted events")]
     public static class EventGridParser
     {
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
