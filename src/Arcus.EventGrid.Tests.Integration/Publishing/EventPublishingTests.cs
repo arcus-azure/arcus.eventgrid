@@ -80,37 +80,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
-        [Fact(Skip = "No CloudEvent topic endpoint available yet")]
-        public async Task PublishSingleCloudEvent_WithBuilder_ValidParameters_Succeeds()
-        {
-            // Arrange
-            var topicEndpoint = Configuration.GetValue<string>("Arcus:CloudEvent:TopicEndpoint");
-            var endpointKey = Configuration.GetValue<string>("Arcus:CloudEvent:EndpointKey");
-            const string eventSubject = "integration-test";
-            const string licensePlate = "1-TOM-337";
-            var eventId = Guid.NewGuid().ToString();
-            var source = new Uri("http://testsuite#arcus-eventgrid");
-            var @event = new CloudEvent("NewCarRegistered", source, eventId)
-            {
-                Data = JsonConvert.SerializeObject(new CarEventData(licensePlate)),
-                Subject = eventSubject,
-                DataContentType = new ContentType("application/cloudevents+json; charset=utf-8"),
-            };
-
-            // Act
-            await EventGridPublisherBuilder
-                  .ForTopic(topicEndpoint)
-                  .UsingAuthenticationKey(endpointKey)
-                  .Build()
-                  .PublishManyAsync(new[] { @event, @event });
-
-            TracePublishedEvent(eventId, @event);
-
-            // Assert
-            //var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
-            //AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
-        }
-
         [Fact]
         public async Task PublishSingleRawEvent_WithBuilder_ValidParameters_Succeeds()
         {
