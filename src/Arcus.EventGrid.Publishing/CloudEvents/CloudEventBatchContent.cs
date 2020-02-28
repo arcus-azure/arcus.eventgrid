@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GuardNet;
 
 // ReSharper disable once CheckNamespace
 namespace CloudNative.CloudEvents
@@ -27,6 +29,11 @@ namespace CloudNative.CloudEvents
         /// </summary>
         public CloudEventBatchContent(IEnumerable<CloudEvent> cloudEvents, ContentMode contentMode, ICloudEventFormatter formatter)
         {
+            Guard.NotNull(cloudEvents, nameof(cloudEvents), "No events were specified");
+            Guard.For<ArgumentException>(() => !cloudEvents.Any(), "No events were specified");
+            Guard.For<ArgumentException>(() => cloudEvents.Any(ev => ev is null), "Some events are 'null'");
+            Guard.NotNull(formatter, nameof(formatter), "No formatter specified");
+
             _contents = cloudEvents.Select(ev => new CloudEventContent(ev, contentMode, formatter)).ToArray();
             
             Headers.ContentType = 
@@ -41,6 +48,8 @@ namespace CloudNative.CloudEvents
         /// <returns>The task object representing the asynchronous operation.</returns>
         protected override async Task SerializeToStreamAsync(Stream stream, TransportContext context)
         {
+            Guard.NotNull(stream, nameof(stream));
+
             await EncodeStringToStreamAsync(stream, "[", cancellationToken: default);
 
             foreach (CloudEventContent content in _contents)
