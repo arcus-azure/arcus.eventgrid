@@ -68,8 +68,16 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                 Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
                       .WaitAndRetry(retryCount, currentRetryCount => TimeSpan.FromSeconds(Math.Pow(2, currentRetryCount)));
 
-            string matchingEvent = retryPolicy.Execute(() => TryGetReceivedEvent(eventId));
-            return matchingEvent;
+            PolicyResult<string> result = 
+                retryPolicy.ExecuteAndCapture(() => TryGetReceivedEvent(eventId));
+            
+            if (result.Outcome == OutcomeType.Failure)
+            {
+                throw new TimeoutException(
+                    "Could not in the available retry counts receive an event from Event Grid on the Service Bus topic");
+            }
+
+            return result.Result;
         }
 
         /// <summary>
@@ -85,10 +93,18 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Policy<string> timeoutPolicy =
                 Policy.Timeout(timeout)
                       .Wrap(Policy.HandleResult<string>(String.IsNullOrWhiteSpace)
-                                  .RetryForever());
+                                  .WaitAndRetryForever(retryCount => TimeSpan.FromSeconds(1)));
 
-            string matchingEvent = timeoutPolicy.Execute(() => TryGetReceivedEvent(eventId));
-            return matchingEvent;
+            PolicyResult<string> result = 
+                timeoutPolicy.ExecuteAndCapture(() => TryGetReceivedEvent(eventId));
+
+            if (result.Outcome == OutcomeType.Failure)
+            {
+                throw new TimeoutException(
+                    "Could not in the time available receive an event from Event Grid on the Service Bus topic");
+            }
+
+            return result.Result;
         }
 
         /// <summary>
