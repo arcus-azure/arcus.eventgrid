@@ -80,7 +80,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
-        [Fact]
+        [Fact(Skip = "No CloudEvent topic endpoint available yet")]
         public async Task PublishSingleCloudEvent_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
