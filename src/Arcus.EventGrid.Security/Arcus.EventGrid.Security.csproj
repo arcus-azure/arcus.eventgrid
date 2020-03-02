@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.0</TargetFrameworks>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Arcus.EventGrid.snk</AssemblyOriginatorKeyFile>
     <Copyright>Copyright (c) Arcus</Copyright>
@@ -15,24 +15,22 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Guard.NET" Version="1.2.0" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0'">
     <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Guard.NET" Version="1.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>C:\Users\samva\.nuget\packages\newtonsoft.json\11.0.1\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Configuration">
-      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.Configuration.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
