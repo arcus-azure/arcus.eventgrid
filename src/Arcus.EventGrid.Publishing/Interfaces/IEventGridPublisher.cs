@@ -24,7 +24,7 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// <param name="eventId">The unique identifier of the event.</param>
         /// <param name="eventType">The type of the event.</param>
         /// <param name="eventBody">The body of the event.</param>
-        Task PublishRawEventGridAsync(string eventId, string eventType, string eventBody);
+        Task PublishRawEventGridEventAsync(string eventId, string eventType, string eventBody);
 
         /// <summary>
         ///     Publish a raw JSON payload as EventGrid event.
@@ -35,7 +35,7 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// <param name="eventSubject">The subject of the event.</param>
         /// <param name="dataVersion">The data version of the event body.</param>
         /// <param name="eventTime">The time when the event occured.</param>
-        Task PublishRawEventGridAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime);
+        Task PublishRawEventGridEventAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime);
 
         /// <summary>
         ///     Publish a raw JSON payload as CloudEvent event.

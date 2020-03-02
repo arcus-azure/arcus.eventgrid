@@ -97,7 +97,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
                 .Build()
-                .PublishRawEventGridAsync(@event.Id, @event.EventType, rawEventBody);
+                .PublishRawEventGridEventAsync(@event.Id, @event.EventType, rawEventBody);
 
             TracePublishedEvent(eventId, @event);
 
@@ -123,7 +123,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 .ForTopic(topicEndpoint)
                 .UsingAuthenticationKey(endpointKey)
                 .Build()
-                .PublishRawEventGridAsync(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime);
+                .PublishRawEventGridEventAsync(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime);
 
             TracePublishedEvent(eventId, @event);
 
