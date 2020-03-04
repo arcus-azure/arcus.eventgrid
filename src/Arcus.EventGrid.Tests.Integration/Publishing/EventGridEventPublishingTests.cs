@@ -3,10 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
-using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Publishing.Interfaces;
+using Arcus.EventGrid.Tests.Core;
 using Arcus.EventGrid.Tests.Core.Events;
-using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using Newtonsoft.Json;
 using Xunit;
@@ -51,7 +50,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
-            AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
         [Fact]
@@ -72,7 +71,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
-            AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, expectedSubject, licensePlate, receivedEvent);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, expectedSubject, licensePlate, receivedEvent);
         }
 
         [Fact]
@@ -93,7 +92,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
-            AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
         [Fact]
@@ -148,7 +147,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             TracePublishedEvent(@event.Id, @event);
             string receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(@event.Id, retryCount: 5);
-            AssertReceivedNewCarRegisteredEvent(@event.Id, @event.EventType, @event.Subject, licensePlate, receivedEvent);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(@event.Id, @event.EventType, @event.Subject, licensePlate, receivedEvent);
         }
 
         [Fact]
@@ -203,29 +202,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             TracePublishedEvent(@event.Id, @event);
             string receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(@event.Id, timeout: TimeSpan.FromSeconds(30));
-            AssertReceivedNewCarRegisteredEvent(@event.Id, @event.EventType, @event.Subject, licensePlate, receivedEvent);
-        }
-
-        private static void AssertReceivedNewCarRegisteredEvent(string eventId, string eventType, string eventSubject, string licensePlate, string receivedEvent)
-        {
-            Assert.NotEqual(String.Empty, receivedEvent);
-
-            EventBatch<Event> deserializedEventGridMessage = EventParser.Parse(receivedEvent);
-            Assert.NotNull(deserializedEventGridMessage);
-            Assert.NotEmpty(deserializedEventGridMessage.SessionId);
-            Assert.NotNull(deserializedEventGridMessage.Events);
-
-            Event deserializedEvent = Assert.Single(deserializedEventGridMessage.Events);
-            Assert.NotNull(deserializedEvent);
-            Assert.Equal(eventId, deserializedEvent.Id);
-            Assert.Equal(eventSubject, deserializedEvent.Subject);
-            Assert.Equal(eventType, deserializedEvent.EventType);
-
-            Assert.NotNull(deserializedEvent.Data);
-            var eventData = deserializedEvent.GetPayload<CarEventData>();
-            Assert.NotNull(eventData);
-            Assert.Equal(JsonConvert.DeserializeObject<CarEventData>(deserializedEvent.Data.ToString()), eventData);
-            Assert.Equal(licensePlate, eventData.LicensePlate);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(@event.Id, @event.EventType, @event.Subject, licensePlate, receivedEvent);
         }
 
         private void TracePublishedEvent(string eventId, object events)
