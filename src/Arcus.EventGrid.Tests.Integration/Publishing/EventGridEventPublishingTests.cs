@@ -16,6 +16,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
     [Trait(name: "Category", value: "Integration")]
     public class EventGridEventPublishingTests : IAsyncLifetime
     {
+        private readonly TestConfig _config = TestConfig.Create();
         private readonly ITestOutputHelper _testOutput;
 
         private EventGridTopicEndpoint _endpoint;
@@ -30,7 +31,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         /// </summary>
         public async Task InitializeAsync()
         {
-            _endpoint = await EventGridTopicEndpoint.CreateForEventGridEventAsync(_testOutput);
+            _endpoint = await EventGridTopicEndpoint.CreateForEventGridEventAsync(_config, _testOutput);
         }
 
         [Fact]
@@ -42,7 +43,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var eventId = Guid.NewGuid().ToString();
             var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
 
             // Act
             await publisher.PublishAsync(@event);
@@ -63,7 +64,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var @event = new NewCarRegistered(eventId, licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(@event.Data);
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
 
             // Act
             await publisher.PublishRawEventGridEventAsync(@event.Id, @event.EventType, rawEventBody);
@@ -84,7 +85,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(@event.Data);
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
 
             // Act
             await publisher.PublishRawEventGridEventAsync(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime);
@@ -108,7 +109,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                         licensePlate: "1-TOM-337"))
                     .ToArray();
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
 
             // Act
             await publisher.PublishManyAsync(events);
@@ -134,7 +135,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                                 eventTime: DateTimeOffset.Now))
                     .ToArray();
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
 
             // Act
             await publisher.PublishManyAsync(events);
@@ -163,7 +164,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                                 licensePlate: "1-TOM-337"))
                     .ToArray();
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
 
             // Act
             await publisher.PublishManyAsync(events);
@@ -189,7 +190,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                                 eventTime: DateTimeOffset.Now))
                     .ToArray();
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
 
             // Act
             await publisher.PublishManyAsync(events);

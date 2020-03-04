@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Publishing;
-using Arcus.EventGrid.Publishing.Interfaces;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
 using Arcus.EventGrid.Tests.Integration.Logging;
 using GuardNet;
@@ -36,49 +35,35 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         public ServiceBusEventConsumerHost ServiceBusEventConsumerHost { get; }
 
         /// <summary>
-        /// Builds a <see cref="IEventGridPublisher"/> implementation that interacts with this endpoint.
-        /// </summary>
-        public IEventGridPublisher BuildPublisher()
-        {
-            string topicEndpoint = _configuration.GetEventGridTopicEndpoint(_eventSchema);
-            string endpointKey = _configuration.GetEventGridEndpointKey(_eventSchema);
-            
-            IEventGridPublisher publisher =
-                EventGridPublisherBuilder
-                    .ForTopic(topicEndpoint)
-                    .UsingAuthenticationKey(endpointKey)
-                    .Build();
-
-            return publisher;
-        }
-
-        /// <summary>
         /// Creates a <see cref="EventGridTopicEndpoint"/> implementation that uses CloudEvent's as input event schema.
         /// </summary>
+        /// <param name="config">The configuration used to build the endpoint.</param>
         /// <param name="testOutput">The test logger to write diagnostic messages during the availability of the endpoint.</param>
-        public static async Task<EventGridTopicEndpoint> CreateForCloudEventAsync(ITestOutputHelper testOutput)
+        public static async Task<EventGridTopicEndpoint> CreateForCloudEventAsync(TestConfig config, ITestOutputHelper testOutput)
         {
+            Guard.NotNull(config, nameof(config));
             Guard.NotNull(testOutput, nameof(testOutput));
 
-            EventGridTopicEndpoint endpoint = await CreateAsync(EventSchema.CloudEvent, testOutput);
+            EventGridTopicEndpoint endpoint = await CreateAsync(EventSchema.CloudEvent, config, testOutput);
             return endpoint;
         }
 
         /// <summary>
         /// Creates a <see cref="EventGridTopicEndpoint"/> implementation that uses EventGridEvent's as input event schema.
         /// </summary>
+        /// <param name="config">The configuration the build the endpoint.</param>
         /// <param name="testOutput">The test logger to write diagnostic messages during the availability of the endpoint.</param>
-        public static async Task<EventGridTopicEndpoint> CreateForEventGridEventAsync(ITestOutputHelper testOutput)
+        public static async Task<EventGridTopicEndpoint> CreateForEventGridEventAsync(TestConfig config, ITestOutputHelper testOutput)
         {
+            Guard.NotNull(config, nameof(config));
             Guard.NotNull(testOutput, nameof(testOutput));
 
-            EventGridTopicEndpoint endpoint = await CreateAsync(EventSchema.EventGrid, testOutput);
+            EventGridTopicEndpoint endpoint = await CreateAsync(EventSchema.EventGrid, config, testOutput);
             return endpoint;
         }
 
-        private static async Task<EventGridTopicEndpoint> CreateAsync(EventSchema type, ITestOutputHelper testOutput)
+        private static async Task<EventGridTopicEndpoint> CreateAsync(EventSchema type, TestConfig config, ITestOutputHelper testOutput)
         {
-            var config = TestConfig.Create();
             ServiceBusEventConsumerHost serviceBusEventConsumerHost =
                 await CreateServiceBusEventConsumerHostAsync(
                     config.GetServiceBusTopicName(type),

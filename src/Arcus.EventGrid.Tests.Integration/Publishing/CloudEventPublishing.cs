@@ -17,6 +17,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
     [Trait(name: "Category", value: "Integration")]
     public class CloudEventPublishing : IAsyncLifetime
     {
+        private readonly TestConfig _config = TestConfig.Create();
         private readonly ITestOutputHelper _testOutput;
         private EventGridTopicEndpoint _endpoint;
 
@@ -33,7 +34,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         /// </summary>
         public async Task InitializeAsync()
         {
-            _endpoint = await EventGridTopicEndpoint.CreateForCloudEventAsync(_testOutput);
+            _endpoint = await EventGridTopicEndpoint.CreateForCloudEventAsync(_config, _testOutput);
         }
 
         [Fact]
@@ -49,7 +50,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 DataContentType = new ContentType("application/json")
             };
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
 
             // Act
             await publisher.PublishAsync(@event);
@@ -80,7 +81,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             };
             CloudEvent[] cloudEvents = { firstEvent, secondEvent };
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
 
             // Act
             await publisher.PublishManyAsync(cloudEvents);
@@ -111,7 +112,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 DataContentType = new ContentType("application/json")
             };
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
 
             // Act
             await publisher.PublishRawCloudEventAsync(cloudEvent.SpecVersion, cloudEvent.Id, cloudEvent.Type, cloudEvent.Source, rawEventBody);
@@ -137,7 +138,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 DataContentType = new ContentType("application/json")
             };
 
-            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
 
             // Act
             await publisher.PublishRawCloudEventAsync(
