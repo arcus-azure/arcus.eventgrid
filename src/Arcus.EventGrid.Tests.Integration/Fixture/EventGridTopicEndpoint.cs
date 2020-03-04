@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Publishing;
 using Arcus.EventGrid.Publishing.Interfaces;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
@@ -13,18 +14,18 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
     /// </summary>
     public class EventGridTopicEndpoint
     {
-        private readonly EventGridEndpointType _endpointType;
+        private readonly EventSchema _eventSchema;
         private readonly TestConfig _configuration;
 
         private EventGridTopicEndpoint(
-            EventGridEndpointType endpointType,
+            EventSchema eventSchema,
             ServiceBusEventConsumerHost serviceBusEventConsumerHost,
             TestConfig config)
         {
             Guard.NotNull(serviceBusEventConsumerHost, nameof(serviceBusEventConsumerHost));
             Guard.NotNull(config, nameof(config));
 
-            _endpointType = endpointType;
+            _eventSchema = eventSchema;
             _configuration = config;
             ServiceBusEventConsumerHost = serviceBusEventConsumerHost;
         }
@@ -39,8 +40,8 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         /// </summary>
         public IEventGridPublisher BuildPublisher()
         {
-            string topicEndpoint = _configuration.GetEventGridTopicEndpoint(_endpointType);
-            string endpointKey = _configuration.GetEventGridEndpointKey(_endpointType);
+            string topicEndpoint = _configuration.GetEventGridTopicEndpoint(_eventSchema);
+            string endpointKey = _configuration.GetEventGridEndpointKey(_eventSchema);
             
             IEventGridPublisher publisher =
                 EventGridPublisherBuilder
@@ -59,7 +60,7 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         {
             Guard.NotNull(testOutput, nameof(testOutput));
 
-            EventGridTopicEndpoint endpoint = await CreateAsync(EventGridEndpointType.CloudEvent, testOutput);
+            EventGridTopicEndpoint endpoint = await CreateAsync(EventSchema.CloudEvent, testOutput);
             return endpoint;
         }
 
@@ -71,11 +72,11 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         {
             Guard.NotNull(testOutput, nameof(testOutput));
 
-            EventGridTopicEndpoint endpoint = await CreateAsync(EventGridEndpointType.EventGridEvent, testOutput);
+            EventGridTopicEndpoint endpoint = await CreateAsync(EventSchema.EventGrid, testOutput);
             return endpoint;
         }
 
-        private static async Task<EventGridTopicEndpoint> CreateAsync(EventGridEndpointType type, ITestOutputHelper testOutput)
+        private static async Task<EventGridTopicEndpoint> CreateAsync(EventSchema type, ITestOutputHelper testOutput)
         {
             var config = TestConfig.Create();
             ServiceBusEventConsumerHost serviceBusEventConsumerHost =

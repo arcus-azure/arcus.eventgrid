@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Arcus.EventGrid.Contracts;
 using GuardNet;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
@@ -38,7 +39,7 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         /// <summary>
         /// Gets the Azure Service Bus connection string for an Azure Event Grid endpoint type.
         /// </summary>
-        public string GetServiceBusConnectionString(EventGridEndpointType type)
+        public string GetServiceBusConnectionString(EventSchema type)
         {
             return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:ServiceBus:ConnectionString", "Arcus:CloudEvent:ServiceBus:ConnectionString");
         }
@@ -46,7 +47,7 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         /// <summary>
         /// Gets the Azure Service Bus topic name for an Azure Event Grid endpoint type.
         /// </summary>
-        public string GetServiceBusTopicName(EventGridEndpointType type)
+        public string GetServiceBusTopicName(EventSchema type)
         {
             return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:ServiceBus:TopicName", "Arcus:CloudEvent:ServiceBus:TopicName");
         }
@@ -54,7 +55,7 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         /// <summary>
         /// Gets the Event Grid topic endpoint for an Azure Event Grid endpoint type.
         /// </summary>
-        public string GetEventGridTopicEndpoint(EventGridEndpointType type)
+        public string GetEventGridTopicEndpoint(EventSchema type)
         {
             return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:EventGrid:TopicEndpoint", "Arcus:CloudEvent:EventGrid:TopicEndpoint");
         }
@@ -62,18 +63,18 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         /// <summary>
         /// Gets the Event Grid endpoint key for an Azure Event Grid endpoint type.
         /// </summary>
-        public string GetEventGridEndpointKey(EventGridEndpointType type)
+        public string GetEventGridEndpointKey(EventSchema type)
         {
             return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:EventGrid:EndpointKey", "Arcus:CloudEvent:EventGrid:EndpointKey");
         }
 
-        private string SwitchEventGridEndpointType(EventGridEndpointType type, string eventGridEventKey, string cloudEventKey)
+        private string SwitchEventGridEndpointType(EventSchema type, string eventGridEventKey, string cloudEventKey)
         {
             switch (type)
             {
-                case EventGridEndpointType.EventGridEvent:
+                case EventSchema.EventGrid:
                     return _config[eventGridEventKey];
-                case EventGridEndpointType.CloudEvent:
+                case EventSchema.CloudEvent:
                     return _config[cloudEventKey];
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown Event Grid endpoint type");
