@@ -35,21 +35,33 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
             return new TestConfig(configuration);
         }
 
+        /// <summary>
+        /// Gets the Azure Service Bus connection string for an Azure Event Grid endpoint type.
+        /// </summary>
         public string GetServiceBusConnectionString(EventGridEndpointType type)
         {
             return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:ServiceBus:ConnectionString", "Arcus:CloudEvent:ServiceBus:ConnectionString");
         }
 
+        /// <summary>
+        /// Gets the Azure Service Bus topic name for an Azure Event Grid endpoint type.
+        /// </summary>
         public string GetServiceBusTopicName(EventGridEndpointType type)
         {
             return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:ServiceBus:TopicName", "Arcus:CloudEvent:ServiceBus:TopicName");
         }
 
+        /// <summary>
+        /// Gets the Event Grid topic endpoint for an Azure Event Grid endpoint type.
+        /// </summary>
         public string GetEventGridTopicEndpoint(EventGridEndpointType type)
         {
             return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:EventGrid:TopicEndpoint", "Arcus:CloudEvent:EventGrid:TopicEndpoint");
         }
 
+        /// <summary>
+        /// Gets the Event Grid endpoint key for an Azure Event Grid endpoint type.
+        /// </summary>
         public string GetEventGridEndpointKey(EventGridEndpointType type)
         {
             return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:EventGrid:EndpointKey", "Arcus:CloudEvent:EventGrid:EndpointKey");
