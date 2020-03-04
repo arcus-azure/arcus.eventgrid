@@ -1,82 +1,56 @@
 ﻿using System;
 using System.Linq;
-using System.Net.Mime;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
 using Arcus.EventGrid.Parsers;
-using Arcus.EventGrid.Publishing;
-using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
+using Arcus.EventGrid.Publishing.Interfaces;
 using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Core.Events.Data;
-using Arcus.EventGrid.Tests.Integration.Logging;
-using CloudNative.CloudEvents;
-using Microsoft.Azure.EventGrid.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Arcus.EventGrid.Tests.Integration.Fixture;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
-using EventGridEvent = Microsoft.Azure.EventGrid.Models.EventGridEvent;
 
 namespace Arcus.EventGrid.Tests.Integration.Publishing
 {
     [Trait(name: "Category", value: "Integration")]
-    public class EventPublishingTests : IAsyncLifetime
+    public class EventGridEventPublishingTests : IAsyncLifetime
     {
-        private readonly XunitTestLogger _testLogger;
+        private readonly ITestOutputHelper _testOutput;
 
-        private ServiceBusEventConsumerHost _serviceBusEventConsumerHost;
+        private EventGridTopicEndpoint _endpoint;
 
-        public EventPublishingTests(ITestOutputHelper testOutput)
+        public EventGridEventPublishingTests(ITestOutputHelper testOutput)
         {
-            _testLogger = new XunitTestLogger(testOutput);
-
-            Configuration = new ConfigurationBuilder()
-                .AddJsonFile(path: "appsettings.json")
-                .AddJsonFile(path: "appsettings.local.json", optional: true)
-                .AddEnvironmentVariables()
-                .Build();
+            _testOutput = testOutput;
         }
 
-        protected IConfiguration Configuration { get; }
-
+        /// <summary>
+        /// Called immediately after the class has been created, before it is used.
+        /// </summary>
         public async Task InitializeAsync()
         {
-            var connectionString = Configuration.GetValue<string>("Arcus:ServiceBus:ConnectionString");
-            var topicName = Configuration.GetValue<string>("Arcus:ServiceBus:TopicName");
-
-            var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(topicName, connectionString);
-            _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.StartAsync(serviceBusEventConsumerHostOptions, _testLogger);
-        }
-
-        public async Task DisposeAsync()
-        {
-            await _serviceBusEventConsumerHost.StopAsync();
+            _endpoint = await EventGridTopicEndpoint.CreateForEventGridEventAsync(_testOutput);
         }
 
         [Fact]
-        public async Task PublishSingleEvent_WithBuilder_ValidParameters_Succeeds()
+        public async Task PublishSingleEventGridEvent_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
-            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
-            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             const string eventSubject = "integration-test";
             const string licensePlate = "1-TOM-337";
             var eventId = Guid.NewGuid().ToString();
             var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
 
-            // Act
-            await EventGridPublisherBuilder
-                .ForTopic(topicEndpoint)
-                .UsingAuthenticationKey(endpointKey)
-                .Build()
-                .PublishAsync(@event);
+            IEventGridPublisher publisher = _endpoint.BuildPublisher();
 
+            // Act
+            await publisher.PublishAsync(@event);
             TracePublishedEvent(eventId, @event);
 
             // Assert
-            var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
+            var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
 
@@ -84,25 +58,20 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task PublishSingleRawEvent_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
-            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
-            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             const string licensePlate = "1-TOM-337";
             const string expectedSubject = "/";
             var eventId = Guid.NewGuid().ToString();
             var @event = new NewCarRegistered(eventId, licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(@event.Data);
 
-            // Act
-            await EventGridPublisherBuilder
-                .ForTopic(topicEndpoint)
-                .UsingAuthenticationKey(endpointKey)
-                .Build()
-                .PublishRawEventGridEventAsync(@event.Id, @event.EventType, rawEventBody);
+            IEventGridPublisher publisher = _endpoint.BuildPublisher();
 
+            // Act
+            await publisher.PublishRawEventGridEventAsync(@event.Id, @event.EventType, rawEventBody);
             TracePublishedEvent(eventId, @event);
 
             // Assert
-            var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
+            var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, expectedSubject, licensePlate, receivedEvent);
         }
 
@@ -110,35 +79,27 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task PublishSingleRawEventWithDetailedInfo_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
-            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
-            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             const string eventSubject = "integration-test";
             const string licensePlate = "1-TOM-337";
             var eventId = Guid.NewGuid().ToString();
             var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(@event.Data);
 
-            // Act
-            await EventGridPublisherBuilder
-                .ForTopic(topicEndpoint)
-                .UsingAuthenticationKey(endpointKey)
-                .Build()
-                .PublishRawEventGridEventAsync(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime);
+            IEventGridPublisher publisher = _endpoint.BuildPublisher();
 
+            // Act
+            await publisher.PublishRawEventGridEventAsync(@event.Id, @event.EventType, rawEventBody, @event.Subject, @event.DataVersion, @event.EventTime);
             TracePublishedEvent(eventId, @event);
 
             // Assert
-            var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
+            var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             AssertReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
         }
-
 
         [Fact]
         public async Task PublishMultipleEvents_WithBuilder_ValidParameters_SucceedsWithRetryCount()
         {
             // Arrange
-            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
-            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             var events =
                 Enumerable
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
@@ -148,12 +109,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                         licensePlate: "1-TOM-337"))
                     .ToArray();
 
+            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+
             // Act
-            await EventGridPublisherBuilder
-                .ForTopic(topicEndpoint)
-                .UsingAuthenticationKey(endpointKey)
-                .Build()
-                .PublishManyAsync(events);
+            await publisher.PublishManyAsync(events);
 
             // Assert
             Assert.All(events, @event => AssertReceivedEventWithRetryCount(@event, @event.GetPayload()?.LicensePlate));
@@ -163,8 +122,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task PublishMultipleRawEvents_WithBuilder_ValidParameters_SucceedsWithRetryCount()
         {
             // Arrange
-            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
-            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             const string licensePlate = "1-TOM-1337";
             var events =
                 Enumerable
@@ -178,12 +135,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                                 eventTime: DateTimeOffset.Now))
                     .ToArray();
 
+            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+
             // Act
-            await EventGridPublisherBuilder
-                  .ForTopic(topicEndpoint)
-                  .UsingAuthenticationKey(endpointKey)
-                  .Build()
-                  .PublishManyAsync(events);
+            await publisher.PublishManyAsync(events);
 
             // Assert
             Assert.All(events, rawEvent => AssertReceivedEventWithRetryCount(rawEvent, licensePlate));
@@ -192,7 +147,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         private void AssertReceivedEventWithRetryCount(IEvent @event, string licensePlate)
         {
             TracePublishedEvent(@event.Id, @event);
-            string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(@event.Id, retryCount: 5);
+            string receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(@event.Id, retryCount: 5);
             AssertReceivedNewCarRegisteredEvent(@event.Id, @event.EventType, @event.Subject, licensePlate, receivedEvent);
         }
 
@@ -200,8 +155,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task PublishMultipleEvents_WithBuilder_ValidParameters_SucceedsWithTimeout()
         {
             // Arrange
-            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
-            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             var events =
                 Enumerable
                     .Repeat<Func<Guid>>(Guid.NewGuid, 2)
@@ -211,12 +164,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                                 licensePlate: "1-TOM-337"))
                     .ToArray();
 
+            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+
             // Act
-            await EventGridPublisherBuilder
-                  .ForTopic(topicEndpoint)
-                  .UsingAuthenticationKey(endpointKey)
-                  .Build()
-                  .PublishManyAsync(events);
+            await publisher.PublishManyAsync(events);
 
             // Assert
             Assert.All(events, @event => AssertReceivedNewCarRegisteredEventWithTimeout(@event, @event.GetPayload()?.LicensePlate));
@@ -226,8 +177,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task PublishMultipleRawEvents_WithBuilder_ValidParameters_SucceedsWithTimeout()
         {
             // Arrange
-            var topicEndpoint = Configuration.GetValue<string>("Arcus:EventGrid:TopicEndpoint");
-            var endpointKey = Configuration.GetValue<string>("Arcus:EventGrid:EndpointKey");
             const string licensePlate = "1-TOM-1337";
             var events =
                 Enumerable
@@ -241,12 +190,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                                 eventTime: DateTimeOffset.Now))
                     .ToArray();
 
+            IEventGridPublisher publisher = _endpoint.BuildPublisher();
+
             // Act
-            await EventGridPublisherBuilder
-                  .ForTopic(topicEndpoint)
-                  .UsingAuthenticationKey(endpointKey)
-                  .Build()
-                  .PublishManyAsync(events);
+            await publisher.PublishManyAsync(events);
 
             // Assert
             Assert.All(events, rawEvent => AssertReceivedNewCarRegisteredEventWithTimeout(rawEvent, licensePlate));
@@ -255,7 +202,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         private void AssertReceivedNewCarRegisteredEventWithTimeout(IEvent @event, string licensePlate)
         {
             TracePublishedEvent(@event.Id, @event);
-            string receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(@event.Id, timeout: TimeSpan.FromSeconds(30));
+            string receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(@event.Id, timeout: TimeSpan.FromSeconds(30));
             AssertReceivedNewCarRegisteredEvent(@event.Id, @event.EventType, @event.Subject, licensePlate, receivedEvent);
         }
 
@@ -268,7 +215,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             Assert.NotEmpty(deserializedEventGridMessage.SessionId);
             Assert.NotNull(deserializedEventGridMessage.Events);
 
-            EventGridEvent deserializedEvent = Assert.Single(deserializedEventGridMessage.Events);
+            Event deserializedEvent = Assert.Single(deserializedEventGridMessage.Events);
             Assert.NotNull(deserializedEvent);
             Assert.Equal(eventId, deserializedEvent.Id);
             Assert.Equal(eventSubject, deserializedEvent.Subject);
@@ -283,7 +230,19 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
         private void TracePublishedEvent(string eventId, object events)
         {
-            _testLogger.LogInformation($"Event '{eventId}' published - {JsonConvert.SerializeObject(events)}");
+            _testOutput.WriteLine($"Event '{eventId}' published - {JsonConvert.SerializeObject(events)}");
+        }
+
+        /// <summary>
+        /// Called when an object is no longer needed. Called just before <see cref="M:System.IDisposable.Dispose" />
+        /// if the class also implements that.
+        /// </summary>
+        public async Task DisposeAsync()
+        {
+            if (_endpoint != null)
+            {
+                await _endpoint.StopAsync();
+            }
         }
     }
 }

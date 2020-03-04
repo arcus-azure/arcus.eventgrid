@@ -40,18 +40,30 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents));
 
-            JArray parsedEvents = JArray.Parse(rawReceivedEvents);
-            foreach (JToken parsedEvent in parsedEvents)
+            JToken jToken = JToken.Parse(rawReceivedEvents);
+            if (jToken.Type == JTokenType.Array)
             {
-                string eventId = DetermineEventId(parsedEvent);
-                if (eventId == null)
+                foreach (JToken parsedEvent in jToken.Children())
                 {
-                    logger.LogWarning($"Event was received without an event id. Payload : {parsedEvent}");
+                    SaveEvent(rawReceivedEvents, logger, parsedEvent);
                 }
-                else
-                {
-                    ReceivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents);
-                }
+            }
+            else if (jToken.Type == JTokenType.Object)
+            {
+                SaveEvent(rawReceivedEvents, logger, jToken);
+            }
+        }
+
+        private static void SaveEvent(string rawReceivedEvents, ILogger logger, JToken parsedEvent)
+        {
+            string eventId = DetermineEventId(parsedEvent);
+            if (eventId == null)
+            {
+                logger.LogWarning($"Event was received without an event id. Payload : {parsedEvent}");
+            }
+            else
+            {
+                ReceivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents);
             }
         }
 

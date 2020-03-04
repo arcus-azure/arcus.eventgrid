@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
@@ -22,6 +23,8 @@ namespace Arcus.EventGrid.Publishing
     {
         private readonly Policy _resilientPolicy;
         private readonly string _authenticationKey;
+
+        private static readonly JsonEventFormatter JsonEventFormatter = new JsonEventFormatter();
 
         /// <summary>
         ///     Constructor
@@ -156,12 +159,8 @@ namespace Arcus.EventGrid.Publishing
         {
             Guard.NotNull(cloudEvent, nameof(cloudEvent));
 
-            IEnumerable<CloudEvent> eventList = new List<CloudEvent>
-            {
-                cloudEvent
-            };
-
-            await PublishManyAsync(eventList);
+            var content = new CloudEventContent(cloudEvent, ContentMode.Structured, JsonEventFormatter);
+            await PublishContentToTopicAsync(content);
         }
 
         /// <summary>
@@ -174,22 +173,8 @@ namespace Arcus.EventGrid.Publishing
             Guard.For<ArgumentException>(() => !events.Any(), "No events were specified");
             Guard.For<ArgumentException>(() => events.Any(@event => @event is null), "Some events are 'null'");
 
-            HttpContent content = CreateCloudEventHttpContent(events);
+            var content = new CloudEventBatchContent(events, ContentMode.Structured, JsonEventFormatter);
             await PublishContentToTopicAsync(content);
-        }
-
-        private static HttpContent CreateCloudEventHttpContent(IEnumerable<CloudEvent> cloudEvents)
-        {
-            if (cloudEvents.Count() == 1)
-            {
-                var content = new CloudEventContent(cloudEvents.First(), ContentMode.Binary, new JsonEventFormatter());
-                return content;
-            }
-            else
-            {
-                var content = new CloudEventBatchContent(cloudEvents, ContentMode.Binary, new JsonEventFormatter());
-                return content;
-            }
         }
 
         /// <summary>
@@ -250,7 +235,7 @@ namespace Arcus.EventGrid.Publishing
         {
             IFlurlRequest authorizedRequest = 
                 TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey);
-
+            
             HttpResponseMessage response = await authorizedRequest.SendAsync(HttpMethod.Post, content);
             return response;
         }

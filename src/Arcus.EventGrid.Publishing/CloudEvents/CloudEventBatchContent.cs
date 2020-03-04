@@ -52,10 +52,16 @@ namespace CloudNative.CloudEvents
 
             await EncodeStringToStreamAsync(stream, "[", cancellationToken: default);
 
-            foreach (CloudEventContent content in _contents)
+            for (int i = 0, l = _contents.Count(); i < l; i++)
             {
+                CloudEventContent content = _contents.ElementAt(i);
                 await content.CopyToAsync(stream, context);
-                await EncodeStringToStreamAsync(stream, ",", cancellationToken: default);
+
+                bool isNotLastElement = i + 1 < l;
+                if (isNotLastElement)
+                {
+                    await EncodeStringToStreamAsync(stream, ",", cancellationToken: default);
+                }
             }
 
             await EncodeStringToStreamAsync(stream, "]", cancellationToken: default);
@@ -75,7 +81,9 @@ namespace CloudNative.CloudEvents
         protected override bool TryComputeLength(out long length)
         {
             bool result = _contents.Any();
-            length = 0;
+            
+            // Opening tag, closing tag and comma.
+            length = 3;
 
             foreach (CloudEventContent content in _contents)
             {
