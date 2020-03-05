@@ -39,9 +39,9 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         /// <summary>
         /// Gets the Azure Service Bus connection string for an Azure Event Grid endpoint type.
         /// </summary>
-        public string GetServiceBusConnectionString(EventSchema type)
+        public string GetServiceBusConnectionString()
         {
-            return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:ServiceBus:ConnectionString", "Arcus:CloudEvent:ServiceBus:ConnectionString");
+            return _config["Arcus:ServiceBus:ConnectionString"];
         }
 
         /// <summary>

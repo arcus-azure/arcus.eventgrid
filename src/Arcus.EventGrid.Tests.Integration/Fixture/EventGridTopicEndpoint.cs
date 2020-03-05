@@ -67,7 +67,7 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
             ServiceBusEventConsumerHost serviceBusEventConsumerHost =
                 await CreateServiceBusEventConsumerHostAsync(
                     config.GetServiceBusTopicName(type),
-                    config.GetServiceBusConnectionString(type),
+                    config.GetServiceBusConnectionString(),
                     testOutput);
 
             return new EventGridTopicEndpoint(type, serviceBusEventConsumerHost, config);
