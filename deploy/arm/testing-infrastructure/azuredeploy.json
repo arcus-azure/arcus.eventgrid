@@ -57,6 +57,9 @@
             "name": "[parameters('EventGrid.Topic.Name')]",
             "apiVersion": "2018-01-01",
             "location": "[resourceGroup().location]",
+            "properties":{                
+                "inputSchema": "CloudEventSchemaV1_0"
+            },
             "dependsOn": []
         },
         {
