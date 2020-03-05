@@ -21,6 +21,7 @@ var eventGridPublisher = EventGridPublisherBuilder
                                 .UsingAuthenticationKey(endpointKey)
                                 .Build();
 ```
+**Publishing EventGridEvent's**
 
 Create your event that you want to publish
 
@@ -39,9 +40,39 @@ Alternatively you can publish a list of events by using
 await eventGridPublisher.PublishManyAsync(events);
 ```
 
+**Publishing CloudEvent's**
+
+Create your event that you want to publish
+
+```csharp
+string licensePlate = "1-TOM-337";
+string eventSubject = $"/cars/{licensePlate}";
+string eventId = Guid.NewGuid().ToString();
+ var @event = new CloudEvent(
+    CloudEventsSpecVersion.V1_0, 
+    "NewCarRegistered", 
+    new Uri("https://eventgrid.arcus-azure.net/"), 
+    eventSubject, 
+    eventId)
+{
+    Data = new CarEventData(licensePlate),
+    DataContentType = new ContentType("application/json")
+};
+
+await eventGridPublisher.PublishAsync(@event);
+```
+
+Alternatively you can publish a list of events using
+
+```csharp
+await eventGridPublisher.PublishManyAsync(events);
+```
+
 ### Publishing Raw Events
 
-We provide the capability to push events without a schema based on a raw JSON string.
+**Publishing raw EventGridEvent's**
+
+We provide the capability to push EventGridEvents without a schema based on a raw JSON string.
 
 ```csharp
 // Created via EventGridPublisherBuilder.
@@ -52,32 +83,24 @@ string eventSubject = $"/cars/{licensePlate}";
 string eventId = Guid.NewGuid().ToString();
 string rawEventPayload = String.Format("{ \"licensePlate\": \"{0}\"}", licensePlate);
 
-await eventGridPublisher.PublishRawAsync(eventId, eventSubject, rawEventPayload);
+await eventGridPublisher.PublishRawEventGridEventAsync(eventId, eventSubject, rawEventPayload);
 ```
 
-As an alternative, you can also create a `RawEvent` instance and use that instead.
+**Publishing raw CloudEvent's**
+
+We provide the capability to push [CloudEvent's](https://github.com/cloudevents/spec) without a schema based on a raw JSON string.
 
 ```csharp
+EventGridPublisher eventGridPublisher = ...
+
 string licensePlate = "1-TOM-337";
 string eventSubject = $"/cars/{licensePlate}";
 string eventId = Guid.NewGuid().ToString();
 string rawEventPayload = String.Format("{ \"licensePlate\": \"{0}\"}", licensePlate);
-string eventType = "Arcus.Samples.Cars.NewCarRegitered";
-string dataVersion = "1.0";
-DateTimeOffset eventTime = DateTimeOffset.Now;
 
-var rawEvent = new RawEvent(eventId, eventSubject, rawEventPayload, eventType, dataVersion, eventTime);
-
-await eventGridPublisher.PublishRawAsync(rawEvent);
+await eventGridPublisher.PublishRawCloudEventAsync(eventId, eventSubject, rawEventPayload);
 ```
 
-Alternatively you can publish a list of raw events by using
-
-```csharp
-IEnumerable<RawEvent> rawEvents = ...;
-
-await eventGridPublisher.PublishManyRawAsync(rawEvents);
-```
 
 ### Resilient Publishing
 
