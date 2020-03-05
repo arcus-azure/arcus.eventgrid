@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="xunit.assert" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
 

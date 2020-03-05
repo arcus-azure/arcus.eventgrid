@@ -34,7 +34,7 @@ Upon receiving of CloudEvent events:
 ```csharp
 string cloudEventJson = ...
 
-EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(cloudEventJson);
+EventBatch<Event> eventBatch = EventGridParser.Parse(cloudEventJson);
 
 var events = eventBatch.Events;
 
@@ -53,7 +53,7 @@ We provide support for deserializing [EventGrid events](https://docs.microsoft.c
 ```csharp
 string eventGridEventJson = ...
 
-EventGridEventBatch<Event> eventBatch = EventGridParser.Parse(eventGridEventJson);
+EventBatch<Event> eventBatch = EventGridParser.Parse(eventGridEventJson);
 
 var events = eventBatch.Events;
 
