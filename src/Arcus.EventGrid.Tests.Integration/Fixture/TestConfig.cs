@@ -41,7 +41,7 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         /// </summary>
         public string GetServiceBusConnectionString(EventSchema type)
         {
-            return SwitchEventGridEndpointType(type, "Arcus:EventGridEvent:ServiceBus:ConnectionString", "Arcus:CloudEvent:ServiceBus:ConnectionString");
+            return _config["Arcus:ServiceBus:ConnectionString"];
         }
 
         /// <summary>
