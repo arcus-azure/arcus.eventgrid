@@ -124,6 +124,38 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
+        public async Task PublishSingleRawEventWithSubject_WithBuilder_ValidParameters_Succeeds()
+        {
+            // Arrange
+            const string licensePlate = "1-TOM-337";
+            const string expectedSubject = "/";
+            var eventId = Guid.NewGuid().ToString();
+            var data = new CarEventData(licensePlate);
+            var rawEventBody = JsonConvert.SerializeObject(data);
+            var cloudEvent = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), subject: expectedSubject, id: eventId, DateTime.UtcNow)
+            {
+                Data = data,
+                DataContentType = new ContentType("application/json")
+            };
+
+            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
+
+            // Act
+            await publisher.PublishRawCloudEventAsync(
+                cloudEvent.SpecVersion,
+                cloudEvent.Id,
+                cloudEvent.Type,
+                cloudEvent.Source,
+                rawEventBody,
+                cloudEvent.Subject);
+            TracePublishedEvent(eventId, cloudEvent);
+
+            // Assert
+            var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, cloudEvent.Type, cloudEvent.Subject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
         public async Task PublishSingleRawEventWithDetailedInfo_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
@@ -146,8 +178,8 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 cloudEvent.Id,
                 cloudEvent.Type,
                 cloudEvent.Source,
-                cloudEvent.Subject,
                 rawEventBody,
+                cloudEvent.Subject,
                 cloudEvent.Time ?? default(DateTimeOffset));
             TracePublishedEvent(eventId, cloudEvent);
 
