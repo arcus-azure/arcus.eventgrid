@@ -76,6 +76,27 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
+        public async Task PublishSingleRawEventWithSubject_WithBuilder_ValidParameters_Succeeds()
+        {
+            // Arrange
+            const string eventSubject = "integration-test";
+            const string licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
+            var rawEventBody = JsonConvert.SerializeObject(@event.Data);
+
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
+
+            // Act
+            await publisher.PublishRawEventGridEventAsync(@event.Id, @event.EventType, rawEventBody, @event.Subject);
+            TracePublishedEvent(eventId, @event);
+
+            // Assert
+            var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
         public async Task PublishSingleRawEventWithDetailedInfo_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange

@@ -59,16 +59,16 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// <param name="eventId">The unique identifier of the event.</param>
         /// <param name="eventType">The type of the event.</param>
         /// <param name="source">The source that identifies the context in which an event happened.</param>
-        /// <param name="eventSubject">The value that describes the subject of the event in the context of the event producer.</param>
         /// <param name="eventBody">The body of the event.</param>
+        /// <param name="eventSubject">The value that describes the subject of the event in the context of the event producer.</param>
         /// <param name="eventTime">The timestamp of when the occurrence happened.</param>
         Task PublishRawCloudEventAsync(
-            CloudEventsSpecVersion specVersion, 
-            string eventId, 
-            string eventType, 
-            Uri source, 
+            CloudEventsSpecVersion specVersion,
+            string eventId,
+            string eventType,
+            Uri source,
+            string eventBody,
             string eventSubject,
-            string eventBody, 
             DateTimeOffset eventTime);
 
         /// <summary>
@@ -98,5 +98,31 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         /// <param name="events">The events to publish.</param>
         Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events)
             where TEvent : class, IEvent;
+
+        /// <summary>
+        ///     Publish a raw JSON payload as CloudEvent event.
+        /// </summary>
+        /// <param name="specVersion">The version of the CloudEvents specification which the event uses.</param>
+        /// <param name="eventId">The unique identifier of the event.</param>
+        /// <param name="eventType">The type of the event.</param>
+        /// <param name="source">The source that identifies the context in which an event happened.</param>
+        /// <param name="eventBody">The body of the event.</param>
+        /// <param name="eventSubject">The value that describes the subject of the event in the context of the event producer.</param>
+        Task PublishRawCloudEventAsync(
+            CloudEventsSpecVersion specVersion,
+            string eventId,
+            string eventType,
+            Uri source,
+            string eventBody,
+            string eventSubject);
+
+        /// <summary>
+        ///     Publish a raw JSON payload as EventGrid event.
+        /// </summary>
+        /// <param name="eventId">The unique identifier of the event.</param>
+        /// <param name="eventType">The type of the event.</param>
+        /// <param name="eventBody">The body of the event.</param>
+        /// <param name="eventSubject">The subject of the event.</param>
+        Task PublishRawEventGridEventAsync(string eventId, string eventType, string eventBody, string eventSubject);
     }
 }
