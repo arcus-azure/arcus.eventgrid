@@ -71,7 +71,7 @@ stages:
             inputs:
               packageType: 'sdk'
               version: '$(DotNet.Sdk.VersionBC)'
-          - template: test/run-unit-tests.yaml@templates
+          - template: test/run-unit-tests.yml@templates
             parameters:
               dotnetSdkVersion: '$(DotNet.Sdk.Version)'
               projectName: '$(Project).Tests.Unit'
@@ -96,7 +96,7 @@ stages:
             inputs:
               packageType: 'sdk'
               version: '$(DotNet.Sdk.VersionBC)'
-          - template: test/run-integration-tests.yaml@templates
+          - template: test/run-integration-tests.yml@templates
             parameters:
               dotnetSdkVersion: '$(DotNet.Sdk.Version)'
               projectName: '$(Project).Tests.Integration'
