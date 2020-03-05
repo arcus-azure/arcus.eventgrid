@@ -95,7 +95,7 @@ namespace Arcus.EventGrid.Parsers
 
         internal static Event ParseJObject(JObject rawInput)
         {
-            if (IsCloudEvent(rawInput))
+            if (rawInput.IsCloudEvent())
             {
                 var cloudEvent = JsonFormatter.DecodeJObject(jObject: rawInput);
                 return cloudEvent;
@@ -105,12 +105,6 @@ namespace Arcus.EventGrid.Parsers
                 var eventGridEvent = rawInput.ToObject<EventGridEvent>();
                 return eventGridEvent;
             }
-        }
-
-        private static bool IsCloudEvent(JObject jObject)
-        {
-            return jObject.ContainsKey(CloudEventAttributes.SpecVersionAttributeName())
-                   || jObject.ContainsKey(CloudEventAttributes.SpecVersionAttributeName(CloudEventsSpecVersion.V0_1));
         }
     }
 }
