@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
@@ -9,6 +11,7 @@ using Arcus.EventGrid.Publishing.Interfaces;
 using CloudNative.CloudEvents;
 using Flurl.Http;
 using GuardNet;
+using Newtonsoft.Json;
 using Polly;
 
 namespace Arcus.EventGrid.Publishing
@@ -20,6 +23,8 @@ namespace Arcus.EventGrid.Publishing
     {
         private readonly Policy _resilientPolicy;
         private readonly string _authenticationKey;
+
+        private static readonly JsonEventFormatter JsonEventFormatter = new JsonEventFormatter();
 
         /// <summary>
         ///     Constructor
@@ -56,31 +61,31 @@ namespace Arcus.EventGrid.Publishing
         }
 
         /// <summary>
-        ///     Url of the custom Event Grid topic
+        ///     Gets the url of the custom Event Grid topic.
         /// </summary>
         public string TopicEndpoint { get; }
 
         /// <summary>
-        ///     Publish a raw JSON payload as event
+        ///     Publish a raw JSON payload as EventGrid event.
         /// </summary>
-        /// <param name="eventId">Id of the event</param>
-        /// <param name="eventType">Type of the event</param>
-        /// <param name="eventBody">Body of the event</param>
-        public async Task PublishRawAsync(string eventId, string eventType, string eventBody)
+        /// <param name="eventId">The unique identifier of the event.</param>
+        /// <param name="eventType">The type of the event.</param>
+        /// <param name="eventBody">The body of the event.</param>
+        public async Task PublishRawEventGridEventAsync(string eventId, string eventType, string eventBody)
         {
-            await PublishRawAsync(eventId, eventType, eventBody, eventSubject: "/", dataVersion: "1.0", eventTime: DateTimeOffset.UtcNow);
+            await PublishRawEventGridEventAsync(eventId, eventType, eventBody, eventSubject: "/", dataVersion: "1.0", eventTime: DateTimeOffset.UtcNow);
         }
 
         /// <summary>
-        ///     Publish a raw JSON payload as event
+        ///     Publish a raw JSON payload as EventGrid event.
         /// </summary>
-        /// <param name="eventId">Id of the event</param>
-        /// <param name="eventType">Type of the event</param>
-        /// <param name="eventBody">Body of the event</param>
-        /// <param name="eventSubject">Subject of the event</param>
-        /// <param name="dataVersion">Data version of the event body</param>
-        /// <param name="eventTime">Time when the event occured</param>
-        public async Task PublishRawAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
+        /// <param name="eventId">The unique identifier of the event.</param>
+        /// <param name="eventType">The type of the event.</param>
+        /// <param name="eventBody">The body of the event.</param>
+        /// <param name="eventSubject">The subject of the event.</param>
+        /// <param name="dataVersion">The data version of the event body.</param>
+        /// <param name="eventTime">The time when the event occured.</param>
+        public async Task PublishRawEventGridEventAsync(string eventId, string eventType, string eventBody, string eventSubject, string dataVersion, DateTimeOffset eventTime)
         {
             Guard.NotNullOrWhitespace(eventId, nameof(eventId), "No event id was specified");
             Guard.NotNullOrWhitespace(eventType, nameof(eventType), "No event type was specified");
@@ -89,57 +94,94 @@ namespace Arcus.EventGrid.Publishing
             Guard.For<ArgumentException>(() => eventBody.IsValidJson() == false, "The event body is not a valid JSON payload");
 
             var rawEvent = new RawEvent(eventId, eventType, eventBody, eventSubject, dataVersion, eventTime);
-
-            await PublishRawAsync(rawEvent);
+            await PublishAsync(rawEvent);
         }
 
         /// <summary>
-        ///     Publish a raw JSON payload as event
+        ///     Publish a raw JSON payload as CloudEvent event.
         /// </summary>
-        /// <param name="rawEvent">The event to publish</param>
-        public async Task PublishRawAsync(RawEvent rawEvent)
+        /// <param name="specVersion">The version of the CloudEvents specification which the event uses.</param>
+        /// <param name="eventId">The unique identifier of the event.</param>
+        /// <param name="eventType">The type of the event.</param>
+        /// <param name="source">The source that identifies the context in which an event happened.</param>
+        /// <param name="eventBody">The body of the event.</param>
+        public async Task PublishRawCloudEventAsync(
+            CloudEventsSpecVersion specVersion,
+            string eventId,
+            string eventType,
+            Uri source,
+            string eventBody)
         {
-            Guard.NotNull(rawEvent, nameof(rawEvent), "No event was specified");
-
-            IEnumerable<RawEvent> eventList = new[] { rawEvent };
-
-            await PublishEventToTopicAsync(eventList);
+            await PublishRawCloudEventAsync(
+                specVersion,
+                eventId,
+                eventType,
+                source,
+                eventSubject: "/",
+                eventBody: eventBody,
+                eventTime: DateTimeOffset.UtcNow);
         }
 
         /// <summary>
-        ///     Publish an event grid message
+        ///     Publish a raw JSON payload as CloudEvent event.
         /// </summary>
-        /// <param name="cloudEvent">Event to publish</param>
+        /// <param name="specVersion">The version of the CloudEvents specification which the event uses.</param>
+        /// <param name="eventId">The unique identifier of the event.</param>
+        /// <param name="eventType">The type of the event.</param>
+        /// <param name="source">The source that identifies the context in which an event happened.</param>
+        /// <param name="eventSubject">The value that describes the subject of the event in the context of the event producer.</param>
+        /// <param name="eventBody">The body of the event.</param>
+        /// <param name="eventTime">The timestamp of when the occurrence happened.</param>
+        public async Task PublishRawCloudEventAsync(
+            CloudEventsSpecVersion specVersion, 
+            string eventId, 
+            string eventType, 
+            Uri source, 
+            string eventSubject,
+            string eventBody, 
+            DateTimeOffset eventTime)
+        {
+            var cloudEvent = new CloudEvent(specVersion, eventType, source, id: eventId, time: eventTime.DateTime)
+            {
+                Subject = eventSubject,
+                Data = eventBody,
+                DataContentType = new ContentType("application/json")
+            };
+
+            await PublishAsync(cloudEvent);
+        }
+
+        /// <summary>
+        ///     Publish an event grid message as CloudEvent.
+        /// </summary>
+        /// <param name="cloudEvent">The event to publish.</param>
         public async Task PublishAsync(CloudEvent cloudEvent)
         {
             Guard.NotNull(cloudEvent, nameof(cloudEvent));
 
-            IEnumerable<CloudEvent> eventList = new List<CloudEvent>
-            {
-                cloudEvent
-            };
-
-            await PublishEventToTopicAsync(eventList);
+            var content = new CloudEventContent(cloudEvent, ContentMode.Structured, JsonEventFormatter);
+            await PublishContentToTopicAsync(content);
         }
 
         /// <summary>
-        ///     Publish a many raw JSON payload as events
+        ///     Publish many event grid messages as CloudEvents.
         /// </summary>
-        /// <param name="rawEvents">The events to publish.</param>
-        public async Task PublishManyRawAsync(IEnumerable<RawEvent> rawEvents)
+        /// <param name="events">The events to publish.</param>
+        public async Task PublishManyAsync(IEnumerable<CloudEvent> events)
         {
-            Guard.NotNull(rawEvents, nameof(rawEvents), "No raw events were specified");
-            Guard.For<ArgumentException>(() => !rawEvents.Any(), "No raw events were specified");
-            Guard.For<ArgumentException>(() => rawEvents.Any(rawEvent => rawEvent is null), "Some raw events are 'null'");
+            Guard.NotNull(events, nameof(events), "No events was specified");
+            Guard.For<ArgumentException>(() => !events.Any(), "No events were specified");
+            Guard.For<ArgumentException>(() => events.Any(@event => @event is null), "Some events are 'null'");
 
-            await PublishEventToTopicAsync(rawEvents);
+            var content = new CloudEventBatchContent(events, ContentMode.Structured, JsonEventFormatter);
+            await PublishContentToTopicAsync(content);
         }
 
         /// <summary>
         ///     Publish an event grid message
         /// </summary>
-        /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
-        /// <param name="event">Event to publish</param>
+        /// <typeparam name="TEvent">The type of the specific EventData.</typeparam>
+        /// <param name="event">The event to publish.</param>
         public async Task PublishAsync<TEvent>(TEvent @event)
             where TEvent : class, IEvent
         {
@@ -150,14 +192,14 @@ namespace Arcus.EventGrid.Publishing
                 @event
             };
 
-            await PublishEventToTopicAsync(eventList);
+            await PublishManyAsync(eventList);
         }
 
         /// <summary>
-        ///     Publish an event grid message
+        ///     Publish an event grid message.
         /// </summary>
-        /// <typeparam name="TEvent">Type of the specific EventData</typeparam>
-        /// <param name="events">Events to publish</param>
+        /// <typeparam name="TEvent">The type of the specific EventData.</typeparam>
+        /// <param name="events">The events to publish.</param>
         public async Task PublishManyAsync<TEvent>(IEnumerable<TEvent> events)
             where TEvent : class, IEvent
         {
@@ -165,37 +207,39 @@ namespace Arcus.EventGrid.Publishing
             Guard.For<ArgumentException>(() => !events.Any(), "No events were specified");
             Guard.For<ArgumentException>(() => events.Any(@event => @event is null), "Some events are 'null'");
 
-            await PublishEventToTopicAsync(events);
+            HttpContent content = CreateSerializedJsonHttpContent(events);
+            await PublishContentToTopicAsync(content);
         }
 
-        /// <summary>
-        ///     Publish an event grid message
-        /// </summary>
-        /// <param name="events">Events to publish</param>
-        public async Task PublishManyAsync(IEnumerable<CloudEvent> events)
+        private static HttpContent CreateSerializedJsonHttpContent<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
         {
-            Guard.NotNull(events, nameof(events));
+            string json = JsonConvert.SerializeObject(events.ToArray());
+            var content = new StringContent(json);
 
-            await PublishEventToTopicAsync(events);
+            return content;
         }
 
-        private async Task PublishEventToTopicAsync<TEvent>(IEnumerable<TEvent> eventList) where TEvent : class
+        private async Task PublishContentToTopicAsync(HttpContent content)
         {
-            var response = await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequestAsync(eventList));
-
-            if (!response.IsSuccessStatusCode)
+            using (HttpResponseMessage response = 
+                await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequestAsync(content)))
             {
-                await ThrowApplicationExceptionAsync(response);
+                if (!response.IsSuccessStatusCode)
+                {
+                    await ThrowApplicationExceptionAsync(response);
+                }
             }
         }
 
-        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync<TEvent>(IEnumerable<TEvent> events) where TEvent : class
+        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync(HttpContent content)
         {
             IFlurlRequest authorizedRequest = 
                 TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey);
-
-            return await authorizedRequest.PostJsonAsync(events);
+            
+            HttpResponseMessage response = await authorizedRequest.SendAsync(HttpMethod.Post, content);
+            return response;
         }
+
 
         private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
         {
