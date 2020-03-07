@@ -1,0 +1,4 @@
+variables:
+  DotNet.Sdk.Version: '3.0.101'
+  DotNet.Sdk.VersionBC: '2.2.105'
+  Project: 'Arcus.EventGrid'
