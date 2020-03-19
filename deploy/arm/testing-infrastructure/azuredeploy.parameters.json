@@ -13,12 +13,6 @@
         },
         "ServiceBus.Namespace.Name": {
             "value": "arcus-testing-infrastructure"
-        },
-        "LogicApp.Name": {
-            "value": "arcus-testing-event-to-service-bus-topic"
-        },
-        "LogicApps.Connections.ServiceBus.Name": {
-            "value": "arcus-testing-connections-service-bus"
         }
     }
 }
