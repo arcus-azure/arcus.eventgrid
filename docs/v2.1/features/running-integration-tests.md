@@ -5,13 +5,13 @@ layout: default
 
 ## Running integration tests with Arcus
 
-![](https://img.shields.io/badge/Available%20starting-v3.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v3.0.0)
+![](https://img.shields.io/badge/Available%20starting-v2.1-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.1.0)
 
 We provide some minimal testing infrastructure that allows you to run integration tests on top of Azure Event Grid.
 
 Easy to start:
 ```shell
-> Install-Package Arcus.EventGrid.Testing
+> Install-Package Arcus.EventGrid.Testing -Version 2.1.0
 ```
 
 Here is what this article will cover:
@@ -49,7 +49,7 @@ public class EventPublishingTests : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await _serviceBusEventConsumerHost.StopAsync();
+        await _serviceBusEventConsumerHost.Stop();
     }
 
     public async Task InitializeAsync()
@@ -58,7 +58,7 @@ public class EventPublishingTests : IAsyncLifetime
         var serviceBusTopicName = "<topic-name>";
 
         var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(serviceBusTopicName, serviceBusConnectionString);
-        _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.StartAsync(serviceBusEventConsumerHostOptions, _testLogger);
+        _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.Start(serviceBusEventConsumerHostOptions, _testLogger);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class EventPublishingTests : IAsyncLifetime
                                         .ForTopic(topicEndpoint)
                                         .UsingAuthenticationKey(endpointKey)
                                         .Build();
-        await eventGridPublisher.PublishAsync(@event);
+        await eventGridPublisher.Publish(@event);
 
         // Assert
         var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
@@ -92,7 +92,7 @@ public class EventPublishingTests : IAsyncLifetime
     <img src="https://azuredeploy.net/deploybutton.png"/>
 </a>
 <a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Farcus-azure%2Farcus.eventgrid%2Fmaster%2Fdeploy%2Farm%2Ftesting-infrastructure%2Fazuredeploy.json" target="_blank">
-    <img src="./../media/logos/armviz.png"/>
+    <img src="https://armviz.io/visualizebutton.png"/>
 </a>
 
 
@@ -126,4 +126,4 @@ var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(
 };
 ```
 
-[&larr; back](/)
+[&larr; back](/arcus.eventgrid)

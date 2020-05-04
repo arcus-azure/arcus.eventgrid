@@ -5,7 +5,7 @@ layout: default
 
 ## Publishing Events
 
-![](https://img.shields.io/badge/Available%20starting-v3.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v3.0.0)
+![](https://img.shields.io/badge/Available%20starting-v1.1-green)
 
 We provide support for publishing custom events to a custom Azure Event Grid Topics.
 
@@ -25,6 +25,8 @@ var eventGridPublisher = EventGridPublisherBuilder
 ```
 **Publishing EventGridEvent's**
 
+![](https://img.shields.io/badge/Available%20starting-v2.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.0.0)
+
 Create your event that you want to publish
 
 ```csharp
@@ -33,78 +35,14 @@ string eventSubject = $"/cars/{licensePlate}";
 string eventId = Guid.NewGuid().ToString();
 var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
 
-await eventGridPublisher.PublishAsync(@event);
+await eventGridPublisher.Publish(@event);
 ```
 
 Alternatively you can publish a list of events by using
 
 ```csharp
-await eventGridPublisher.PublishManyAsync(events);
+await eventGridPublisher.PublishMany(events);
 ```
-
-**Publishing CloudEvent's**
-
-Create your event that you want to publish
-
-```csharp
-string licensePlate = "1-TOM-337";
-string eventSubject = $"/cars/{licensePlate}";
-string eventId = Guid.NewGuid().ToString();
- var @event = new CloudEvent(
-    CloudEventsSpecVersion.V1_0, 
-    "NewCarRegistered", 
-    new Uri("https://eventgrid.arcus-azure.net/"), 
-    eventSubject, 
-    eventId)
-{
-    Data = new CarEventData(licensePlate),
-    DataContentType = new ContentType("application/json")
-};
-
-await eventGridPublisher.PublishAsync(@event);
-```
-
-Alternatively you can publish a list of events using
-
-```csharp
-await eventGridPublisher.PublishManyAsync(events);
-```
-
-### Publishing Raw Events
-
-![](https://img.shields.io/badge/Available%20starting-v3.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v3.0.0)
-
-**Publishing raw EventGridEvent's**
-
-We provide the capability to push EventGridEvents without a schema based on a raw JSON string.
-
-```csharp
-// Created via EventGridPublisherBuilder.
-EventGridPublisher eventGridPublisher = ...
-
-string licensePlate = "1-TOM-337";
-string eventSubject = $"/cars/{licensePlate}";
-string eventId = Guid.NewGuid().ToString();
-string rawEventPayload = String.Format("{ \"licensePlate\": \"{0}\"}", licensePlate);
-
-await eventGridPublisher.PublishRawEventGridEventAsync(eventId, eventSubject, rawEventPayload);
-```
-
-**Publishing raw CloudEvent's**
-
-We provide the capability to push [CloudEvent's](https://github.com/cloudevents/spec) without a schema based on a raw JSON string.
-
-```csharp
-EventGridPublisher eventGridPublisher = ...
-
-string licensePlate = "1-TOM-337";
-string eventSubject = $"/cars/{licensePlate}";
-string eventId = Guid.NewGuid().ToString();
-string rawEventPayload = String.Format("{ \"licensePlate\": \"{0}\"}", licensePlate);
-
-await eventGridPublisher.PublishRawCloudEventAsync(eventId, eventSubject, rawEventPayload);
-```
-
 
 ### Resilient Publishing
 

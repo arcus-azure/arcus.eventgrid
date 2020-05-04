@@ -16,21 +16,10 @@ PM > Install-Package Arcus.EventGrid.All
 
 - Support for publishing events to an Event Grid Topic ([docs](features/publishing-events))
 - Support for handling endpoint validation handshake ([docs](features/endpoint-validation))
+- Provides event contracts for a subset of Azure services ([docs](features/azure-event-contracts))
 - Provides tooling for writing integration tests ([docs](features/running-integration-tests))
-- Support for deserializing official Azure or custom events according to Event Grid & CloudEvent schema ([docs](features/deserializing-events))
-- Support for creating your own events ([docs](features/create-custom-events))
-
-## Older Versions
-
-- [v1.0](/v1.0/index.md)
-- [v1.0.1](/v1.0.1/index.md)
-- [v1.0.2](/v1.0.2/index.md)
-- [v1.1.0](/v1.1.0/index.md)
-- [v2.0](/v2.0/index.md)
-- [v2.1](/v2.1/index.md)
-- [v2.2](/v2.2/index.md)
-- [v2.3](/v2.3/index.md)
-- [v2.4](/v2.4/index.md)
+- Support for deserializing events ([docs](features/deserializing-events))
+- Support for creating your own events
 
 # License
 This is licensed under The MIT License (MIT). Which means that you can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the web application. But you always need to state that Codit is the original author of this web application.

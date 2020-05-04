@@ -5,7 +5,7 @@ layout: default
 
 ## Running integration tests with Arcus
 
-![](https://img.shields.io/badge/Available%20starting-v3.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v3.0.0)
+![](https://img.shields.io/badge/Available%20starting-v2.1-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.1.0)
 
 We provide some minimal testing infrastructure that allows you to run integration tests on top of Azure Event Grid.
 
@@ -49,7 +49,7 @@ public class EventPublishingTests : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await _serviceBusEventConsumerHost.StopAsync();
+        await _serviceBusEventConsumerHost.Stop();
     }
 
     public async Task InitializeAsync()
@@ -58,7 +58,7 @@ public class EventPublishingTests : IAsyncLifetime
         var serviceBusTopicName = "<topic-name>";
 
         var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(serviceBusTopicName, serviceBusConnectionString);
-        _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.StartAsync(serviceBusEventConsumerHostOptions, _testLogger);
+        _serviceBusEventConsumerHost = await ServiceBusEventConsumerHost.Start(serviceBusEventConsumerHostOptions, _testLogger);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class EventPublishingTests : IAsyncLifetime
                                         .ForTopic(topicEndpoint)
                                         .UsingAuthenticationKey(endpointKey)
                                         .Build();
-        await eventGridPublisher.PublishAsync(@event);
+        await eventGridPublisher.Publish(@event);
 
         // Assert
         var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
@@ -126,4 +126,4 @@ var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(
 };
 ```
 
-[&larr; back](/)
+[&larr; back](/arcus.eventgrid)
