@@ -6,6 +6,8 @@ redirect_from:
  - /index.html
 ---
 
+[![NuGet Badge](https://buildstats.info/nuget/Arcus.EventGrid.All?packageVersion=2.0.0)](https://www.nuget.org/packages/Arcus.EventGrid.All/)
+
 # Installation
 
 ```shell
