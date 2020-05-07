@@ -5,6 +5,8 @@ layout: default
 
 ## Endpoint validation
 
+![](https://img.shields.io/badge/Available%20starting-v1.0-green)
+
 We provide support for endpoint validation, when implementing your own custom web hook.  This validation allows to secure your web hook with a secret key (taken from the query string or an HTTP header).  This is needed, because Azure Event Grid is send a validation request to a newly configured web hook, in order to prevent people leveraging Azure Event Grid to bring down a 3rd party API.  The implementation we provide, is echoing back the validation key on your operation, in order to have the validation by Event Grid out of the box.
 
 Import the following namespace into your project:

@@ -5,6 +5,8 @@ layout: default
 
 ## Create Custom Events
 
+![](https://img.shields.io/badge/Available%20starting-v3.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v3.0.0)
+
 We allow you to create custom events next to the [official Azure SDK event schemas](https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.eventgrid.models?view=azure-dotnet).
 
 The official SDK provides a class called `EventGridEvent` which provides your event data as an ordinary .NET `object`.
