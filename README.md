@@ -15,6 +15,9 @@ PM > Install-Package Arcus.EventGrid.All
 # Documentation
 All documentation can be found on [here](https://eventgrid.arcus-azure.net/).
 
+# Customers
+Are you an Arcus user? Let us know and [get listed](https://bit.ly/become-a-listed-arcus-user)!
+
 # How do I run the integration tests?
 In order to run the integration tests, you will need to do the following:
 1. Setup the infrastructure ([docs](https://eventgrid.arcus-azure.net/features/running-integration-tests#azure-infrastructure))
