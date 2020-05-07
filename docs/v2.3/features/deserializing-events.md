@@ -5,8 +5,6 @@ layout: default
 
 ## Deserializing Events
 
-![](https://img.shields.io/badge/Available%20starting-v2.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.0.0)
-
 The `Arcus.EventGrid` package provides several ways to deserializing events.
 
 Following paragraphs describe each supported type of event.

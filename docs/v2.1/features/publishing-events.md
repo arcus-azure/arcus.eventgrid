@@ -5,8 +5,6 @@ layout: default
 
 ## Publishing Events
 
-![](https://img.shields.io/badge/Available%20starting-v1.1-green)
-
 We provide support for publishing custom events to a custom Azure Event Grid Topics.
 
 Import the following namespace into your project:
@@ -34,22 +32,9 @@ string licensePlate = "1-TOM-337";
 string eventSubject = $"/cars/{licensePlate}";
 string eventId = Guid.NewGuid().ToString();
 var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
-```
 
-![](https://img.shields.io/badge/Available%20starting-v1.1-green)
-![](https://img.shields.io/badge/Until%20exclusive-v2.1-red?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.0.0)
-
-```csharp
-await eventGridPublisher.Publish(eventSubject, eventType: "NewCarRegistered", data: new [] { @event }, id: eventId);
-```
-![](https://img.shields.io/badge/Available%20starting-v2.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.0.0)
-
-```csharp
 await eventGridPublisher.Publish(@event);
 ```
-
-
-
 
 Alternatively you can publish a list of events by using
 
@@ -58,8 +43,6 @@ await eventGridPublisher.PublishMany(events);
 ```
 
 ### Resilient Publishing
-
-![](https://img.shields.io/badge/Available%20starting-v2.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.0.0)
 
 The `EventGridPublisherBuilder` also provides several ways to publish events in a resilient manner. Resilient meaning we support three ways to add resilience to your event publishing:
 

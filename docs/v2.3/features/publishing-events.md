@@ -5,8 +5,6 @@ layout: default
 
 ## Publishing Events
 
-![](https://img.shields.io/badge/Available%20starting-v1.1-green)
-
 We provide support for publishing custom events to a custom Azure Event Grid Topics.
 
 Import the following namespace into your project:
@@ -24,8 +22,6 @@ var eventGridPublisher = EventGridPublisherBuilder
                                 .Build();
 ```
 **Publishing EventGridEvent's**
-
-![](https://img.shields.io/badge/Available%20starting-v2.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.0.0)
 
 Create your event that you want to publish
 
@@ -45,8 +41,6 @@ await eventGridPublisher.PublishMany(events);
 ```
 
 ### Resilient Publishing
-
-![](https://img.shields.io/badge/Available%20starting-v2.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.0.0)
 
 The `EventGridPublisherBuilder` also provides several ways to publish events in a resilient manner. Resilient meaning we support three ways to add resilience to your event publishing:
 

@@ -5,8 +5,6 @@ layout: default
 
 ## Publishing Events
 
-![](https://img.shields.io/badge/Available%20starting-v1.0-green)
-
 We provide support for publishing custom events to a custom Azure Event Grid Topics.
 
 Import the following namespace into your project:
