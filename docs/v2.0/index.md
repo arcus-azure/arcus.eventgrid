@@ -1,9 +1,6 @@
 ---
 title: "Home"
 layout: default
-permalink: /
-redirect_from:
- - /index.html
 ---
 
 [![NuGet Badge](https://buildstats.info/nuget/Arcus.EventGrid.All?packageVersion=2.0.0)](https://www.nuget.org/packages/Arcus.EventGrid.All/)
@@ -20,6 +17,13 @@ PM > Install-Package Arcus.EventGrid.All
 - Support for handling endpoint validation handshake ([docs](features/endpoint-validation))
 - Provides event contracts for a subset of Azure services ([docs](features/azure-event-contracts))
 - Support for creating your own events ([docs](features/create-custom-events))
+
+## Older versions
+
+- [v1.0](v1.0)
+- [v1.0.1](v1.0.1)
+- [v1.0.2](v1.0.2)
+- [v1.1.0](v1.1.0)
 
 # License
 This is licensed under The MIT License (MIT). Which means that you can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the web application. But you always need to state that Codit is the original author of this web application.

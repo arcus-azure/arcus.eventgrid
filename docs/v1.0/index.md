@@ -1,9 +1,6 @@
 ---
 title: "Home"
 layout: default
-permalink: /
-redirect_from:
- - /index.html
 ---
 
 [![NuGet Badge](https://buildstats.info/nuget/Arcus.EventGrid.All?packageVersion=1.0.0)](https://www.nuget.org/packages/Arcus.EventGrid.All/)
