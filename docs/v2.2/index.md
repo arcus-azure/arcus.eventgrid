@@ -22,12 +22,12 @@ PM > Install-Package Arcus.EventGrid.All
 
 ## Older versions
 
-- [v1.0](v1.0)
-- [v1.0.1](v1.0.1)
-- [v1.0.2](v1.0.2)
-- [v1.1.0](v1.1.0)
-- [v2.0](v2.0)
-- [v2.1](v2.1)
+- [v1.0](../v1.0)
+- [v1.0.1](../v1.0.1)
+- [v1.0.2](../v1.0.2)
+- [v1.1.0](../v1.1.0)
+- [v2.0](../v2.0)
+- [v2.1](../v2.1)
 
 # License
 This is licensed under The MIT License (MIT). Which means that you can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the web application. But you always need to state that Codit is the original author of this web application.
