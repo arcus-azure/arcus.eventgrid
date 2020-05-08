@@ -20,17 +20,17 @@ PM > Install-Package Arcus.EventGrid.All
 - Support for deserializing events ([docs](features/deserializing-events))
 - Support for creating your own events
 
-## Older versions
-
-- [v1.0.0](../v1.0.0)
-- [v1.0.1](../v1.0.1)
-- [v1.0.2](../v1.0.2)
-- [v1.1.0](../v1.1.0)
-- [v2.0.0](../v2.0.0)
-- [v2.1.0](../v2.1.0)
-- [v2.2.0](../v2.2.0)
-
 # License
 This is licensed under The MIT License (MIT). Which means that you can use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the web application. But you always need to state that Codit is the original author of this web application.
 
 *[Full license here](https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE)*
+
+# Older Versions
+
+- [v2.2.0](v2.2.0)
+- [v2.1.0](v2.1.0)
+- [v2.0.0](v2.0.0)
+- [v1.1.0](v1.1.0)
+- [v1.0.2](v1.0.2)
+- [v1.0.1](v1.0.1)
+- [v1.0.0](v1.0.0)
