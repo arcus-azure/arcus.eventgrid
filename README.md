@@ -10,13 +10,13 @@ Azure Event Grid development in a breeze.
 
 Easy to install it via NuGet:
 
-- **EventGrid publishing**
+- **Publishing**
 
 ```shell
 PM > Install-Package Arcus.EventGrid.Publishing
 ```
 
-- **EventGrid models**
+- **Models**
 
 ```shell
 PM > Install-Package Arcus.EventGrid
