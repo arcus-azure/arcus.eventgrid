@@ -8,9 +8,21 @@ Azure Event Grid development in a breeze.
 
 # Installation
 
+Easy to install it via NuGet:
+
+- **EventGrid publishing**
+
 ```shell
-PM > Install-Package Arcus.EventGrid.All
+PM > Install-Package Arcus.EventGrid.Publishing
 ```
+
+- **EventGrid models**
+
+```shell
+PM > Install-Package Arcus.EventGrid
+```
+
+For a more thorough overview, we recommend reading our [documentation](#documentation).
 
 # Documentation
 All documentation can be found on [here](https://eventgrid.arcus-azure.net/).
