@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
@@ -21,7 +20,7 @@ namespace Arcus.EventGrid.Publishing
     /// </summary>
     public class EventGridPublisher : IEventGridPublisher
     {
-        private readonly Policy _resilientPolicy;
+        private readonly AsyncPolicy _resilientPolicy;
         private readonly string _authenticationKey;
 
         private static readonly JsonEventFormatter JsonEventFormatter = new JsonEventFormatter();
@@ -44,7 +43,7 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="authenticationKey">Authentication key for the custom Event Grid topic</param>
         /// <param name="resilientPolicy">The policy to use making the publishing resilient.</param>
         /// <exception cref="UriFormatException">The topic endpoint must be a HTTP endpoint.</exception>
-        internal EventGridPublisher(Uri topicEndpoint, string authenticationKey, Policy resilientPolicy)
+        internal EventGridPublisher(Uri topicEndpoint, string authenticationKey, AsyncPolicy resilientPolicy)
         {
             Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must be specified");
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
