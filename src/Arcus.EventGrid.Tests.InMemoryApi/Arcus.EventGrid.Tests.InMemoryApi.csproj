@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.Owin" Version="5.2.5-preview1" />
-    <PackageReference Include="Microsoft.Owin.Testing" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Owin.Testing" Version="4.1.1" />
   </ItemGroup>
 
   <ItemGroup>
