@@ -16,7 +16,7 @@ namespace Arcus.EventGrid.Publishing
     {
         private readonly Uri _topicEndpoint;
         private readonly string _authenticationKey;
-        private readonly Policy _resilientPolicy;
+        private readonly AsyncPolicy _resilientPolicy;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="EventGridPublisherBuilderResult" /> class.
@@ -44,7 +44,7 @@ namespace Arcus.EventGrid.Publishing
         internal EventGridPublisherBuilderResult(
             Uri topicEndpoint,
             string authenticationKey,
-            Policy resilientPolicy)
+            AsyncPolicy resilientPolicy)
         {
             Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must be specified");
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
@@ -53,12 +53,7 @@ namespace Arcus.EventGrid.Publishing
                 () => topicEndpoint.Scheme != Uri.UriSchemeHttp
                       && topicEndpoint.Scheme != Uri.UriSchemeHttps,
                 $"The topic endpoint must be and HTTP or HTTPS endpoint but is: {topicEndpoint.Scheme}");
-
-            /* TODO:
-             * shouldn't the `topicEndpoint` and the `authenticationKey` be domain models
-             * instead of primitives so we can centralize these validations (and possible others)
-             * and not 'wait' till the 'Publish() throws? */
-
+            
             _topicEndpoint = topicEndpoint;
             _authenticationKey = authenticationKey;
             _resilientPolicy = resilientPolicy;
@@ -75,7 +70,7 @@ namespace Arcus.EventGrid.Publishing
         {
             Guard.NotLessThan(retryCount, 0, nameof(retryCount));
 
-            Policy exponentialRetryPolicy = 
+            AsyncPolicy exponentialRetryPolicy = 
                 Policy.Handle<TException>()
                       .WaitAndRetryAsync(
                           retryCount,
@@ -104,7 +99,7 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotLessThanOrEqualTo(exceptionsAllowedBeforeBreaking, 0, nameof(exceptionsAllowedBeforeBreaking));
             Guard.NotLessThan(durationOfBreak, TimeSpan.Zero, nameof(durationOfBreak));
 
-            Policy circuitBreakerPolicy = 
+            AsyncPolicy circuitBreakerPolicy = 
                 Policy.Handle<TException>()
                       .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking, durationOfBreak);
 
