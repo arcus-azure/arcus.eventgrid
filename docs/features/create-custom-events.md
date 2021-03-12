@@ -13,6 +13,9 @@ We provide a variation of the official `EventGridEvent` which provides your data
 This makes sure that your new custom events are both type-safe and are supported by any offical functions that uses the official `EventGridEvent`.
 
 ```csharp
+using Arcus.EventGrid.Contracts;
+using Newtonsoft.Json;
+
 public class CarEventData
 {
     public CarEventData(string licensePlate)

@@ -18,6 +18,9 @@ We provide support for deserializing events to typed event objects where the cus
 If you want to have the original raw JSON event payload, you can get it via the `.Data` property.
 
 ```csharp
+using Arcus.EventGrid;
+using Arcus.EventGrid.Parsers;
+
 // Parse from your custom event implementation with the `.Parse<>` function.
 EventGridMessage<NewCarRegistered> eventGridBatch = EventGridParser.Parse<NewCarRegistered>(rawEvent);
 
