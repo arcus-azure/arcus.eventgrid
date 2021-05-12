@@ -103,7 +103,7 @@ namespace Arcus.EventGrid.Publishing
                 Policy.Handle<TException>()
                       .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking, durationOfBreak);
 
-            var resilientPolicy = _resilientPolicy is NoOpPolicy
+            var resilientPolicy = _resilientPolicy is AsyncNoOpPolicy
                 ? circuitBreakerPolicy
                 : _resilientPolicy.WrapAsync(circuitBreakerPolicy);
 
