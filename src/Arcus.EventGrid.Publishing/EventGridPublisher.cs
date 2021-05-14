@@ -341,7 +341,6 @@ namespace Arcus.EventGrid.Publishing
             }
             finally
             {
-                // Throw custom exception in case of failure
                 throw new ApplicationException($"Event grid publishing failed with status {response.StatusCode} and content {rawResponse}");
             }
         }

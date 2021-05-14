@@ -87,7 +87,7 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "Requires a topic endpoint for the Azure Event Grid publisher");
             Guard.For(() => topicEndpoint.Scheme != Uri.UriSchemeHttp 
                             && topicEndpoint.Scheme != Uri.UriSchemeHttps,
-                new ArgumentException("Requires a topic endpoint that has a HTTP or HTTPS scheme", nameof(topicEndpoint)));
+                new UriFormatException("Requires a topic endpoint that has a HTTP or HTTPS scheme"));
 
             return ForTopic(topicEndpoint, NullLogger.Instance);
         }
@@ -114,7 +114,7 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "Requires a topic endpoint for the Azure Event Grid publisher");
             Guard.For(() => topicEndpoint.Scheme != Uri.UriSchemeHttp 
                             && topicEndpoint.Scheme != Uri.UriSchemeHttps,
-                new ArgumentException("Requires a topic endpoint that has a HTTP or HTTPS scheme", nameof(topicEndpoint)));
+                new UriFormatException("Requires a topic endpoint that has a HTTP or HTTPS scheme"));
 
             return new EventGridPublisherBuilder(topicEndpoint, logger ?? NullLogger.Instance);
         }

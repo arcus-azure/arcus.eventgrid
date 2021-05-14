@@ -55,7 +55,7 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotNull(resilientPolicy, nameof(resilientPolicy), "The resilient policy is required via this construction, use other constructor otherwise");
             Guard.For(() => topicEndpoint.Scheme != Uri.UriSchemeHttp 
                             && topicEndpoint.Scheme != Uri.UriSchemeHttps,
-                new ArgumentException("Requires a topic endpoint that has a HTTP or HTTPS scheme", nameof(topicEndpoint)));
+                new UriFormatException("Requires a topic endpoint that has a HTTP or HTTPS scheme"));
             
             _topicEndpoint = topicEndpoint;
             _authenticationKey = authenticationKey;
