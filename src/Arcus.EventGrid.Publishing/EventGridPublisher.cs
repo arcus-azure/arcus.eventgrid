@@ -235,7 +235,7 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotNull(cloudEvent, nameof(cloudEvent), "Requires a CloudEvent to publish to Azure Event Grid");
 
             var content = new CloudEventContent(cloudEvent, ContentMode.Structured, JsonEventFormatter);
-            await PublishContentToTopicAsync(content);
+            await PublishContentToTopicAsync(content, cloudEvent.Subject);
         }
 
         /// <summary>
@@ -252,7 +252,7 @@ namespace Arcus.EventGrid.Publishing
                 new ArgumentException("Requires all cloud events to be non-null when publishing to Azure Event Grid", nameof(events)));
 
             var content = new CloudEventBatchContent(events, ContentMode.Structured, JsonEventFormatter);
-            await PublishContentToTopicAsync(content);
+            await PublishContentToTopicAsync(content, subject: $"[{String.Join(", ", events.Select(ev => ev.Subject))}]");
         }
 
         /// <summary>
@@ -286,7 +286,7 @@ namespace Arcus.EventGrid.Publishing
                 new ArgumentException("Requires all events to be non-null when publishing to Azure Event Grid", nameof(events)));
 
             HttpContent content = CreateSerializedJsonHttpContent(events);
-            await PublishContentToTopicAsync(content);
+            await PublishContentToTopicAsync(content, subject: $"[{String.Join(", ", events.Select(ev => ev.Subject))}]");
         }
 
         private static HttpContent CreateSerializedJsonHttpContent<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
@@ -297,7 +297,7 @@ namespace Arcus.EventGrid.Publishing
             return content;
         }
 
-        private async Task PublishContentToTopicAsync(HttpContent content)
+        private async Task PublishContentToTopicAsync(HttpContent content, string subject)
         {
             using (DependencyMeasurement measurement = DependencyMeasurement.Start())
             {
@@ -316,7 +316,7 @@ namespace Arcus.EventGrid.Publishing
                 }
                 finally
                 {
-                    _logger.LogDependency("Azure Event Grid", dependencyData: null, targetName: TopicEndpoint, isSuccessful: isSuccessful, measurement);
+                    _logger.LogDependency("Azure Event Grid", dependencyData: subject, targetName: TopicEndpoint, isSuccessful: isSuccessful, measurement);
                 }
             }
         }
