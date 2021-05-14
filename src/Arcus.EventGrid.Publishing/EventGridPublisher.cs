@@ -316,7 +316,7 @@ namespace Arcus.EventGrid.Publishing
                 }
                 finally
                 {
-                    _logger.LogDependency("Azure Event Grid", dependencyData: subject, targetName: TopicEndpoint, isSuccessful: isSuccessful, measurement);
+                    _logger.LogDependency("Azure Event Grid", dependencyData: subject ?? "<no-subject>", targetName: TopicEndpoint, isSuccessful: isSuccessful, measurement);
                 }
             }
         }
