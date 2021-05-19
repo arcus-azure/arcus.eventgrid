@@ -19,6 +19,7 @@ namespace Arcus.EventGrid.Publishing
         private readonly string _authenticationKey;
         private readonly AsyncPolicy _resilientPolicy;
         private readonly ILogger _logger;
+        private readonly Action<EventGridPublisherOptions> _configureOptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventGridPublisherBuilderResult" /> class.
@@ -26,11 +27,12 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="topicEndpoint">The URL of custom Azure Event Grid topic.</param>
         /// <param name="authenticationKey">The authentication key for the custom Azure Event Grid topic.</param>
         /// <param name="logger">The logger instance to write dependency telemetry during the interaction with the Azure Event Grid topic.</param>
+        /// <param name="configureOptions">The additional function to configure optional settings on the <see cref="IEventGridPublisher"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="topicEndpoint"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">Thrown when the <paramref name="authenticationKey"/> is blank.</exception>
         /// <exception cref="UriFormatException">Thrown when the <paramref name="topicEndpoint"/> is not a valid HTTP endpoint.</exception>
-        internal EventGridPublisherBuilderResult(Uri topicEndpoint, string authenticationKey, ILogger logger)
-            : this(topicEndpoint, authenticationKey, Policy.NoOpAsync(), logger)
+        internal EventGridPublisherBuilderResult(Uri topicEndpoint, string authenticationKey, ILogger logger, Action<EventGridPublisherOptions> configureOptions)
+            : this(topicEndpoint, authenticationKey, Policy.NoOpAsync(), logger, configureOptions)
         {
         }
 
@@ -41,6 +43,7 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="authenticationKey">The authentication key for the custom Azure Event Grid topic.</param>
         /// <param name="resilientPolicy">The policy to use making the publishing resilient.</param>
         /// <param name="logger">The logger instance to write dependency telemetry during the interaction with the Azure Event Grid topic</param>
+        /// <param name="configureOptions">The additional function to configure optional settings on the <see cref="IEventGridPublisher"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="topicEndpoint"/> or the <paramref name="resilientPolicy"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">Thrown when the <paramref name="authenticationKey"/> is blank.</exception>
         /// <exception cref="UriFormatException">Thrown when the <paramref name="topicEndpoint"/> is not a valid HTTP endpoint.</exception>
@@ -48,7 +51,8 @@ namespace Arcus.EventGrid.Publishing
             Uri topicEndpoint,
             string authenticationKey,
             AsyncPolicy resilientPolicy,
-            ILogger logger)
+            ILogger logger,
+            Action<EventGridPublisherOptions> configureOptions)
         {
             Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must be specified");
             Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
@@ -61,6 +65,7 @@ namespace Arcus.EventGrid.Publishing
             _authenticationKey = authenticationKey;
             _resilientPolicy = resilientPolicy;
             _logger = logger ?? NullLogger.Instance;
+            _configureOptions = configureOptions;
         }
 
         /// <summary>
@@ -79,7 +84,7 @@ namespace Arcus.EventGrid.Publishing
                           retryCount,
                           retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
-            return new EventGridPublisherBuilderResult(_topicEndpoint, _authenticationKey, exponentialRetryPolicy, _logger);
+            return new EventGridPublisherBuilderResult(_topicEndpoint, _authenticationKey, exponentialRetryPolicy, _logger, _configureOptions);
         }
 
         /// <summary>
@@ -112,7 +117,7 @@ namespace Arcus.EventGrid.Publishing
                 ? circuitBreakerPolicy
                 : _resilientPolicy.WrapAsync(circuitBreakerPolicy);
 
-            return new EventGridPublisherBuilderResult(_topicEndpoint, _authenticationKey, resilientPolicy, _logger);
+            return new EventGridPublisherBuilderResult(_topicEndpoint, _authenticationKey, resilientPolicy, _logger, _configureOptions);
         }
 
         /// <summary>
@@ -120,7 +125,10 @@ namespace Arcus.EventGrid.Publishing
         /// </summary>
         public IEventGridPublisher Build()
         {
-            return new EventGridPublisher(_topicEndpoint, _authenticationKey, _resilientPolicy, _logger);
+            var options = new EventGridPublisherOptions();
+            _configureOptions?.Invoke(options);
+            
+            return new EventGridPublisher(_topicEndpoint, _authenticationKey, _resilientPolicy, _logger, options);
         }
     }
 }

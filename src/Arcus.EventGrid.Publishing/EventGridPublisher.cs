@@ -27,6 +27,7 @@ namespace Arcus.EventGrid.Publishing
         private readonly AsyncPolicy _resilientPolicy;
         private readonly string _authenticationKey;
         private readonly ILogger _logger;
+        private readonly EventGridPublisherOptions _options;
 
         private static readonly JsonEventFormatter JsonEventFormatter = new JsonEventFormatter();
 
@@ -36,11 +37,12 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="topicEndpoint">The URL of custom Azure Event Grid topic.</param>
         /// <param name="authenticationKey">The authentication key for the custom Azure Event Grid topic.</param>
         /// <param name="logger">The logger instance to write dependency telemetry during the interaction with the Azure Event Grid topic.</param>
+        /// <param name="options">The optional settings on the <see cref="IEventGridPublisher"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="topicEndpoint"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentException">Thrown when the <paramref name="authenticationKey"/> is blank.</exception>
         /// <exception cref="UriFormatException">Thrown when the <paramref name="topicEndpoint"/> is not a valid HTTP endpoint.</exception>
-        internal EventGridPublisher(Uri topicEndpoint, string authenticationKey, ILogger logger)
-            : this(topicEndpoint, authenticationKey, Policy.NoOpAsync(), logger)
+        internal EventGridPublisher(Uri topicEndpoint, string authenticationKey, ILogger logger, EventGridPublisherOptions options)
+            : this(topicEndpoint, authenticationKey, Policy.NoOpAsync(), logger, options)
         {
         }
 
@@ -51,24 +53,29 @@ namespace Arcus.EventGrid.Publishing
         /// <param name="authenticationKey">The authentication key for the custom Azure Event Grid topic.</param>
         /// <param name="resilientPolicy">The policy to use making the publishing resilient.</param>
         /// <param name="logger">The logger instance to write dependency telemetry during the interaction with the Azure Event Grid topic</param>
-        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="topicEndpoint"/> or the <paramref name="resilientPolicy"/> is <c>null</c>.</exception>
+        /// <param name="options">The optional settings on the <see cref="IEventGridPublisher"/>.</param>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when the <paramref name="topicEndpoint"/>, the <paramref name="resilientPolicy"/>, or the <paramref name="options"/> is <c>null</c>.
+        /// </exception>
         /// <exception cref="ArgumentException">Thrown when the <paramref name="authenticationKey"/> is blank.</exception>
         /// <exception cref="UriFormatException">Thrown when the <paramref name="topicEndpoint"/> is not a valid HTTP endpoint.</exception>
-        internal EventGridPublisher(Uri topicEndpoint, string authenticationKey, AsyncPolicy resilientPolicy, ILogger logger)
+        internal EventGridPublisher(Uri topicEndpoint, string authenticationKey, AsyncPolicy resilientPolicy, ILogger logger, EventGridPublisherOptions options)
         {
-            Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must be specified");
-            Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "The authentication key must not be empty and is required");
-            Guard.NotNull(resilientPolicy, nameof(resilientPolicy), "The resilient policy is required with this construction, otherwise use other constructor");
+            Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "Requires an Azure Event Grid topic endpoint");
+            Guard.NotNullOrWhitespace(authenticationKey, nameof(authenticationKey), "Requires an non-blank authentication key to authenticate to a Azure Event Grid topic");
+            Guard.NotNull(resilientPolicy, nameof(resilientPolicy), "Requires a resilient policy this Azure Event Grid topic publisher, otherwise use other constructor");
+            Guard.NotNull(options, nameof(options), "Requires a set of options to configure the Azure Event Grid publisher");
             Guard.For<UriFormatException>(
                 () => topicEndpoint.Scheme != Uri.UriSchemeHttp
                       && topicEndpoint.Scheme != Uri.UriSchemeHttps,
-                $"The topic endpoint must be and HTTP or HTTPS endpoint but is: {topicEndpoint.Scheme}");
+                "Requires an Azure Event Grid topic endpoint with either a HTTP or HTTPS scheme");
 
             TopicEndpoint = topicEndpoint.OriginalString;
 
             _authenticationKey = authenticationKey;
             _resilientPolicy = resilientPolicy;
             _logger = logger ?? NullLogger.Instance;
+            _options = options;
         }
 
         /// <summary>
@@ -252,7 +259,7 @@ namespace Arcus.EventGrid.Publishing
                 new ArgumentException("Requires all cloud events to be non-null when publishing to Azure Event Grid", nameof(events)));
 
             var content = new CloudEventBatchContent(events, ContentMode.Structured, JsonEventFormatter);
-            await PublishContentToTopicAsync(content, subject: $"[{String.Join(", ", events.Select(ev => ev.Subject))}]");
+            await PublishContentToTopicAsync(content, logSubject: $"[{String.Join(", ", events.Select(ev => ev.Subject))}]");
         }
 
         /// <summary>
@@ -286,7 +293,7 @@ namespace Arcus.EventGrid.Publishing
                 new ArgumentException("Requires all events to be non-null when publishing to Azure Event Grid", nameof(events)));
 
             HttpContent content = CreateSerializedJsonHttpContent(events);
-            await PublishContentToTopicAsync(content, subject: $"[{String.Join(", ", events.Select(ev => ev.Subject))}]");
+            await PublishContentToTopicAsync(content, logSubject: $"[{String.Join(", ", events.Select(ev => ev.Subject))}]");
         }
 
         private static HttpContent CreateSerializedJsonHttpContent<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
@@ -297,7 +304,7 @@ namespace Arcus.EventGrid.Publishing
             return content;
         }
 
-        private async Task PublishContentToTopicAsync(HttpContent content, string subject)
+        private async Task PublishContentToTopicAsync(HttpContent content, string logSubject)
         {
             using (DependencyMeasurement measurement = DependencyMeasurement.Start())
             {
@@ -316,7 +323,10 @@ namespace Arcus.EventGrid.Publishing
                 }
                 finally
                 {
-                    _logger.LogDependency("Azure Event Grid", dependencyData: subject ?? "<no-subject>", targetName: TopicEndpoint, isSuccessful: isSuccessful, measurement);
+                    if (_options.EnableDependencyTracking)
+                    {
+                        _logger.LogDependency("Azure Event Grid", dependencyData: logSubject ?? "<no-subject>", targetName: TopicEndpoint, isSuccessful: isSuccessful, measurement); 
+                    }
                 }
             }
         }
