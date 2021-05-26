@@ -94,12 +94,12 @@ namespace Arcus.EventGrid.Tests.Unit.Security
         public void CreateFilter_WithoutSecretName_Fails(string secretName)
         {
             // Arrange
-            var requestInput = _bogusGenerator.Random.Enum<HttpRequestProperty>();
+            var property = _bogusGenerator.Random.Enum<HttpRequestProperty>();
             string inputName = _bogusGenerator.Name.FirstName();
             var options = new EventGridAuthorizationOptions();
             
             // Act / Assert
-            Assert.ThrowsAny<ArgumentException>(() => new EventGridAuthorizationFilter(requestInput, inputName, secretName, options));
+            Assert.ThrowsAny<ArgumentException>(() => new EventGridAuthorizationFilter(property, inputName, secretName, options));
         }
         
         [Theory]
@@ -107,18 +107,18 @@ namespace Arcus.EventGrid.Tests.Unit.Security
         public void CreateFilter_WithoutInputName_Fails(string inputName)
         {
             // Arrange
-            var requestInput = _bogusGenerator.Random.Enum<HttpRequestProperty>();
+            var property = _bogusGenerator.Random.Enum<HttpRequestProperty>();
             string secretName = _bogusGenerator.Name.FirstName();
             var options = new EventGridAuthorizationOptions();
             
             // Act / Assert
-            Assert.ThrowsAny<ArgumentException>(() => new EventGridAuthorizationFilter(requestInput, inputName, secretName, options));
+            Assert.ThrowsAny<ArgumentException>(() => new EventGridAuthorizationFilter(property, inputName, secretName, options));
         }
 
         [Theory]
         [InlineData(HttpRequestProperty.Header)]
         [InlineData(HttpRequestProperty.Query)]
-        public void CreateFilter_WithRequestFlags_Succeeds(HttpRequestProperty requestInput)
+        public void CreateFilter_WithRequestFlags_Succeeds(HttpRequestProperty property)
         {
             // Arrange
             string inputName = _bogusGenerator.Name.FirstName();
@@ -126,7 +126,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             var options = new EventGridAuthorizationOptions();
             
             // Act / Assert
-            var filter = new EventGridAuthorizationFilter(requestInput, inputName, secretName, options);
+            var filter = new EventGridAuthorizationFilter(property, inputName, secretName, options);
         }
         
         [Theory]
@@ -134,7 +134,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security
         [InlineData((HttpRequestProperty) 5)]
         [InlineData((HttpRequestProperty) 15)]
         [InlineData(HttpRequestProperty.Query | HttpRequestProperty.Header)]
-        public void CreateFilter_WithInvalidRequestFlags_Succeeds(HttpRequestProperty requestInput)
+        public void CreateFilter_WithInvalidRequestFlags_Succeeds(HttpRequestProperty property)
         {
             // Arrange
             string inputName = _bogusGenerator.Name.FirstName();
@@ -142,20 +142,20 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             var options = new EventGridAuthorizationOptions();
             
             // Act / Assert
-            Assert.ThrowsAny<ArgumentException>(() => new EventGridAuthorizationFilter(requestInput, inputName, secretName, options));
+            Assert.ThrowsAny<ArgumentException>(() => new EventGridAuthorizationFilter(property, inputName, secretName, options));
         }
 
         [Fact]
         public void CreateFilter_WithoutOptions_Fails()
         {
             // Arrange
-            var requestInput = _bogusGenerator.Random.Enum<HttpRequestProperty>();
+            var property = _bogusGenerator.Random.Enum<HttpRequestProperty>();
             string inputName = _bogusGenerator.Name.FirstName();
             string secretName = _bogusGenerator.Name.FirstName();
             
             // Act / Assert
             Assert.ThrowsAny<ArgumentException>(() =>
-                new EventGridAuthorizationFilter(requestInput, inputName, secretName, options: null));
+                new EventGridAuthorizationFilter(property, inputName, secretName, options: null));
         }
     }
 }
