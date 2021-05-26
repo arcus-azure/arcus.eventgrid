@@ -21,21 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Artifacts\EventSamples.Designer.cs">
-      <DependentUpon>EventSamples.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Artifacts\EventSamples.resx">
-      <LastGenOutput>EventSamples.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
