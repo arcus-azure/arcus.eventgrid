@@ -3,53 +3,101 @@ title: "Endpoint validation"
 layout: default
 ---
 
-## Endpoint validation
+# Endpoint validation
 
-![](https://img.shields.io/badge/Available%20starting-v1.0-green)
+We provide support for endpoint validation, when implementing your own custom web hook. This validation allows to secure your web hook with a secret key (taken from the query string or an HTTP header).  
+This is needed, because Azure Event Grid is send a validation request to a newly configured web hook, in order to prevent people leveraging Azure Event Grid to bring down a 3rd party API. 
 
-We provide support for endpoint validation, when implementing your own custom web hook.  This validation allows to secure your web hook with a secret key (taken from the query string or an HTTP header).  This is needed, because Azure Event Grid is send a validation request to a newly configured web hook, in order to prevent people leveraging Azure Event Grid to bring down a 3rd party API.  The implementation we provide, is echoing back the validation key on your operation, in order to have the validation by Event Grid out of the box.
+## Installation
 
-Import the following namespace into your project:
-```csharp
-using Arcus.EventGrid.Security;
-using Arcus.EventGrid.Security.Attributes;
+The features described here require the following package:
+
+```shell
+PM> Install-Package Arcus.EventGrid.WebApi.Security 
 ```
 
-Next, tag the Operation that will be handling the Event Grid events with the `EventGridSubscriptionValidator` and the  `EventGridAuthorization` attributes, that will secure the endpoint and handle the handshake.
+## Usage
+
+The implementation we provide, is echoing back the validation key on your operation, in order to have the validation by Event Grid out of the box.
+
+### Enforce authorization globally
+
+We created the `EventGridAuthorizationFilter` MVC filter that will secure the endpoint and handle the handshake.
+
 ```csharp
-[EventGridSubscriptionValidator]
-[EventGridAuthorization("x-api-key", "event-grid")]
-public IHttpActionResult HandleEvents(HttpRequestMessage message)
+using Arcus.EventGrid.WebApi.Security;
+using Microsoft.Extensions.DependencyInjection;
+
+public class Startup
 {
-    return Ok();
+    public void ConfigureService(IServiceCollection services)
+    {
+        // Default set of authorization options.
+        var options = new EventGridAuthorizationOptions();
+
+        // Looks for the 'x-api-key' header in the HTTP request and tries to match it with the secret retrieved in the secret store with the name 'MySecret'.
+        services.AddMvc(options => options.Filters.Add(new EventGridAuthorizationFilter(HttpRequestProperty.Header, "x-api-key", "MySecret", options)));
+    }
 }
 ```
 
-### Configuring Authorization with attributes
-There are 2 attributes available to secure operations:    
-- The `EventGridAuthorization` has a hard-coded secret key and is only advised for demonstration or testing purposes.  
-- The `DynamicEventGridAuthorizationAttribute` allows developer to specify a static `Func` with name `RetrieveAuthenticationSecret` to implement custom logic to retrieve the actual secret key (for example from Azure KeyVault, web.config or appsettings.json)
+For this setup to work, an Arcus secret store is required as the provided secret name (in this case `"MySecret"`) will be looked up.
+See [our offical documentation](https://security.arcus-azure.net/features/secret-store/) for more information about setting this up.
 
-These attributes will only allow an operation to be called, if the configured secret key value is found in the HTTP header or the Query String with the configured key name.
+#### Configuration
 
-#### The EventGridAuthorization attribute
-This attribute has the following public constructor.  This constructor sets the header or querystring name and the hard coded secret value.
+The `EventGridAuthorizationFilter` has some additional consumer-configurable options to influence the behavior of the authorization.
 
 ```csharp
-[EventGridAuthorization("keyName", "keyValue")]
+using Arcus.EventGrid.WebApi.Security;
+using Microsoft.Extensions.DependencyInjection;
+
+public class Startup
+{
+    public void ConfigureService(IServiceCollection services)
+    {
+        var options = new EventGridAuthorizationOptions();
+
+        // Indicates that the Azure Event Grid authorization should emit security events during the authorization of the request (default: `false`).
+        options.EmitSecurityEvents = true;
+
+        // Looks for the 'x-api-key' header in the HTTP request and tries to match it with the secret retrieved in the secret store with the name 'MySecret'.
+        services.AddMvc(options => options.Filters.Add(new EventGridAuthorizationFilter(HttpRequestProperty.Header, "x-api-key", "MySecret", options)));
+    }
+}
+
+### Enforce authorization per controller or operation
+
+We created the `EventGridAuthorizationAttribute` attribute that will secure the endpoint and handle the handshake.
+The attribute can be placed on both the controller as the operation.
+
+```csharp
+using Arcus.EventGrid.WebApi.Security;
+using Microsoft.AspNetCore.Mvc;
+
+[Route("events")]
+[ApiController]
+public class EventController : ControllerBase
+{
+    // Looks for the 'x-api-key' header in the HTTP request and tries to match it with the secret retrieved in the secret store with the name 'MySecret'.
+    [EventGridAuthorization(HttpRequestProperty.Header, "x-api-key", "MySecret")]
+    public IHttpActionResult Get()
+    {
+        return Ok();
+    }
+}
 ```
 
-#### The DynamicEventGridAuthorization attribute
-This attribute has the following public constructors.  This constructor sets the header or querystring name to the provided value (or defaults to 'x-api-key' for the default constructor).
+For this setup to work, an Arcus secret store is required as the provided secret name (in this case `"MySecret"`) will be looked up.
+See [our offical documentation](https://security.arcus-azure.net/features/secret-store/) for more information about setting this up.
+
+#### Configuration
+
+The `EventGridAuthorizationAttribute` attribute has some additional consumer-configurable options to influence the behavior of the authorization.
 
 ```csharp
-[DynamicEventGridAuthorizationAttribute()]
-[DynamicEventGridAuthorizationAttribute("custom-key-name")]
-```
-Important for this authorization method to work, is to set the static property `RetrieveAuthenticationSecret` to a `Func<Task<string>>`.  This can be seen in the following example.
-
-```csharp
-DynamicEventGridAuthorizationAttribute.RetrieveAuthenticationSecret = () => Task.FromResult("my-secret-key");
+// Indicates that the Azure Event Grid authorization should emit security events during the authorization of the request (default: `false`).
+[EventGridAuthorization(..., EmitSecurityEvents = true)]
 ```
 
 [&larr; back](/)
