@@ -65,6 +65,7 @@ public class Startup
         services.AddMvc(options => options.Filters.Add(new EventGridAuthorizationFilter(HttpRequestProperty.Header, "x-api-key", "MySecret", options)));
     }
 }
+```
 
 ### Enforce authorization per controller or operation
 
