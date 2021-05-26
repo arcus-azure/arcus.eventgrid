@@ -52,21 +52,26 @@ namespace Arcus.EventGrid.Security.Attributes
         /// </summary>
         protected string AuthenticationKeyName { get; }
 
+        /// <summary>
+        /// Authenticates the request.
+        /// </summary>
+        /// <returns>A Task that will perform authentication.</returns>
+        /// <param name="context">The authentication context.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
         public async Task AuthenticateAsync(HttpAuthenticationContext context, CancellationToken cancellationToken)
         {
             try
             {
-                var authenticationKeySecret = await GetAuthenticationSecret();
-                if (ValidateRequest(context, authenticationKeySecret))
+                string authenticationKeySecret = await GetAuthenticationSecret();
+                if (HasValidQueryStringKey(context, authenticationKeySecret) 
+                    || HasValidHeaderKey(context, authenticationKeySecret))
                 {
-                    // Either querystring or header validation succeeded, so setting a GenericIdentity and continuing
                     var genericIdentity = new GenericIdentity(name: "EventGrid");
                     var currentPrincipal = new GenericPrincipal(genericIdentity, roles: null);
                     context.Principal = currentPrincipal;
                 }
                 else
                 {
-                    // Unauthorized result
                     context.ErrorResult = CreateUnauthorizedResult(context.Request);
                 }
             }
@@ -76,6 +81,12 @@ namespace Arcus.EventGrid.Security.Attributes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public Task ChallengeAsync(HttpAuthenticationChallengeContext context, CancellationToken cancellationToken)
         {
             context.Result = new ResultWithChallenge(context.Result);
@@ -84,14 +95,14 @@ namespace Arcus.EventGrid.Security.Attributes
         }
 
         /// <summary>
-        ///     Provides the authentication secret that should be specified for authorized requests
+        /// Provides the authentication secret that should be specified for authorized requests
         /// </summary>
         protected virtual Task<string> GetAuthenticationSecret()
         {
             return Task.FromResult(_authenticationKeySecret);
         }
 
-        private UnauthorizedResult CreateUnauthorizedResult(HttpRequestMessage requestMessage)
+        private static UnauthorizedResult CreateUnauthorizedResult(HttpRequestMessage requestMessage)
         {
             var authenticationHeaderValue = new AuthenticationHeaderValue[0];
             return new UnauthorizedResult(authenticationHeaderValue, requestMessage);
@@ -99,14 +110,12 @@ namespace Arcus.EventGrid.Security.Attributes
 
         private bool HasValidHeaderKey(HttpAuthenticationContext context, string authenticationKeySecret)
         {
-            // Check for a header that matches and is valid
             return context.Request.Headers.TryGetValues(AuthenticationKeyName, out IEnumerable<string> headerValues)
                    && headerValues.Contains(authenticationKeySecret);
         }
 
         private bool HasValidQueryStringKey(HttpAuthenticationContext context, string authenticationKeySecret)
         {
-            // Check for a query string value that matches and is valid
             IEnumerable<KeyValuePair<string, string>> queryStringParameters = context.Request.GetQueryNameValuePairs();
             if (queryStringParameters.Any(keyValuePair => keyValuePair.Key == AuthenticationKeyName) == false)
             {
@@ -117,11 +126,6 @@ namespace Arcus.EventGrid.Security.Attributes
             KeyValuePair<string, string> secretKeyValue = queryStringItems.Single(keyValuePair => keyValuePair.Key.Equals(AuthenticationKeyName));
 
             return secretKeyValue.Value == authenticationKeySecret;
-        }
-
-        private bool ValidateRequest(HttpAuthenticationContext context, string authenticationKeySecret)
-        {
-            return HasValidQueryStringKey(context, authenticationKeySecret) || HasValidHeaderKey(context, authenticationKeySecret);
         }
     }
 }
