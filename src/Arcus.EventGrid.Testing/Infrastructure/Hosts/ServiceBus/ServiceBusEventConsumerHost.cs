@@ -1,149 +1,190 @@
 ﻿using System;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using GuardNet;
-using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
 {
     /// <summary>
-    ///     Event consumer host for receiving Azure Event Grid events via Azure Logic Apps & Service Bus Topics
+    /// Represents an event consumer host for receiving Azure Event Grid events via Azure Logic Apps &amp; Service Bus Topics
     /// </summary>
     public class ServiceBusEventConsumerHost : EventConsumerHost
     {
-        private readonly SubscriptionClient _subscriptionClient;
-        private readonly ManagementClient _managementClient;
+        private readonly ServiceBusEventConsumerHostOptions _consumerOptions;
+        private readonly ServiceBusProcessor _topicProcessor;
+        private readonly ServiceBusAdministrationClient _managementClient;
+        private readonly IDisposable _loggingScope;
         private readonly SubscriptionBehavior _subscriptionBehavior;
-        public string Id { get; } = Guid.NewGuid().ToString();
 
-        private ServiceBusEventConsumerHost(ServiceBusEventConsumerHostOptions consumerHostOptions, string subscriptionName, SubscriptionClient subscriptionClient, ManagementClient managementClient, ILogger logger)
-            : base(logger)
+        private ServiceBusEventConsumerHost(
+            ServiceBusEventConsumerHostOptions consumerHostOptions, 
+            ServiceBusProcessor topicProcessor, 
+            ServiceBusAdministrationClient managementClient, 
+            ILogger logger,
+            IDisposable loggingScope) : base(logger)
         {
-            Guard.NotNullOrWhitespace(subscriptionName, nameof(subscriptionName));
             Guard.NotNull(consumerHostOptions, nameof(consumerHostOptions));
-            Guard.NotNull(subscriptionClient, nameof(subscriptionClient));
+            Guard.NotNull(topicProcessor, nameof(topicProcessor));
             Guard.NotNull(managementClient, nameof(managementClient));
 
             TopicPath = consumerHostOptions.TopicPath;
-            SubscriptionName = subscriptionName;
+            SubscriptionName = consumerHostOptions.SubscriptionName;
 
             _subscriptionBehavior = consumerHostOptions.SubscriptionBehavior;
-            _subscriptionClient = subscriptionClient;
+            _consumerOptions = consumerHostOptions;
+            _topicProcessor = topicProcessor;
             _managementClient = managementClient;
+            _loggingScope = loggingScope;
         }
 
         /// <summary>
-        ///     Path of the topic relative to the namespace base address.
+        /// Gets the unique ID to identify this Azure Service Bus topic consumer host from other test infrastructure.
+        /// </summary>
+        public string Id { get; } = Guid.NewGuid().ToString();
+
+        /// <summary>
+        /// Gets the path of the Azure Service Bus Topic relative to the Azure Service Bus namespace base address.
         /// </summary>
         public string TopicPath { get; }
 
         /// <summary>
-        ///     Name of the subscription that was created
+        /// Gets the name of the Azure Service Bus topic subscription that was created.
         /// </summary>
         public string SubscriptionName { get; }
 
         /// <summary>
-        ///     Start receiving traffic
+        /// Starts the Azure Service Bus topic consumer host so it can start receiving traffic.
         /// </summary>
-        /// <param name="consumerHostOptions">
-        ///     Configuration options that indicate what Service Bus entities to use and how they should behave
+        /// <param name="consumerOptions">
+        ///     The configuration options that indicate what Azure Service Bus entities to use and how they should behave.
         /// </param>
-        /// <param name="logger">Logger to use for writing event information for received events</param>
-        public static async Task<ServiceBusEventConsumerHost> StartAsync(ServiceBusEventConsumerHostOptions consumerHostOptions, ILogger logger)
+        /// <param name="logger">The logger instance for writing event information upon received events.</param>
+        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="consumerOptions"/> is <c>null</c>.</exception>
+        public static async Task<ServiceBusEventConsumerHost> StartAsync(ServiceBusEventConsumerHostOptions consumerOptions, ILogger logger)
         {
-            Guard.NotNull(consumerHostOptions, nameof(consumerHostOptions));
-            Guard.NotNull(logger, nameof(logger));
+            Guard.NotNull(consumerOptions, nameof(consumerOptions), "Requires a set of Azure Service Bus consumer host options to start the consumer host to receive traffic");
+            logger = logger ?? NullLogger.Instance;
+            
+            string jobId = Guid.NewGuid().ToString();
+            IDisposable loggingScope = logger.BeginScope("Test consumer host: {JobId}", jobId);
 
-            logger.LogInformation("Starting Service Bus event consumer host");
+            logger.LogTrace("Starting Azure Service Bus Topic event consumer host...");
+            var managementClient = new ServiceBusAdministrationClient(consumerOptions.ConnectionString);
+            await CreateSubscriptionAsync(managementClient, consumerOptions.TopicPath, consumerOptions.SubscriptionName)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            logger.LogInformation("Created subscription '{subscription}' on topic '{topic}'", consumerOptions.SubscriptionName, consumerOptions.TopicPath);
 
-            var managementClient = new ManagementClient(consumerHostOptions.ConnectionString);
-
-            var subscriptionName = $"Test-{Guid.NewGuid().ToString()}";
-            await CreateSubscriptionAsync(consumerHostOptions.TopicPath, managementClient, subscriptionName).ConfigureAwait(continueOnCapturedContext: false);
-            logger.LogInformation("Created subscription '{subscription}' on topic '{topic}'", subscriptionName, consumerHostOptions.TopicPath);
-
-            var subscriptionClient = new SubscriptionClient(consumerHostOptions.ConnectionString, consumerHostOptions.TopicPath, subscriptionName);
-            StartMessagePump(subscriptionClient, logger);
-            logger.LogInformation("Message pump started on '{SubscriptionName}' (topic '{TopicPath}' for endpoint '{ServiceBusEndpoint}')", subscriptionName, consumerHostOptions.TopicPath, subscriptionClient.ServiceBusConnection?.Endpoint?.AbsoluteUri);
-
-            return new ServiceBusEventConsumerHost(consumerHostOptions, subscriptionName, subscriptionClient, managementClient, logger);
+            ServiceBusProcessor topicProcessor = CreateServiceBusProcessor(consumerOptions);
+            
+            var consumerHost = new ServiceBusEventConsumerHost(consumerOptions, topicProcessor, managementClient, logger, loggingScope);
+            await consumerHost.StartProcessingMessagesAsync(topicProcessor);
+            
+            return consumerHost;
         }
 
-        /// <summary>
-        ///     Stop receiving traffic
-        /// </summary>
-        public override async Task StopAsync()
+        private static ServiceBusProcessor CreateServiceBusProcessor(ServiceBusEventConsumerHostOptions consumerOptions)
         {
-            Logger.LogInformation("Stopping host");
-
-            if (_subscriptionBehavior == SubscriptionBehavior.DeleteOnClosure)
+            var serviceBusClient = new ServiceBusClient(consumerOptions.ConnectionString);
+            var processorOptions = new ServiceBusProcessorOptions
             {
-                await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName).ConfigureAwait(continueOnCapturedContext: false);
-                Logger.LogInformation("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
-            }
-
-            await _subscriptionClient.CloseAsync().ConfigureAwait(continueOnCapturedContext: false);
-
-            await base.StopAsync();
-        }
-
-        private static void StartMessagePump(SubscriptionClient subscriptionClient, ILogger logger)
-        {
-            var messageHandlerOptions = new MessageHandlerOptions(async exceptionReceivedEventArgs => await HandleExceptionAsync(exceptionReceivedEventArgs, logger))
-            {
-                AutoComplete = false,
+                AutoCompleteMessages = false,
                 MaxConcurrentCalls = 10
             };
-
-            subscriptionClient.RegisterMessageHandler(async (receivedMessage, cancellationToken) => await HandleNewMessageAsync(receivedMessage, subscriptionClient, cancellationToken, logger), messageHandlerOptions);
+            
+            ServiceBusProcessor topicProcessor = serviceBusClient.CreateProcessor(consumerOptions.TopicPath, consumerOptions.SubscriptionName, processorOptions);
+            return topicProcessor;
+        }
+        
+        private async Task StartProcessingMessagesAsync(ServiceBusProcessor topicProcessor)
+        {
+            topicProcessor.ProcessMessageAsync += HandleNewMessageAsync;
+            topicProcessor.ProcessErrorAsync += HandleExceptionAsync;
+            await topicProcessor.StartProcessingAsync();
+            
+            Logger.LogInformation("Message pump started on '{SubscriptionName}' (topic '{TopicPath}' for endpoint '{ServiceBusEndpoint}')", SubscriptionName, TopicPath, topicProcessor.FullyQualifiedNamespace);
         }
 
-        private static async Task HandleNewMessageAsync(Message receivedMessage, SubscriptionClient subscriptionClient, CancellationToken cancellationToken, ILogger logger)
+        private async Task HandleNewMessageAsync(ProcessMessageEventArgs eventArgs)
         {
-            if (receivedMessage == null)
+            if (eventArgs?.Message is null)
             {
                 return;
             }
 
-            logger.LogInformation("Message '{messageId}' was received", receivedMessage.MessageId);
+            ServiceBusReceivedMessage receivedMessage = eventArgs.Message;
+            Logger.LogInformation("Message '{messageId}' was received", receivedMessage.MessageId);
 
             string rawReceivedEvents = string.Empty;
             try
             {
-                rawReceivedEvents = Encoding.UTF8.GetString(receivedMessage.Body);
-                EventsReceived(rawReceivedEvents, logger);
+                rawReceivedEvents = receivedMessage.Body.ToString();
+                EventsReceived(rawReceivedEvents, Logger);
 
-                await subscriptionClient.CompleteAsync(receivedMessage.SystemProperties.LockToken).ConfigureAwait(continueOnCapturedContext: false);
-
-                logger.LogInformation("Message '{messageId}' was successfully handled", receivedMessage.MessageId);
+                await eventArgs.CompleteMessageAsync(eventArgs.Message);
+                Logger.LogInformation("Message '{messageId}' was successfully handled", receivedMessage.MessageId);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                logger.LogError("Failed to persist raw events with exception '{exceptionMessage}'. Payload: {rawEventsPayload}", ex.Message, rawReceivedEvents);
+                Logger.LogError(exception, "Failed to persist raw events with exception '{exceptionMessage}'. Payload: {rawEventsPayload}", exception.Message, rawReceivedEvents);
             }
         }
 
-        private static Task HandleExceptionAsync(ExceptionReceivedEventArgs exceptionReceivedEventArgs, ILogger logger)
+        private Task HandleExceptionAsync(ProcessErrorEventArgs eventArgs)
         {
-            logger.LogCritical(exceptionReceivedEventArgs.Exception.Message);
+            Logger.LogCritical(eventArgs.Exception, "Failed to process Azure Service Bus message due to an exception '{Message}'", eventArgs.Exception.Message);
             return Task.CompletedTask;
         }
 
-        private static async Task CreateSubscriptionAsync(string topicPath, ManagementClient managementClient, string subscriptionName)
+        /// <summary>
+        /// Stops the Azure Service Bus topic consumer host from receiving traffic.
+        /// </summary>
+        public override async Task StopAsync()
         {
-            var subscriptionDescription = new SubscriptionDescription(topicPath, subscriptionName)
+            Logger.LogTrace("Stopping Azure Service Bus Topic consumer host...");
+
+            await DeleteSubscriptionAsync();
+            await StopProcessingMessages();
+            await base.StopAsync();
+        }
+
+        private async Task DeleteSubscriptionAsync()
+        {
+            if (_subscriptionBehavior == SubscriptionBehavior.DeleteOnClosure)
+            {
+                await _managementClient.DeleteSubscriptionAsync(TopicPath, SubscriptionName)
+                                       .ConfigureAwait(continueOnCapturedContext: false);
+                
+                Logger.LogTrace("Subscription '{SubscriptionName}' deleted on topic '{TopicPath}'", SubscriptionName, TopicPath);
+            }
+        }
+
+        private async Task StopProcessingMessages()
+        {
+            await _topicProcessor.StopProcessingAsync();
+            _topicProcessor.ProcessErrorAsync -= HandleExceptionAsync;
+            _topicProcessor.ProcessMessageAsync -= HandleNewMessageAsync;
+            await _topicProcessor.CloseAsync().ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        private static async Task CreateSubscriptionAsync(
+            ServiceBusAdministrationClient managementClient,
+            string topicPath,
+            string subscriptionName)
+        {
+            var createSubscriptionOptions = new CreateSubscriptionOptions(topicPath, subscriptionName)
             {
                 AutoDeleteOnIdle = TimeSpan.FromHours(1),
                 MaxDeliveryCount = 3,
                 UserMetadata = "Subscription created by Arcus in order to run integration tests"
             };
 
-            var ruleDescription = new RuleDescription("Accept-All", new TrueFilter());
+            var createRuleOptions = new CreateRuleOptions("Accept-All", new TrueRuleFilter());
 
-            await managementClient.CreateSubscriptionAsync(subscriptionDescription, ruleDescription).ConfigureAwait(continueOnCapturedContext: false);
+            await managementClient.CreateSubscriptionAsync(createSubscriptionOptions, createRuleOptions)
+                                  .ConfigureAwait(continueOnCapturedContext: false);
         }
     }
 }
