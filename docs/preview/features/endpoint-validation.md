@@ -32,11 +32,8 @@ public class Startup
 {
     public void ConfigureService(IServiceCollection services)
     {
-        // Default set of authorization options.
-        var options = new EventGridAuthorizationOptions();
-
         // Looks for the 'x-api-key' header in the HTTP request and tries to match it with the secret retrieved in the secret store with the name 'MySecret'.
-        services.AddMvc(options => options.Filters.Add(new EventGridAuthorizationFilter(HttpRequestProperty.Header, "x-api-key", "MySecret", options)));
+        services.AddMvc(options => options.Filters.AddEventGridAuthorization(HttpRequestProperty.Header, "x-api-key", "MySecret")));
     }
 }
 ```
@@ -56,13 +53,12 @@ public class Startup
 {
     public void ConfigureService(IServiceCollection services)
     {
-        var options = new EventGridAuthorizationOptions();
-
-        // Indicates that the Azure Event Grid authorization should emit security events during the authorization of the request (default: `false`).
-        options.EmitSecurityEvents = true;
-
         // Looks for the 'x-api-key' header in the HTTP request and tries to match it with the secret retrieved in the secret store with the name 'MySecret'.
-        services.AddMvc(options => options.Filters.Add(new EventGridAuthorizationFilter(HttpRequestProperty.Header, "x-api-key", "MySecret", options)));
+        services.AddMvc(options => options.Filters.AddEventGridAuthorization(HttpRequestProperty.Header, "x-api-key", "MySecret", options =>
+        {
+            // Indicates that the Azure Event Grid authorization should emit security events during the authorization of the request (default: `false`).
+            options.EmitSecurityEvents = true;
+        })));
     }
 }
 ```

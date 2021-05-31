@@ -39,7 +39,8 @@ namespace Arcus.EventGrid.WebApi.Security
             Guard.NotNullOrWhitespace(propertyName, nameof(propertyName), "Requires a non-blank name for the request input");
             Guard.NotNullOrWhitespace(secretName, nameof(secretName), "Requires a non-blank name for the secret");
             Guard.NotNull(options, nameof(options), "Requires a set of consumer-configurable options to influence the behavior of the Azure Event Grid authorization");
-            Guard.For(() => !Enum.IsDefined(typeof(HttpRequestProperty), property), new ArgumentException("Requires the request input to be within the bounds of the enumeration", nameof(property)));
+            Guard.For(() => !Enum.IsDefined(typeof(HttpRequestProperty), property), 
+                new ArgumentException("Requires the request input to be within the bounds of the enumeration", nameof(property)));
             
             _property = property;
             _propertyName = propertyName;
