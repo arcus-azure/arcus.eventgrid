@@ -37,7 +37,6 @@ namespace Arcus.EventGrid.Contracts
         /// <param name="dataVersion">The schema version of the data object. The publisher defines the schema version.</param>
         /// <param name="metaDataVersion">The schema version of the event metadata.</param>
         /// <param name="attributes">The attributes of this event.</param>
-        /// <param name="specVersion">The CloudEvent spec version if a such a representation is needed.</param>
         public Event(
             string id,
             string subject,
@@ -232,7 +231,7 @@ namespace Arcus.EventGrid.Contracts
 
         /// <summary>
         /// Indicates whether the current object is equal to another object of the same type.
-        /// summary>
+        /// </summary>
         /// <param name="other">An object to compare with this object.</param>
         /// <returns>true if the current object is equal to the <paramref name="other">other</paramref> parameter; otherwise, false.</returns>
         public bool Equals(Event other)

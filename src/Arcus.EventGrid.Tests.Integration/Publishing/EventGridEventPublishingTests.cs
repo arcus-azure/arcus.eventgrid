@@ -7,6 +7,7 @@ using Arcus.EventGrid.Publishing.Interfaces;
 using Arcus.EventGrid.Tests.Core;
 using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Integration.Fixture;
+using Arcus.Testing.Logging;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -52,6 +53,36 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+        }
+        
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PublishSingleEventGridEventWithDependencyTracking_WithBuilder_ValidParameters_Succeeds(bool enableDependencyTracking)
+        {
+            // Arrange
+            const string eventSubject = "integration-test";
+            const string licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
+            var spyLogger = new InMemoryLogger();
+            
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config, spyLogger, options =>
+            {
+                options.EnableDependencyTracking = enableDependencyTracking;
+            });
+
+            // Act
+            await publisher.PublishAsync(@event);
+            TracePublishedEvent(eventId, @event);
+
+            // Assert
+            var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+            Assert.True(enableDependencyTracking == spyLogger.Messages.Any(message =>
+            {
+                return message.Contains("Dependency") && message.Contains("Azure Event Grid");
+            }));
         }
 
         [Fact]
