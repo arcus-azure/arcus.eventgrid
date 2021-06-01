@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 namespace Arcus.EventGrid.Security.Attributes
 {
+    [Obsolete("Use the 'Arcus.EventGrid.WebApi.Security' package instead where the secret store is used to set the secret")]
     public class DynamicEventGridAuthorizationAttribute : EventGridAuthorizationAttribute
     {
         public static Func<Task<string>> RetrieveAuthenticationSecret { private get; set; }

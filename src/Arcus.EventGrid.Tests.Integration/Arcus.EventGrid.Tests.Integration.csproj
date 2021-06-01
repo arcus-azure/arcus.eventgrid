@@ -1,14 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.2;netcoreapp3.1</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arcus.Testing.Logging" Version="0.1.0" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.1" />
+    <PackageReference Include="Arcus.Testing.Logging" Version="0.2.0-preview-2" />
+    <PackageReference Include="Arcus.Testing.Security" Version="0.2.0-preview-2" />
+    <PackageReference Include="Bogus" Version="29.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
   </ItemGroup>
@@ -17,6 +17,7 @@
     <ProjectReference Include="..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Testing\Arcus.EventGrid.Testing.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.WebApi.Security\Arcus.EventGrid.WebApi.Security.csproj" />
   </ItemGroup>
 
   <ItemGroup>
