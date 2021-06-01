@@ -36,7 +36,6 @@ namespace Arcus.EventGrid.Tests.Unit.Security.Extensions
             // Act / Assert
             Assert.ThrowsAny<ArgumentException>(
                 () => filters.AddEventGridAuthorization(requestProperty, propertyName, secretName));
-
         }
 
         [Theory]
@@ -80,7 +79,6 @@ namespace Arcus.EventGrid.Tests.Unit.Security.Extensions
             // Act / Assert
             Assert.ThrowsAny<ArgumentException>(
                 () => filters.AddEventGridAuthorization(requestProperty, propertyName, secretName, options => options.EmitSecurityEvents = true));
-
         }
 
         [Theory]
