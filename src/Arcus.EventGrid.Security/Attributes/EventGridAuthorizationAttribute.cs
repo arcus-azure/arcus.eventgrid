@@ -15,6 +15,7 @@ namespace Arcus.EventGrid.Security.Attributes
     /// <summary>
     ///     Attribute that leverages authentication validation for api operations via query string or HTTP headers
     /// </summary>
+    [Obsolete("Use the 'Arcus.EventGrid.WebApi.Security' package instead where the secret store is used to retrieve the secret")]
     public class EventGridAuthorizationAttribute : Attribute, IAuthenticationFilter
     {
         private readonly string _authenticationKeySecret;

@@ -1,20 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.0;netcoreapp3.1</TargetFrameworks>
-
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FsCheck.Xunit" Version="2.11.0" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.Owin" Version="5.2.5-preview1" />
+    <PackageReference Include="Arcus.Observability.Telemetry.Core" Version="2.0.0" />
+    <PackageReference Include="Arcus.Testing.Security" Version="0.2.0-preview-2" />
+    <PackageReference Include="Bogus" Version="29.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
     <PackageReference Include="Microsoft.Owin.Testing" Version="4.0.0" />
     <PackageReference Include="System.Configuration.Abstractions" Version="2.0.2.45" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +22,7 @@
     <ProjectReference Include="..\Arcus.EventGrid.Testing\Arcus.EventGrid.Testing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.InMemoryApi\Arcus.EventGrid.Tests.InMemoryApi.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.WebApi.Security\Arcus.EventGrid.WebApi.Security.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
 
