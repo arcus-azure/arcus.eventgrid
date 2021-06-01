@@ -30,12 +30,13 @@ namespace Arcus.EventGrid.Publishing
             ILogger logger,
             Action<EventGridPublisherOptions> configureOptions)
         {
-            Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "The topic endpoint must be specified");
+            Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "Requires an Azure Event Grid topic endpoint to publish events");
             Guard.For<UriFormatException>(
                 () => topicEndpoint.Scheme != Uri.UriSchemeHttp
                       && topicEndpoint.Scheme != Uri.UriSchemeHttps,
-                $"The topic endpoint must be and HTTP or HTTPS endpoint but is: {topicEndpoint.Scheme}");
-
+                "Requires an Azure Event Grid topic endpoint that's either an HTTP or HTTPS endpoint");
+            Guard.NotNull(logger, nameof(logger), "Requires a logger instance to write diagnostic messages when interacting with the Azure Event Grid");
+            
             _topicEndpoint = topicEndpoint;
             _logger = logger ?? NullLogger.Instance;
             _configureOptions = configureOptions;
@@ -89,7 +90,7 @@ namespace Arcus.EventGrid.Publishing
             Guard.For(() => Uri.IsWellFormedUriString(topicEndpoint, UriKind.Absolute) == false, 
                 new ArgumentException("Requires a URI-valid topic endpoint for the Azure Event Grid publisher", nameof(topicEndpoint)));
 
-            return ForTopic(topicEndpoint, logger, configureOptions: null);
+            return ForTopic(topicEndpoint, logger ?? NullLogger.Instance, configureOptions: null);
         }
         
         /// <summary>
@@ -105,7 +106,7 @@ namespace Arcus.EventGrid.Publishing
         /// <code>
         /// EventGridPublisher myPublisher =
         ///     EventGridPublisherBuilder
-        ///         .ForTopic("http://myTopic", logger)
+        ///         .ForTopic("http://myTopic", logger, options => options.EnableDependencyTracking = true)
         ///         .UsingAuthenticationKey("myAuthenticationKey")
         ///         .Build();
         /// </code>
@@ -121,7 +122,7 @@ namespace Arcus.EventGrid.Publishing
                             && topicEndpointUri.Scheme != Uri.UriSchemeHttps,
                 new ArgumentException("Requires a topic endpoint that has a HTTP or HTTPS scheme", nameof(topicEndpointUri)));
 
-            return ForTopic(topicEndpointUri, logger, configureOptions);
+            return ForTopic(topicEndpointUri, logger ?? NullLogger.Instance, configureOptions);
         }
 
         /// <summary>
@@ -174,7 +175,7 @@ namespace Arcus.EventGrid.Publishing
                             && topicEndpoint.Scheme != Uri.UriSchemeHttps,
                 new UriFormatException("Requires a topic endpoint that has a HTTP or HTTPS scheme"));
 
-            return ForTopic(topicEndpoint, logger, configureOptions: null);
+            return ForTopic(topicEndpoint, logger ?? NullLogger.Instance, configureOptions: null);
         }
 
         /// <summary>
@@ -190,7 +191,7 @@ namespace Arcus.EventGrid.Publishing
         /// <code>
         /// EventGridPublisher myPublisher =
         ///     EventGridPublisherBuilder
-        ///         .ForTopic("http://myTopic", logger, options => { })
+        ///         .ForTopic("http://myTopic", logger, options => options.EnableDependencyTracking = true)
         ///         .UsingAuthenticationKey("myAuthenticationKey")
         ///         .Build();
         /// </code>

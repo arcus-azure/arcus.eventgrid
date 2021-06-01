@@ -60,6 +60,7 @@ namespace Arcus.EventGrid.Publishing
             Guard.For(() => topicEndpoint.Scheme != Uri.UriSchemeHttp 
                             && topicEndpoint.Scheme != Uri.UriSchemeHttps,
                 new UriFormatException("Requires a topic endpoint that has a HTTP or HTTPS scheme"));
+            Guard.NotNull(logger, nameof(logger), "Requires a logger instance to write diagnostic messages during the interaction with the Azure Event Grid");
             
             _topicEndpoint = topicEndpoint;
             _authenticationKey = authenticationKey;
