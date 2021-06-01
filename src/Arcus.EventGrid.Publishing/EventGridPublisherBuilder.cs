@@ -35,7 +35,6 @@ namespace Arcus.EventGrid.Publishing
                 () => topicEndpoint.Scheme != Uri.UriSchemeHttp
                       && topicEndpoint.Scheme != Uri.UriSchemeHttps,
                 "Requires an Azure Event Grid topic endpoint that's either an HTTP or HTTPS endpoint");
-            Guard.NotNull(logger, nameof(logger), "Requires a logger instance to write diagnostic messages when interacting with the Azure Event Grid");
             
             _topicEndpoint = topicEndpoint;
             _logger = logger ?? NullLogger.Instance;
