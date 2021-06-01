@@ -242,7 +242,7 @@ namespace Arcus.EventGrid.Publishing
             Guard.NotNull(cloudEvent, nameof(cloudEvent), "Requires a CloudEvent to publish to Azure Event Grid");
 
             var content = new CloudEventContent(cloudEvent, ContentMode.Structured, JsonEventFormatter);
-            await PublishContentToTopicAsync(content, cloudEvent.Subject);
+            await PublishContentToTopicAsync(content, cloudEvent.Type);
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace Arcus.EventGrid.Publishing
                 new ArgumentException("Requires all cloud events to be non-null when publishing to Azure Event Grid", nameof(events)));
 
             var content = new CloudEventBatchContent(events, ContentMode.Structured, JsonEventFormatter);
-            await PublishContentToTopicAsync(content, logSubject: $"[{String.Join(", ", events.Select(ev => ev.Subject))}]");
+            await PublishContentToTopicAsync(content, logEventType: $"[{String.Join(", ", events.Select(ev => ev.Type ?? "<no-event-type>"))}]");
         }
 
         /// <summary>
@@ -293,7 +293,7 @@ namespace Arcus.EventGrid.Publishing
                 new ArgumentException("Requires all events to be non-null when publishing to Azure Event Grid", nameof(events)));
 
             HttpContent content = CreateSerializedJsonHttpContent(events);
-            await PublishContentToTopicAsync(content, logSubject: $"[{String.Join(", ", events.Select(ev => ev.Subject))}]");
+            await PublishContentToTopicAsync(content, logEventType: $"[{String.Join(", ", events.Select(ev => ev.EventType ?? "<no-event-type>"))}]");
         }
 
         private static HttpContent CreateSerializedJsonHttpContent<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
@@ -304,7 +304,7 @@ namespace Arcus.EventGrid.Publishing
             return content;
         }
 
-        private async Task PublishContentToTopicAsync(HttpContent content, string logSubject)
+        private async Task PublishContentToTopicAsync(HttpContent content, string logEventType)
         {
             using (DependencyMeasurement measurement = DependencyMeasurement.Start())
             {
@@ -325,7 +325,12 @@ namespace Arcus.EventGrid.Publishing
                 {
                     if (_options.EnableDependencyTracking)
                     {
-                        _logger.LogDependency("Azure Event Grid", dependencyData: logSubject ?? "<no-subject>", targetName: TopicEndpoint, isSuccessful: isSuccessful, measurement); 
+                        _logger.LogDependency(
+                            dependencyType: "Azure Event Grid",
+                            dependencyData: logEventType ?? "<no-event-type>", 
+                            targetName: TopicEndpoint, 
+                            isSuccessful: isSuccessful, 
+                            measurement: measurement); 
                     }
                 }
             }
