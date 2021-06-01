@@ -15,8 +15,6 @@ namespace Arcus.EventGrid.Publishing.Interfaces
         ///  Gets the URL of the custom Azure Event Grid topic.
         /// </summary>
         string TopicEndpoint { get; }
-
-
         /// <summary>
         /// Publish a raw JSON payload as EventGrid event.
         /// </summary>
