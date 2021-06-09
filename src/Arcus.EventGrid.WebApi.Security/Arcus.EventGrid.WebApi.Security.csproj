@@ -1,31 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>Arcus.EventGrid.snk</AssemblyOriginatorKeyFile>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <Copyright>Copyright (c) Arcus</Copyright>
     <PackageLicenseUrl>https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/arcus-azure/arcus.eventgrid</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
     <PackageTags>Azure;Event Grid</PackageTags>
-    <Authors>Arcus</Authors>
     <Company>Arcus</Company>
-    <Description>Provides capability to push events to Azure Event Grid</Description>
+    <Description>Provides capability to simplify the authentication and endpoint handshake for Azure Event Grid</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arcus.Observability.Telemetry.Core" Version="[0.2.0,1.0.0)" />
-    <PackageReference Include="Flurl.Http" Version="2.3.1" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Arcus.Observability.Telemetry.Core" Version="[2.0.0,3.0.0)" />
+    <PackageReference Include="Arcus.Security.Core" Version="[1.4.0,2.0.0)" />
     <PackageReference Include="Guard.NET" Version="1.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="Polly" Version="7.2.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
 
 </Project>
