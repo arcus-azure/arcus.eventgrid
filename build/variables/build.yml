@@ -2,3 +2,4 @@ variables:
   DotNet.Sdk.Version: '3.1.201'
   DotNet.Sdk.VersionBC: '2.2.105'
   Project: 'Arcus.EventGrid'
+  Vm.Image: 'ubuntu-latest'
