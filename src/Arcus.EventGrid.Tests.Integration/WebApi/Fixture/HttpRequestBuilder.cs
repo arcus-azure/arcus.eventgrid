@@ -86,7 +86,7 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Fixture
         public HttpRequestBuilder WithJsonBody(string json)
         {
             Guard.NotNullOrWhitespace(json, nameof(json), "Requires non-blank JSON request body to add the content to the HTTP request builder instance");
-            _createContent = () => new StringContent($"\"{json}\"", Encoding.UTF8, "application/json");
+            _createContent = () => new StringContent(json, Encoding.UTF8, "application/json");
 
             return this;
         }

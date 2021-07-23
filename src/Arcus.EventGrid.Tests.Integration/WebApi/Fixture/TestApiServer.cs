@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Arcus.EventGrid.Testing.Logging;
 using Arcus.Testing.Logging;
 using GuardNet;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,17 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Fixture
             _host = host;
             _options = options;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Starts a new instance of the <see cref="TestApiServer"/>.
+        /// </summary>
+        /// <param name="logger">The logger instance to include in the test API server to write diagnostic messages during the lifetime of the server.</param>
+        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="logger"/> is <c>null</c>.</exception>
+        public static async Task<TestApiServer> StartNewAsync(ILogger logger)
+        {
+            TestApiServer server = await StartNewAsync(new TestApiServerOptions(), logger);
+            return server;
         }
         
         /// <summary>
