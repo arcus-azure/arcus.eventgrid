@@ -116,7 +116,7 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public static implicit operator CloudEvent(Event @event)
         {
-            return @event.AsCloudEvent();
+            return @event?.AsCloudEvent();
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public static implicit operator EventGridEvent(Event @event)
         {
-            return @event.AsEventGridEvent();
+            return @event?.AsEventGridEvent();
         }
 
         /// <summary>
@@ -132,6 +132,11 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public static implicit operator Event(CloudEvent cloudEvent)
         {
+            if (cloudEvent is null)
+            {
+                return null;
+            }
+            
             return new Event(
                 id: cloudEvent.Id,
                 subject: cloudEvent.Subject,
@@ -148,6 +153,11 @@ namespace Arcus.EventGrid.Contracts
         /// </summary>
         public static implicit operator Event(EventGridEvent eventGridEvent)
         {
+            if (eventGridEvent is null)
+            {
+                return null;
+            }
+            
             return new Event(
                 id: eventGridEvent.Id,
                 subject: eventGridEvent.Subject,

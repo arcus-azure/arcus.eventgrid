@@ -59,12 +59,12 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             {
                 foreach (JToken parsedEvent in jToken.Children())
                 {
-                    SaveEvent(rawReceivedEvents, logger, parsedEvent);
+                    SaveEvent(parsedEvent, rawReceivedEvents, logger);
                 }
             }
             else if (jToken.Type is JTokenType.Object)
             {
-                SaveEvent(rawReceivedEvents, logger, jToken);
+                SaveEvent(jToken, rawReceivedEvents, logger);
             }
             else
             {
@@ -72,7 +72,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             }
         }
 
-        private static void SaveEvent(string rawReceivedEvents, ILogger logger, JToken parsedEvent)
+        private static void SaveEvent(JToken parsedEvent, string rawReceivedEvents, ILogger logger)
         {
             string eventId = DetermineEventId(parsedEvent);
             if (eventId is null)
@@ -289,6 +289,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                 ReceivedEvents.Values
                     .Select(EventParser.Parse)
                     .SelectMany(batch => batch.Events)
+                    .Where(ev => ev != null)
                     .FirstOrDefault(eventFilter);
 
             return @event;
@@ -296,7 +297,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
         private string TryGetReceivedEvent(string eventId)
         {
-            Logger.LogTrace("Current received events are: {receivedEvents}", String.Join(", ", ReceivedEvents.Keys));
+            Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
             if (ReceivedEvents.TryGetValue(eventId, out string rawEvent))
             {
                 Logger.LogInformation("Found received event with ID: {EventId}", eventId);
