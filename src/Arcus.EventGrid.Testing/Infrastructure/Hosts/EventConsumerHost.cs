@@ -172,7 +172,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Requires a timeout span representing a positive time range");
 
             Policy<CloudEvent> timeoutPolicy = 
-                CreateTimeoutPolicy<CloudEvent>(ev => ev != null, timeout);
+                CreateTimeoutPolicy<CloudEvent>(ev => ev is null, timeout);
             
             PolicyResult<CloudEvent> result =
                 timeoutPolicy.ExecuteAndCapture(() => 
@@ -206,7 +206,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Requires a timeout span representing a positive time range");
 
             Policy<EventGridEvent> timeoutPolicy = 
-                CreateTimeoutPolicy<EventGridEvent>(ev => ev != null, timeout);
+                CreateTimeoutPolicy<EventGridEvent>(ev => ev is null, timeout);
             
             PolicyResult<EventGridEvent> result =
                 timeoutPolicy.ExecuteAndCapture(() => 
@@ -242,7 +242,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Requires a timeout span representing a positive time range");
             
             Policy<Event> timeoutPolicy = 
-                CreateTimeoutPolicy<Event>(ev => ev != null, timeout);
+                CreateTimeoutPolicy<Event>(ev => ev is null, timeout);
 
             PolicyResult<Event> result =
                 timeoutPolicy.ExecuteAndCapture(() =>
