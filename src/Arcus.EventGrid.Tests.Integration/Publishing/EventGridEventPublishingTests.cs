@@ -58,32 +58,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
-        public async Task PublishSingleEventGridEvent_WithEventSubject_ReceivesEventByEventSubject()
-        {
-            // Arrange
-            var eventSubject = $"integration-test-{Guid.NewGuid()}";
-            var licensePlate = "1-TOM-337";
-            var eventId = Guid.NewGuid().ToString();
-            var expected = new NewCarRegistered(eventId, eventSubject, licensePlate); 
-
-            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
-
-            // Act
-            await publisher.PublishAsync(expected);
-            TracePublishedEvent(eventId, expected);
-
-            // Assert
-            EventGridEvent actual = 
-                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (EventGridEvent eventGridEvent) => eventGridEvent.Id == eventId, 
-                    TimeSpan.FromSeconds(30));
-
-            Assert.Equal(expected.Id, actual.Id);
-            Assert.Equal(expected.Subject, actual.Subject);
-            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
-        }
-        
-        [Fact]
         public async Task PublishSingleEventGridEvent_WithEventPayload_ReceivesEventByEventPayload()
         {
             // Arrange
@@ -156,8 +130,15 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             TracePublishedEvent(eventId, @event);
 
             // Assert
-            var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
-            ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, expectedSubject, licensePlate, receivedEvent);
+            EventGridEvent actual = 
+                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (EventGridEvent eventGridEvent) => eventGridEvent.Id == eventId, 
+                    TimeSpan.FromSeconds(30));
+
+            Assert.Equal(@event.Id, actual.Id);
+            Assert.Equal(@event.Subject, actual.Subject);
+            Assert.Equal(@event.EventType, actual.EventType);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
         }
 
         [Fact]
