@@ -16,29 +16,12 @@ using Polly;
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
     /// <summary>
-    /// Represents a 
-    /// </summary>
-    public class EventEntry
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EventEntry" /> class.
-        /// </summary>
-        public EventEntry(string eventId, string eventPayload)
-        {
-            Guard.NotNull(eventId, nameof(eventId), "Requires a non-blank");
-        }
-        
-        public string EventId { get; }
-        public string EventPayload { get; }
-    }
-    
-    /// <summary>
     ///     Foundation for all event consumer hosts that handle Azure Event Grid events to be consumed in integration tests
     /// </summary>
     public class EventConsumerHost
     {
         // TODO: is 'static' correct here? Multiple event consumers should have different sets of received events, right?
-        private static readonly ConcurrentDictionary<string, EventEntry> ReceivedEvents = new ConcurrentDictionary<string, EventEntry>();
+        private static readonly ConcurrentDictionary<string, string> ReceivedEvents = new ConcurrentDictionary<string, string>();
         
         /// <summary>
         ///     Gets the logger associated with this event consumer.
@@ -99,7 +82,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             else
             {
                 logger.LogTrace("Received event with ID: {EventId} and payload: {EventPayload}", eventId, parsedEvent);
-                ReceivedEvents.AddOrUpdate(eventId, new EventEntry(eventId, rawReceivedEvents), (key, value) => new EventEntry(key, rawReceivedEvents));
+                ReceivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents);
             }
         }
 
@@ -304,7 +287,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             Event @event = 
                 ReceivedEvents.Values
-                    .Select(value => EventParser.Parse(value.EventPayload))
+                    .Select(EventParser.Parse)
                     .SelectMany(batch => batch.Events)
                     .FirstOrDefault(eventFilter);
 
@@ -314,10 +297,10 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         private string TryGetReceivedEvent(string eventId)
         {
             Logger.LogTrace("Current received events are: {receivedEvents}", String.Join(", ", ReceivedEvents.Keys));
-            if (ReceivedEvents.TryGetValue(eventId, out EventEntry rawEvent))
+            if (ReceivedEvents.TryGetValue(eventId, out string rawEvent))
             {
                 Logger.LogInformation("Found received event with ID: {EventId}", eventId);
-                return rawEvent?.EventPayload;
+                return rawEvent;
             }
 
             return null;
@@ -331,6 +314,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                     "Could not parse the incoming raw event to a valid JSON structure, make sure that the consumed events in the test are serialized as JSON tokens");
             }
             
+            // TODO: configurable event ID retrieval?
             if (parsedEvent is JObject jObject 
                 && jObject.TryGetValue("Id", StringComparison.InvariantCultureIgnoreCase, out JToken eventIdNode))
             {
