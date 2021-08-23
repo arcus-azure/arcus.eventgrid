@@ -16,6 +16,11 @@ namespace Arcus.EventGrid.Tests.Core
         /// <summary>
         /// Asserts the <see cref="NewCarRegistered"/> event.
         /// </summary>
+        /// <param name="eventId">The expected unique event identifier of the event.</param>
+        /// <param name="eventType">The expected event type of the event.</param>
+        /// <param name="eventSubject">The expected subject of the event.</param>
+        /// <param name="licensePlate">The expected license plate number of the event's payload.</param>
+        /// <param name="receivedEvent">The actual raw event to be asserted.</param>
         public static void ReceivedNewCarRegisteredEvent(string eventId, string eventType, string eventSubject, string licensePlate, string receivedEvent)
         {
             Assert.NotEqual(String.Empty, receivedEvent);
@@ -31,6 +36,16 @@ namespace Arcus.EventGrid.Tests.Core
             Assert.Equal(eventSubject, deserializedEvent.Subject);
             Assert.Equal(eventType, deserializedEvent.EventType);
 
+            ReceivedNewCarRegisteredPayload(licensePlate, deserializedEvent);
+        }
+
+        /// <summary>
+        /// Asserts the <see cref="CarEventData"/> event payload model of an <see cref="NewCarRegistered"/> event.
+        /// </summary>
+        /// <param name="licensePlate">The expected license plate number of the event's payload.</param>
+        /// <param name="deserializedEvent">The actual deserialized event to be asserted.</param>
+        public static void ReceivedNewCarRegisteredPayload(string licensePlate, Event deserializedEvent)
+        {
             Assert.NotNull(deserializedEvent.Data);
             var eventData = deserializedEvent.GetPayload<CarEventData>();
             Assert.NotNull(eventData);

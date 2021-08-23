@@ -62,6 +62,73 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
+        public async Task PublishSingleCloudEvent_WithEventSubject_ReceivesCloudEventBySubject()
+        {
+            // Arrange
+            var eventSubject = $"integration-test-{Guid.NewGuid()}";
+            var licensePlate = "1-TOM-337";
+            var expected = new CloudEvent(
+                CloudEventsSpecVersion.V1_0,
+                "NewCarRegistered",
+                new Uri("http://test-host"),
+                eventSubject,
+                $"event-id-{Guid.NewGuid()}")
+            {
+                Data = new CarEventData(licensePlate),
+                DataContentType = new ContentType("application/json")
+            };
+
+            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
+            
+            // Act
+            await publisher.PublishAsync(expected);
+            TracePublishedEvent(expected.Id, expected);
+            
+            // Assert
+            CloudEvent actual =
+                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (CloudEvent cloudEvent) => cloudEvent.Subject == expected.Subject,
+                    TimeSpan.FromSeconds(30));
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Subject, actual.Subject);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
+        }
+        
+        [Fact]
+        public async Task PublishSingleCloudEvent_WithEventPayload_ReceivesCloudEventByEventPayload()
+        {
+            // Arrange
+            var eventSubject = $"integration-test-{Guid.NewGuid()}";
+            var licensePlate = "1-TOM-337";
+            var expected = new CloudEvent(
+                CloudEventsSpecVersion.V1_0,
+                "NewCarRegistered",
+                new Uri("http://test-host"),
+                eventSubject,
+                $"event-id-{Guid.NewGuid()}")
+            {
+                Data = new CarEventData(licensePlate),
+                DataContentType = new ContentType("application/json")
+            };
+
+            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
+            
+            // Act
+            await publisher.PublishAsync(expected);
+            TracePublishedEvent(expected.Id, expected);
+            
+            // Assert
+            Event actual =
+                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent<CarEventData>(
+                    data => data.LicensePlate == licensePlate, 
+                    TimeSpan.FromSeconds(30));
+            
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Subject, actual.Subject);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
+        }
+
+        [Fact]
         public async Task PublishMultipleCloudEvent_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
@@ -122,7 +189,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, cloudEvent.Type, expectedSubject, licensePlate, receivedEvent);
         }
-
+        
         [Fact]
         public async Task PublishSingleRawEventWithSubject_WithBuilder_ValidParameters_Succeeds()
         {

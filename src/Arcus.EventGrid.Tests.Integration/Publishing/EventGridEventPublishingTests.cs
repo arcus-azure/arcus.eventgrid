@@ -6,8 +6,10 @@ using Arcus.EventGrid.Contracts.Interfaces;
 using Arcus.EventGrid.Publishing.Interfaces;
 using Arcus.EventGrid.Tests.Core;
 using Arcus.EventGrid.Tests.Core.Events;
+using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using Arcus.Testing.Logging;
+using Microsoft.Azure.EventGrid.Models;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -53,6 +55,58 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
+        public async Task PublishSingleEventGridEvent_WithEventSubject_ReceivesEventByEventSubject()
+        {
+            // Arrange
+            var eventSubject = $"integration-test-{Guid.NewGuid()}";
+            var licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var expected = new NewCarRegistered(eventId, eventSubject, licensePlate); 
+
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
+
+            // Act
+            await publisher.PublishAsync(expected);
+            TracePublishedEvent(eventId, expected);
+
+            // Assert
+            EventGridEvent actual = 
+                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (EventGridEvent eventGridEvent) => eventGridEvent.Subject == eventSubject, 
+                    TimeSpan.FromSeconds(30));
+
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Subject, actual.Subject);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
+        }
+        
+        [Fact]
+        public async Task PublishSingleEventGridEvent_WithEventPayload_ReceivesEventByEventPayload()
+        {
+            // Arrange
+            var eventSubject = $"integration-test-{Guid.NewGuid()}";
+            var licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var expected = new NewCarRegistered(eventId, eventSubject, licensePlate); 
+
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
+
+            // Act
+            await publisher.PublishAsync(expected);
+            TracePublishedEvent(eventId, expected);
+
+            // Assert
+            Event actual = 
+                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent<CarEventData>(
+                    data => data.LicensePlate == eventSubject, 
+                    TimeSpan.FromSeconds(30));
+
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Subject, actual.Subject);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
         }
         
         [Theory]
