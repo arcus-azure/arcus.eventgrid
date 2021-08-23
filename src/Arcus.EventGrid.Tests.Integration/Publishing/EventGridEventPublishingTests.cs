@@ -133,10 +133,9 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             EventGridEvent actual = 
                 _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
                     (EventGridEvent eventGridEvent) => eventGridEvent.Id == eventId, 
-                    TimeSpan.FromSeconds(50));
+                    TimeSpan.FromSeconds(30));
 
             Assert.Equal(@event.Id, actual.Id);
-            Assert.Equal(@event.Subject, actual.Subject);
             Assert.Equal(@event.EventType, actual.EventType);
             ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
         }
