@@ -104,7 +104,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             topicProcessor.ProcessErrorAsync += HandleExceptionAsync;
             await topicProcessor.StartProcessingAsync();
             
-            Logger.LogInformation("Message pump started on '{SubscriptionName}' (topic '{TopicPath}' for endpoint '{ServiceBusEndpoint}')", SubscriptionName, TopicPath, topicProcessor.FullyQualifiedNamespace);
+            Logger.LogInformation("Azure Service Bus event consumer host started on '{SubscriptionName}' (topic '{TopicPath}' for endpoint '{ServiceBusEndpoint}')", SubscriptionName, TopicPath, topicProcessor.FullyQualifiedNamespace);
         }
 
         private async Task HandleNewMessageAsync(ProcessMessageEventArgs eventArgs)

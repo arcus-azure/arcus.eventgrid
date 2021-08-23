@@ -268,7 +268,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         {
             // TODO: job ID to identify event consumer?
             Logger.LogInformation("Host stopped");
-
+            
             return Task.CompletedTask;
         }
 
@@ -283,7 +283,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             return timeoutPolicy;
         }
 
-        private static Event TryGetReceivedEvent(Func<Event, bool> eventFilter)
+        private Event TryGetReceivedEvent(Func<Event, bool> eventFilter)
         {
             Event @event = 
                 ReceivedEvents.Values
@@ -292,6 +292,12 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                     .Where(ev => ev != null)
                     .FirstOrDefault(eventFilter);
 
+            Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
+            if (@event != null)
+            {
+                Logger.LogInformation("Found received event with ID: {EventId}", @event.Id);
+            }
+            
             return @event;
         }
 

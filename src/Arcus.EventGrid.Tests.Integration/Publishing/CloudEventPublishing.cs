@@ -151,10 +151,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             TracePublishedEvent(eventId, cloudEvent);
 
             // Assert
-            var receivedEvent = 
+            CloudEvent receivedEvent = 
                 _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
                     (CloudEvent ev) => ev.Id == eventId, 
-                    TimeSpan.FromSeconds(30));
+                    TimeSpan.FromSeconds(40));
             
             Assert.Equal(eventId, receivedEvent.Id);
             Assert.Equal(cloudEvent.Subject, receivedEvent.Subject);
@@ -191,7 +191,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             TracePublishedEvent(eventId, cloudEvent);
 
             // Assert
-            var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
+            string receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, cloudEvent.Type, cloudEvent.Subject, licensePlate, receivedEvent);
         }
 
