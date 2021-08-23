@@ -68,11 +68,11 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var eventSubject = $"integration-test-{Guid.NewGuid()}";
             var licensePlate = "1-TOM-337";
             var expected = new CloudEvent(
-                CloudEventsSpecVersion.V1_0,
-                "NewCarRegistered",
-                new Uri("http://test-host"),
-                eventSubject,
-                $"event-id-{Guid.NewGuid()}")
+                specVersion: CloudEventsSpecVersion.V1_0,
+                type: "NewCarRegistered",
+                source: new Uri("http://test-host"),
+                subject: eventSubject,
+                id: $"event-id-{Guid.NewGuid()}")
             {
                 Data = new CarEventData(licensePlate),
                 DataContentType = new ContentType("application/json")
@@ -87,7 +87,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             CloudEvent actual =
                 _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (CloudEvent cloudEvent) => cloudEvent.Subject == expected.Subject,
+                    (CloudEvent cloudEvent) => cloudEvent.Id == expected.Id,
                     TimeSpan.FromSeconds(30));
             Assert.Equal(expected.Id, actual.Id);
             Assert.Equal(expected.Subject, actual.Subject);
@@ -99,7 +99,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             // Arrange
             var eventSubject = $"integration-test-{Guid.NewGuid()}";
-            var licensePlate = "1-TOM-337";
+            var licensePlate = $"1-TOM-{Guid.NewGuid():N}";
             var expected = new CloudEvent(
                 CloudEventsSpecVersion.V1_0,
                 "NewCarRegistered",

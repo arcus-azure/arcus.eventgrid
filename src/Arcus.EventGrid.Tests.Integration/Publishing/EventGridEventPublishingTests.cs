@@ -75,7 +75,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             EventGridEvent actual = 
                 _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (EventGridEvent eventGridEvent) => eventGridEvent.Subject == eventSubject, 
+                    (EventGridEvent eventGridEvent) => eventGridEvent.Id == eventId, 
                     TimeSpan.FromSeconds(30));
 
             Assert.Equal(expected.Id, actual.Id);
@@ -88,7 +88,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             // Arrange
             var eventSubject = $"integration-test-{Guid.NewGuid()}";
-            var licensePlate = "1-TOM-337";
+            var licensePlate = $"1-TOM-{Guid.NewGuid():N}";
             var eventId = Guid.NewGuid().ToString();
             var expected = new NewCarRegistered(eventId, eventSubject, licensePlate); 
 
@@ -101,7 +101,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             Event actual = 
                 _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent<CarEventData>(
-                    data => data.LicensePlate == eventSubject, 
+                    data => data.LicensePlate == licensePlate, 
                     TimeSpan.FromSeconds(30));
 
             Assert.Equal(expected.Id, actual.Id);
