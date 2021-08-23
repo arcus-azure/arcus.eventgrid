@@ -315,8 +315,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             }
             
             // TODO: configurable event ID retrieval?
-            if (parsedEvent is JObject jObject 
-                && jObject.TryGetValue("Id", StringComparison.InvariantCultureIgnoreCase, out JToken eventIdNode))
+            if (((JObject) parsedEvent).TryGetValue("Id", StringComparison.InvariantCultureIgnoreCase, out JToken eventIdNode))
             {
                 return eventIdNode.ToString();
             }

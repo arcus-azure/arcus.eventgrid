@@ -62,39 +62,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
-        public async Task PublishSingleCloudEvent_WithEventSubject_ReceivesCloudEventBySubject()
-        {
-            // Arrange
-            var eventSubject = $"integration-test-{Guid.NewGuid()}";
-            var licensePlate = "1-TOM-337";
-            var expected = new CloudEvent(
-                specVersion: CloudEventsSpecVersion.V1_0,
-                type: "NewCarRegistered",
-                source: new Uri("http://test-host"),
-                subject: eventSubject,
-                id: $"event-id-{Guid.NewGuid()}")
-            {
-                Data = new CarEventData(licensePlate),
-                DataContentType = new ContentType("application/json")
-            };
-
-            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
-            
-            // Act
-            await publisher.PublishAsync(expected);
-            TracePublishedEvent(expected.Id, expected);
-            
-            // Assert
-            CloudEvent actual =
-                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (CloudEvent cloudEvent) => cloudEvent.Id == expected.Id,
-                    TimeSpan.FromSeconds(30));
-            Assert.Equal(expected.Id, actual.Id);
-            Assert.Equal(expected.Subject, actual.Subject);
-            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
-        }
-        
-        [Fact]
         public async Task PublishSingleCloudEvent_WithEventPayload_ReceivesCloudEventByEventPayload()
         {
             // Arrange
@@ -218,8 +185,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             TracePublishedEvent(eventId, cloudEvent);
 
             // Assert
-            var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
-            ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, cloudEvent.Type, cloudEvent.Subject, licensePlate, receivedEvent);
+            var receivedEvent = 
+                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (CloudEvent ev) => ev.Id == eventId && ev.Subject == expectedSubject, 
+                    TimeSpan.FromSeconds(30));
+            
+            Assert.Equal(eventId, receivedEvent.Id);
+            Assert.Equal(cloudEvent.Subject, receivedEvent.Subject);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, receivedEvent);
         }
 
         [Fact]
