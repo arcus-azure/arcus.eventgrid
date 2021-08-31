@@ -5,8 +5,10 @@ layout: default
 
 # Endpoint validation
 
-We provide support for endpoint validation, when implementing your own custom web hook. This validation allows to secure your web hook with a secret key (taken from the query string or an HTTP header).  
-This is needed, because Azure Event Grid is send a validation request to a newly configured web hook, in order to prevent people leveraging Azure Event Grid to bring down a 3rd party API. 
+We provide support for endpoint validation, when implementing your own custom web hook.
+
+* [Azure Event Grid authorization](#azure-event-grid-authorization)
+* [Azure Event Grid subscription validation](#azure-event-grid-subscription-validation)
 
 ## Installation
 
@@ -16,7 +18,10 @@ The features described here require the following package:
 PM> Install-Package Arcus.EventGrid.WebApi.Security 
 ```
 
-## Usage
+## Azure Event Grid authorization
+
+Azure Event Grid authorization allows to secure your webhook with a secret key (taken from the query string or an HTTP header). 
+This is needed, because Azure Event Grid is send a validation request to a newly configured web hook, in order to prevent people leveraging Azure Event Grid to bring down a 3rd party API. 
 
 The implementation we provide, is echoing back the validation key on your operation, in order to have the validation by Event Grid out of the box.
 
@@ -95,6 +100,34 @@ The `EventGridAuthorizationAttribute` attribute has some additional consumer-con
 ```csharp
 // Indicates that the Azure Event Grid authorization should emit security events during the authorization of the request (default: `false`).
 [EventGridAuthorization(..., EmitSecurityEvents = true)]
+```
+
+## Azure Event Grid subscription validation
+
+This library provides an Azure Event Grid subscription validation. It can receive Azure Event Grid events from an Event subscription and validates the contents.
+This is described in full at [the offical Microsoft docs](https://docs.microsoft.com/en-us/azure/event-grid/receive-events).
+
+### Enforce subscription validation per controller or operation
+
+We created the `EventGridSubscriptionValidationAttribute` attribute that will validate all the incoming requests.
+The attribute can be placed on both the controller as the operation.
+
+```csharp
+using Arcus.EventGrid.WebApi.Security;
+using Microsoft.AspNetCore.Mvc;
+
+[Route("events")]
+[ApiController]
+public class EventController : ControllerBase
+{
+    // Looks for the `Aeg-Event-Type` header in the HTTP request, if it contains the `SubscriptionValidation` value the request body will be deserialized and validated.
+    // The action attribute will short-circuit the incoming request and return the validation result as an `SubscriptionValidationResponse` (see: https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.eventgrid.models.subscriptionvalidationresponse?view=azure-dotnet).
+    [EventGridSubscriptionValidation]
+    public IActionResult Get()
+    {
+        return Ok();
+    }
+}
 ```
 
 [&larr; back](/)

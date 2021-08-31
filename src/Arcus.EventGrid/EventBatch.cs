@@ -18,7 +18,7 @@ namespace Arcus.EventGrid
         public EventBatch(string sessionId, IList<TEvent> events)
         {
             Guard.NotNullOrWhitespace(sessionId, nameof(sessionId));
-            Guard.NotNull(sessionId, nameof(sessionId));
+            Guard.NotNull(events, nameof(events));
 
             SessionId = sessionId;
             Events = new ReadOnlyCollection<TEvent>(events);
