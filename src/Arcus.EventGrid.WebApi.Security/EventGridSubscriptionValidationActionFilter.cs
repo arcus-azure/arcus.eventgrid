@@ -55,6 +55,7 @@ namespace Arcus.EventGrid.WebApi.Security
             else
             {
                 // TODO: configurable header name/value
+                // EventGrid scheme uses Aeg-Event-Type: SubscriptionValidation to perform validation handshake
                 if (context.HttpContext.Request.Headers.TryGetValue("Aeg-Event-Type", out StringValues eventTypes)
                     && eventTypes.Contains("SubscriptionValidation"))
                 {
