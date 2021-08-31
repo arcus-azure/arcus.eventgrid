@@ -17,8 +17,9 @@ Easy to start:
 Here is what this article will cover:
 
 - [Receiving events in your tests](#receiving-events-in-your-tests)
+    - [Azure Service Bus test example](#azure-service-bus-test-example)
+    - [Available functionality for receiving events](#available-functionality-for-receiving-events)
 - [The Azure infrastructure](#azure-infrastructure)
-- [Test Example](#example)
 - [Troubleshooting tests](#troubleshooting-tests)
     - [Use logging](#use-logging)
     - [Keeping a test subscription on the topic](#keeping-a-test-subscription-on-the-topic)
@@ -26,20 +27,17 @@ Here is what this article will cover:
 ### Receiving events in your tests
 By using the `ServiceBusEventConsumerHost` you can subscribe to Azure Event Grid events on a custom topic and consume them in your tests.
 
-You can easily check if an event is received:
-```csharp
-_serviceBusEventConsumerHost.GetReceivedEvent(eventId, retryCount: 5)
-```
-
 As requests are flowing in asynchronously, we provide the capability to retry the looking for an event which is using an exponential backoff.
 
 In order to use this host, we require you to set up a small infrastructure in Azure that is consuming all events on your custom Azure Event Grid topic.
 
 More information can be found in ["The Azure infrastructure"](#azure-infrastructure).
 
-### Example
+#### Azure Service Bus test example
 Here is an example of how you can set up the `ServiceBusEventConsumerHost` and query for events in your tests:
 ```csharp
+using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
+
 [Trait(name: "Category", value: "Integration")]
 public class EventPublishingTests : IAsyncLifetime
 {
@@ -73,15 +71,55 @@ public class EventPublishingTests : IAsyncLifetime
         var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
 
         // Act
-        var eventGridPublisher = EventGridPublisherBuilder
-                                        .ForTopic(topicEndpoint)
-                                        .UsingAuthenticationKey(endpointKey)
-                                        .Build();
+        var eventGridPublisher = 
+            EventGridPublisherBuilder
+                .ForTopic(topicEndpoint)
+                .UsingAuthenticationKey(endpointKey)
+                .Build();
+        
         await eventGridPublisher.PublishAsync(@event);
 
         // Assert
         var receivedEvent = _serviceBusEventConsumerHost.GetReceivedEvent(eventId);
         Assert.NotEmpty(receivedEvent);
+    }
+}
+```
+
+#### Available functionality for receiving events
+We provide several approaches on how to receive events. These are all available on the `ServiceBusEventConsumerHost` and any other event consumer that uses the `EventConsumerHost`.
+
+```csharp
+using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
+
+[Trait(name: "Category", value: "Integration")]
+public class EventPublishingTests
+{
+    // Setting up the Azure Service Bus consumer host...
+    private readonly ServiceBusEventConsumerHost _serviceBusEventConsumerHost;
+
+    [Fact]
+    public async Task Publish_ValidParameters_Succeeds()
+    {
+        // Publishing the event...
+
+        // Receiving an event based on it's ID (uses default exponential back-off with 5 retries).
+        _serviceBusEventConsumerHost.GetReceivedEvent("<your-event-id>");
+
+        // Receiving an event based on it's ID, using custom retry count with exponential back-off.
+        _serviceBusConsumerHost.GetReceivedEvent("<your-event-id>", retryCount: 7);
+
+        // Receiving an event based it's ID, using a time-out.
+        _serviceBusConsumerHost.GetReceivedEvent("<your-event-id>", timeout: TimeSpan.FromSeconds(30));
+
+        // Receiving an event based on if it's an `CloudEvent` event, using a time-out.
+        _serviceBusConsumerHost.GetReceivedEvent((CloudEvent cloudEvent) => cloudEvent.Subject == "Order", timeout: TimeSpan.FromSeconds(30));
+
+        // Receiving an event based on if it's an `EventGridEvent` event, using a time-out.
+        _serviceBusConsumerHost.GetReceivedEvent((EventGridEvent eventGridEvent) => eventGridEvent.Subject == "Order", timeout: TimeSpan.FromSeconds(30));
+
+        // Receiving an event based on it's event payload (can either be an `CloudEvent` or an `EventGridEvent`), using a time-out.
+        _serviceBusConsumerHost.GetReceivedEvent((OrderEventData orderData) => orderData.OrderId == "<your-order-id>", timeout: TimeSpan.FromSeconds(30));
     }
 }
 ```
