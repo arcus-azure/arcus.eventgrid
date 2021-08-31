@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,24 +42,49 @@ namespace Arcus.EventGrid.WebApi.Security
             Guard.For(() => context.HttpContext.Request is null, new ArgumentException("Requires a HTTP context with a HTTP request in the action filter context to validate the Azure Event Grid subscription", nameof(context)));
             Guard.For(() => context.HttpContext.Request.Headers is null, new ArgumentException("Requires a HTTP context with a HTTP request containing headers in the action filter context to validate the Azure Event Grid subscription", nameof(context)));
             Guard.For(() => context.HttpContext.Request.Body is null, new ArgumentException("Requires a HTTP context with a HTTP request containing a body in the action filter context to validate the Azure Event Grid subscription", nameof(context)));
+            Guard.For(() => context.HttpContext.Response is null, new ArgumentException("Requires a HTTP context in the action filter context with a response to assign CloudEvent validation information on completion", nameof(context)));
+            Guard.For(() => context.HttpContext.Response.Headers is null, new ArgumentException("Requires a HTTP context in the action filter context with response headers to assign CloudEvent validation information on completion", nameof(context)));
             
             ILogger logger = GetRegisteredLogger(context.HttpContext.RequestServices);
-            
-            // TODO: configurable header name/value
-            if (context.HttpContext.Request.Headers.TryGetValue("Aeg-Event-Type", out StringValues eventTypes)
-                && eventTypes.Contains("SubscriptionValidation"))
+
+            if (HttpMethods.IsOptions(context.HttpContext.Request.Method))
             {
-                await ValidateEventGridSubscriptionEventAsync(context, logger);
+                context.Result = ValidateCloudEventsRequest(context.HttpContext.Request, context.HttpContext.Response, logger);
             }
             else
             {
-                await next();
+                // TODO: configurable header name/value
+                if (context.HttpContext.Request.Headers.TryGetValue("Aeg-Event-Type", out StringValues eventTypes)
+                    && eventTypes.Contains("SubscriptionValidation"))
+                {
+                    context.Result = await ValidateEventGridSubscriptionEventAsync(context.HttpContext.Request, logger);
+                }
+                else
+                {
+                    await next();
+                }
             }
         }
 
-        private async Task ValidateEventGridSubscriptionEventAsync(ActionExecutingContext context, ILogger logger)
+        private static IActionResult ValidateCloudEventsRequest(HttpRequest request, HttpResponse response, ILogger logger)
         {
-            string json = await ReadRequestBodyAsync(context.HttpContext.Request);
+            var headerName = "WebHook-Request-Origin";
+            if (request.Headers.TryGetValue(headerName, out StringValues requestOrigins))
+            {
+                // TODO: configurable rate?
+                response.Headers.Add("WebHook-Allowed-Rate", "*");
+                response.Headers.Add("WebHook-Allowed-Origin", requestOrigins);
+                
+                return new OkResult();
+            }
+
+            logger.LogError("Invalid CloudEvents validation request due the missing '{HeaderName}' request header", headerName);
+            return new BadRequestObjectResult("Invalid CloudEvents validation request");
+        }
+
+        private async Task<IActionResult> ValidateEventGridSubscriptionEventAsync(HttpRequest request, ILogger logger)
+        {
+            string json = await ReadRequestBodyAsync(request);
             EventBatch<Event> eventBatch = EventParser.Parse(json);
 
             // TODO: configurable event count: allow multiple events?
@@ -66,24 +92,20 @@ namespace Arcus.EventGrid.WebApi.Security
             if (eventBatch.Events.Count != 1)
             {
                 logger.LogError("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contains an single Event Grid event, but {EventCount} events", eventBatch.Events.Count);
-                context.Result = new BadRequestObjectResult("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an single Event Grid event");
+                return new BadRequestObjectResult("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an single Event Grid event");
             }
-            else
-            {
-                Event subscriptionEvent = eventBatch.Events.Single();
-                var validationEventData = subscriptionEvent.GetPayload<SubscriptionValidationEventData>();
+
+            Event subscriptionEvent = eventBatch.Events.Single();
+            var validationEventData = subscriptionEvent.GetPayload<SubscriptionValidationEventData>();
                 
-                if (validationEventData?.ValidationCode is null)
-                {
-                    logger.LogTrace("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an Event Grid subscription validation event data");
-                    context.Result = new BadRequestObjectResult("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an Event Grid subscription validation data");
-                }
-                else
-                {
-                    var response = new SubscriptionValidationResponse(validationEventData.ValidationCode);
-                    context.Result = new OkObjectResult(response);
-                }
+            if (validationEventData?.ValidationCode is null)
+            {
+                logger.LogTrace("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an Event Grid subscription validation event data");
+                return new BadRequestObjectResult("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an Event Grid subscription validation data");
             }
+
+            var response = new SubscriptionValidationResponse(validationEventData.ValidationCode);
+            return new OkObjectResult(response);
         }
 
         private static ILogger GetRegisteredLogger(IServiceProvider serviceProvider)

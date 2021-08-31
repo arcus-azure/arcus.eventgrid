@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using GuardNet;
+using Microsoft.Extensions.Primitives;
 
 namespace Arcus.EventGrid.Tests.Integration.WebApi.Fixture
 {
@@ -16,7 +17,7 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Fixture
         private Func<HttpContent> _createContent;
         private readonly string _path;
         private readonly HttpMethod _method;
-        private readonly ICollection<KeyValuePair<string, string>> _headers = new Collection<KeyValuePair<string, string>>();
+        private readonly ICollection<KeyValuePair<string, IEnumerable<string>>> _headers = new Collection<KeyValuePair<string, IEnumerable<string>>>();
         private readonly ICollection<KeyValuePair<string, string>> _parameters = new Collection<KeyValuePair<string, string>>();
         
         private HttpRequestBuilder(HttpMethod method, string path)
@@ -38,6 +39,18 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Fixture
         }
 
         /// <summary>
+        /// Creates an <see cref="HttpRequestBuilder"/> instance that represents an HTTP OPTIONS request to a given <paramref name="route"/>.
+        /// </summary>
+        /// <remarks>Only the relative route is required, the base endpoint will be prepended upon the creation of the HTTP request.</remarks>
+        /// <param name="route">The relative HTTP route.</param>
+        /// <exception cref="ArgumentException">Thrown when the <paramref name="route"/> is blank.</exception>
+        public static HttpRequestBuilder Options(string route)
+        {
+            Guard.NotNullOrWhitespace(route, nameof(route), "Requires a non-blank HTTP relative route to create a HTTP OPTIONS request builder instance");
+            return new HttpRequestBuilder(HttpMethod.Options, route);
+        }
+
+        /// <summary>
         /// Creates an <see cref="HttpRequestBuilder"/> instance that represents an HTTP POST request to a given <paramref name="route"/>.
         /// </summary>
         /// <remarks>Only the relative route is required, the base endpoint will be prepended upon the creation of the HTTP request.</remarks>
@@ -53,12 +66,14 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Fixture
         /// Adds a header to the HTTP request.
         /// </summary>
         /// <param name="headerName">The name of the header.</param>
-        /// <param name="headerValue">The value of the header.</param>
+        /// <param name="headerValues">The value of the header.</param>
         /// <exception cref="ArgumentException">Thrown when the <paramref name="headerName"/> is blank.</exception>
-        public HttpRequestBuilder WithHeader(string headerName, object headerValue)
+        public HttpRequestBuilder WithHeader(string headerName, params string[] headerValues)
         {
             Guard.NotNullOrWhitespace(headerName, nameof(headerName), "Requires a non-blank header name to add the header to the HTTP request builder instance");
-            _headers.Add(new KeyValuePair<string, string>(headerName, headerValue.ToString()));
+            
+            IEnumerable<string> headerStringValues = headerValues.Select(value => value?.ToString());
+            _headers.Add(new KeyValuePair<string, IEnumerable<string>>(headerName, headerStringValues));
 
             return this;
         }
@@ -115,7 +130,7 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Fixture
 
             var request = new HttpRequestMessage(_method, baseRoute + path + parameters);
 
-            foreach (KeyValuePair<string, string> header in _headers)
+            foreach (KeyValuePair<string, IEnumerable<string>> header in _headers)
             {
                 request.Headers.Add(header.Key, header.Value);
             }

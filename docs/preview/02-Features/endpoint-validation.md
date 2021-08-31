@@ -120,10 +120,18 @@ using Microsoft.AspNetCore.Mvc;
 [ApiController]
 public class EventController : ControllerBase
 {
+    // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // For CloudEvents validation:
+    // When receiving an HTTP OPTIONS request, looks for the `WebHook-Request-Origin` request header.
+    // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // For Azure Event Grid valdiation:
     // Looks for the `Aeg-Event-Type` header in the HTTP request, if it contains the `SubscriptionValidation` value the request body will be deserialized and validated.
-    // The action attribute will short-circuit the incoming request and return the validation result as an `SubscriptionValidationResponse` (see: https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.eventgrid.models.subscriptionvalidationresponse?view=azure-dotnet).
+    // The action attribute will short-circuit the incoming request and return the validation result as an `SubscriptionValidationResponse` 
+    // (see: https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.eventgrid.models.subscriptionvalidationresponse?view=azure-dotnet).
+    // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    [HttpGet, HttpOptions]
     [EventGridSubscriptionValidation]
-    public IActionResult Get()
+    public IActionResult Validation()
     {
         return Ok();
     }
