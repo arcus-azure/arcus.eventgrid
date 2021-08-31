@@ -47,6 +47,7 @@ namespace Arcus.EventGrid.WebApi.Security
             
             ILogger logger = GetRegisteredLogger(context.HttpContext.RequestServices);
 
+            // CloudEvents use HTTP OPTIONS to perform validation handshake
             if (HttpMethods.IsOptions(context.HttpContext.Request.Method))
             {
                 context.Result = ValidateCloudEventsRequest(context.HttpContext.Request, context.HttpContext.Response, logger);
