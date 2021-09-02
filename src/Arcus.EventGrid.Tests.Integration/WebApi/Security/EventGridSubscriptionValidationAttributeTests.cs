@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Arcus.EventGrid.Tests.Integration.WebApi.Fixture;
 using Arcus.EventGrid.Tests.Integration.WebApi.Security.Controllers;
 using Arcus.Testing.Logging;
+using Bogus;
 using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -19,6 +20,8 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Security
     {
         private readonly ILogger _logger;
 
+        private static readonly Faker BogusGenerator = new Faker();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="EventGridSubscriptionValidationAttributeTests" /> class.
         /// </summary>
@@ -27,6 +30,71 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Security
             _logger = new XunitTestLogger(outputWriter);
         }
 
+        [Fact]
+        public async Task CloudEventsValidationRequest_WithWebHookRequestOriginHeader_Succeeds()
+        {
+            // Arrange
+            string[] requestOrigins = BogusGenerator.Lorem.Words();
+            await using (var server = await TestApiServer.StartNewAsync(_logger))
+            {
+                var request = HttpRequestBuilder
+                    .Options(EventGridSubscriptionValidationController.GetSubscriptionValidationRoute)
+                    .WithHeader("WebHook-Request-Origin", requestOrigins);
+                
+                // Act
+                using (HttpResponseMessage response = await server.SendAsync(request))
+                {
+                    // Assert
+                    Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                    
+                    string actualOrigins = Assert.Single(response.Headers.GetValues("WebHook-Allowed-Origin"));
+                    string expectedOrigins = String.Join(", ", requestOrigins);
+                    Assert.Equal(expectedOrigins, actualOrigins);
+                    
+                    string actualRate = Assert.Single(response.Headers.GetValues("WebHook-Allowed-Rate"));
+                    Assert.Equal("*", actualRate);
+                }
+            }
+        }
+        
+        [Fact]
+        public async Task CloudEventsValidationRequest_WithoutWebHooRequestOriginHeader_Fails()
+        {
+            // Arrange
+            await using (var server = await TestApiServer.StartNewAsync(_logger))
+            {
+                var request = HttpRequestBuilder
+                    .Options(EventGridSubscriptionValidationController.GetSubscriptionValidationRoute);
+                
+                // Act
+                using (HttpResponseMessage response = await server.SendAsync(request))
+                {
+                    // Assert
+                    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                }
+            }
+        }
+        
+        [Fact]
+        public async Task CloudEventsValidationRequest_WithWrongWebHooRequestOriginHeader_Fails()
+        {
+            // Arrange
+            string[] requestOrigins = BogusGenerator.Lorem.Words();
+            await using (var server = await TestApiServer.StartNewAsync(_logger))
+            {
+                var request = HttpRequestBuilder
+                    .Options(EventGridSubscriptionValidationController.GetSubscriptionValidationRoute)
+                    .WithHeader("WebHook-Request-Origin-SomethingElse", requestOrigins);
+                
+                // Act
+                using (HttpResponseMessage response = await server.SendAsync(request))
+                {
+                    // Assert
+                    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                }
+            }
+        }
+        
         [Fact]
         public async Task EventGridSubscriptionValidation_WithCorrectRequestValidationData_Succeeds()
         {

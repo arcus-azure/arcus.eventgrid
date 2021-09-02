@@ -8,7 +8,7 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Security.Controllers
     {
         public const string GetSubscriptionValidationRoute = "subscr-val/event-grid";
 
-        [HttpGet]
+        [HttpGet, HttpOptions]
         [Route(GetSubscriptionValidationRoute)]
         [EventGridSubscriptionValidation]
         public IActionResult Get()
