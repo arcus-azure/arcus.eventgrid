@@ -292,12 +292,19 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                     .Where(ev => ev != null)
                     .FirstOrDefault(eventFilter);
 
-            Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
-            if (@event != null)
+            if (ReceivedEvents.IsEmpty)
             {
-                Logger.LogInformation("Found received event with ID: {EventId}", @event.Id);
+                Logger.LogTrace("No received events found");
             }
-            
+            else
+            {
+                Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
+                if (@event != null)
+                {
+                    Logger.LogInformation("Found received event with ID: {EventId}", @event.Id);
+                }
+            }
+
             return @event;
         }
 
