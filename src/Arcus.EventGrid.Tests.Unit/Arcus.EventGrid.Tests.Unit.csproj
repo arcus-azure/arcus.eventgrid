@@ -23,7 +23,7 @@
     <ProjectReference Include="..\Arcus.EventGrid.Testing\Arcus.EventGrid.Testing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.InMemoryApi\Arcus.EventGrid.Tests.InMemoryApi.csproj" />
-    <ProjectReference Include="..\Arcus.EventGrid.WebApi.Security\Arcus.EventGrid.Security.WebApi.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Security.WebApi\Arcus.EventGrid.Security.WebApi.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
 
