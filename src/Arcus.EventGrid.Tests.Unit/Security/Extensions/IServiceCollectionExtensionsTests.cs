@@ -14,6 +14,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security.Extensions
         {
             // Arrange
             var services = new ServiceCollection();
+            services.AddLogging();
 
             // Act
             services.AddEventGridSubscriptionValidation();
@@ -29,6 +30,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security.Extensions
             // Arrange
             var services = new ServiceCollection();
             var builder = new StubFunctionsHostBuilder(services);
+            services.AddLogging();
 
             // Act
             builder.AddEventGridSubscriptionValidation();
