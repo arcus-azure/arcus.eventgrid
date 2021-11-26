@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Tests.Unit"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Testing", "Arcus.EventGrid.Testing\Arcus.EventGrid.Testing.csproj", "{12FED22F-E44B-40C0-B268-DE4E0BA8BEDB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Security.WebApi", "Arcus.EventGrid.WebApi.Security\Arcus.EventGrid.Security.WebApi.csproj", "{287CD569-CE05-45CE-B6BD-90A299A5AA08}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Security.WebApi", "Arcus.EventGrid.Security.WebApi\Arcus.EventGrid.Security.WebApi.csproj", "{287CD569-CE05-45CE-B6BD-90A299A5AA08}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Security.Core", "Arcus.EventGrid.Security.Core\Arcus.EventGrid.Security.Core.csproj", "{BBA7895F-38AB-42D8-93C3-776CDA0284C9}"
 EndProject
