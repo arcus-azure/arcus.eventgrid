@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -18,11 +18,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.Security.AzureFunctions\Arcus.EventGrid.Security.AzureFunctions.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Security\Arcus.EventGrid.Security.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Testing\Arcus.EventGrid.Testing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.InMemoryApi\Arcus.EventGrid.Tests.InMemoryApi.csproj" />
-    <ProjectReference Include="..\Arcus.EventGrid.WebApi.Security\Arcus.EventGrid.WebApi.Security.csproj" />
+    <ProjectReference Include="..\Arcus.EventGrid.WebApi.Security\Arcus.EventGrid.Security.WebApi.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
 
