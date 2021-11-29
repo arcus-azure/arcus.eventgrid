@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
@@ -285,29 +286,51 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
         private Event TryGetReceivedEvent(Func<Event, bool> eventFilter)
         {
-            Event @event = 
-                ReceivedEvents.Values
-                    .Select(EventParser.Parse)
-                    .SelectMany(batch => batch.Events)
-                    .Where(ev => ev != null)
-                    .FirstOrDefault(eventFilter);
-
-            Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
-            if (@event != null)
+            if (ReceivedEvents.IsEmpty)
             {
-                Logger.LogInformation("Found received event with ID: {EventId}", @event.Id);
+                Logger.LogTrace("No received events found");
             }
-            
-            return @event;
+            else
+            {
+                Logger.LogTrace("Current received event batches are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
+                Event[] eventBatches =
+                    ReceivedEvents.Values
+                        .Select(EventParser.Parse)
+                        .SelectMany(batch => batch.Events)
+                        .Where(ev => ev != null)
+                        .ToArray();
+
+                Logger.LogTrace("Currently {ReceivedEvents} event batches received which results in {ValidReceivedEvents} valid parsed events", ReceivedEvents.Count, eventBatches.Length);
+                Event @event = eventBatches.FirstOrDefault(eventFilter);
+                if (@event != null)
+                {
+                    Logger.LogInformation("Found received event with ID: {EventId}", @event.Id);
+                }
+                else
+                {
+                    Logger.LogInformation("None of the received events matches the event filter: {ReceivedEvents}", String.Join(Environment.NewLine, ReceivedEvents.Values));
+                }
+
+                return @event;
+            }
+
+            return null;
         }
 
         private string TryGetReceivedEvent(string eventId)
         {
-            Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
-            if (ReceivedEvents.TryGetValue(eventId, out string rawEvent))
+            if (ReceivedEvents.IsEmpty)
             {
-                Logger.LogInformation("Found received event with ID: {EventId}", eventId);
-                return rawEvent;
+                Logger.LogTrace("No received events found");
+            }
+            else
+            {
+                Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
+                if (ReceivedEvents.TryGetValue(eventId, out string rawEvent))
+                {
+                    Logger.LogInformation("Found received event with ID: {EventId}", eventId);
+                    return rawEvent;
+                }
             }
 
             return null;
@@ -322,7 +345,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             }
             
             // TODO: configurable event ID retrieval?
-            if (((JObject) parsedEvent).TryGetValue("Id", StringComparison.InvariantCultureIgnoreCase, out JToken eventIdNode))
+            if (parsedEvent is JObject jObject && jObject.TryGetValue("Id", StringComparison.InvariantCultureIgnoreCase, out JToken eventIdNode))
             {
                 return eventIdNode.ToString();
             }
