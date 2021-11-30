@@ -75,7 +75,7 @@ namespace Arcus.EventGrid.Security.WebApi
 
        private static IEventGridSubscriptionValidator GetRegisteredValidator(IServiceProvider serviceProvider)
        {
-           return serviceProvider.GetRequiredService<IEventGridSubscriptionValidator>()
+           return serviceProvider.GetService<IEventGridSubscriptionValidator>()
                ?? ActivatorUtilities.CreateInstance<EventGridSubscriptionValidator>(serviceProvider);
        }
 
