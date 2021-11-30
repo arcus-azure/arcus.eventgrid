@@ -13,7 +13,6 @@ using Microsoft.Extensions.Primitives;
 
 namespace Arcus.EventGrid.Security.Core.Validation
 {
-
     /// <summary>
     /// Represents a validation on events on Azure EventGrid, wrapped as HTTP requests.
     /// </summary>
