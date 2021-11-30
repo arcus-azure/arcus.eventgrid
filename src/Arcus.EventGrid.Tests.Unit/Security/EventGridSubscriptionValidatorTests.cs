@@ -146,7 +146,12 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             var context = new DefaultHttpContext();
             EventBatch<Event> blobCreatedEvent = EventParser.Parse(Artifacts.EventSamples.BlobCreateEvent);
             EventBatch<Event> iotDeviceDeletedEvent = EventParser.Parse(Artifacts.EventSamples.IoTDeviceDeleteEvent);
-            IEnumerable<Event> events = blobCreatedEvent.Events.Concat(iotDeviceDeletedEvent.Events);
+            EventGridEvent[] events = 
+                blobCreatedEvent.Events
+                    .Concat(iotDeviceDeletedEvent.Events)
+                    .Select(ev => ev.AsEventGridEvent())
+                    .ToArray();
+            
             string requestBody = JsonConvert.SerializeObject(events);
             context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestBody));
 
