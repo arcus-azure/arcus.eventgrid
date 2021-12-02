@@ -466,9 +466,9 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
             // Assert
             Assert.NotNull(eventBatch);
             Assert.NotNull(eventBatch.Events);
+            Assert.All(eventBatch.Events, ev => Assert.True(ev.IsCloudEvent));
             CloudEvent cloudEvent = Assert.Single(eventBatch.Events);
             Assert.NotNull(cloudEvent);
-            Assert.True(cloudEvent.IsCloudEvent);
             Assert.Equal(cloudEventsVersion, cloudEvent.SpecVersion);
             Assert.Equal(eventType, cloudEvent.Type);
             Assert.Equal(source, cloudEvent.Source.OriginalString);
