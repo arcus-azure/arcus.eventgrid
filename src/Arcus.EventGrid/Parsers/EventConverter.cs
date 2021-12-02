@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Linq;
+using System.Net.Mime;
+using System.Text;
 using Arcus.EventGrid.Contracts;
+using CloudNative.CloudEvents;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -11,16 +13,30 @@ namespace Arcus.EventGrid.Parsers
     /// </summary>
     public class EventConverter : JsonConverter<Event>
     {
-        /// <summary>Writes the JSON representation of the object.</summary>
+        private static readonly JsonEventFormatter JsonFormatter = new JsonEventFormatter();
+
+        /// <summary>
+        /// Writes the JSON representation of the object.
+        /// </summary>
         /// <param name="writer">The <see cref="T:Newtonsoft.Json.JsonWriter" /> to write to.</param>
         /// <param name="value">The value.</param>
         /// <param name="serializer">The calling serializer.</param>
         public override void WriteJson(JsonWriter writer, Event value, JsonSerializer serializer)
         {
-            JObject.FromObject(value).WriteTo(writer, serializer.Converters.ToArray());
+            if (value.IsCloudEvent)
+            {
+                byte[] contents = JsonFormatter.EncodeStructuredEvent(value, out ContentType contentType);
+                writer.WriteRaw(Encoding.UTF8.GetString(contents));
+            }
+            else if (value.IsEventGridEvent)
+            {
+                JObject.FromObject(value.AsEventGridEvent()).WriteTo(writer);
+            }
         }
 
-        /// <summary>Reads the JSON representation of the object.</summary>
+        /// <summary>
+        /// Reads the JSON representation of the object.
+        /// </summary>
         /// <param name="reader">The <see cref="T:Newtonsoft.Json.JsonReader" /> to read from.</param>
         /// <param name="objectType">Type of the object.</param>
         /// <param name="existingValue">The existing value of object being read. If there is no existing value then <c>null</c> will be used.</param>
