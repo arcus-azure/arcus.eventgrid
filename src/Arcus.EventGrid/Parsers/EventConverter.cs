@@ -35,7 +35,8 @@ namespace Arcus.EventGrid.Parsers
             }
             else if (value.IsEventGridEvent)
             {
-                JObject.FromObject(value.AsEventGridEvent()).WriteTo(writer);
+                var eventGridEvent = value.AsEventGridEvent();
+                JObject.FromObject(eventGridEvent).WriteTo(writer);
             }
         }
 
