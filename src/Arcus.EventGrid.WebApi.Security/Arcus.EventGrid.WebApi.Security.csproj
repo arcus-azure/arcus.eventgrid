@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
     <Copyright>Copyright (c) Arcus</Copyright>
     <PackageLicenseUrl>https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/arcus-azure/arcus.eventgrid</PackageProjectUrl>
