@@ -1,4 +1,4 @@
----
+﻿---
 title: "Endpoint validation"
 layout: default
 ---
@@ -17,6 +17,8 @@ The features described here require the following package:
 ```shell
 PM> Install-Package Arcus.EventGrid.Security.WebApi
 ```
+
+> ⚠ This package used to be called `Arcus.EventGrid.Security`. Please make sure that you migrate towards this package as it's not being actively maintained beyond v3.2.
 
 ## Azure Event Grid authorization
 
