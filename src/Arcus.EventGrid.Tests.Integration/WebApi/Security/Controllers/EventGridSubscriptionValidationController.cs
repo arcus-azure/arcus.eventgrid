@@ -1,4 +1,4 @@
-﻿using Arcus.EventGrid.WebApi.Security;
+﻿using Arcus.EventGrid.Security.WebApi;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Arcus.EventGrid.Tests.Integration.WebApi.Security.Controllers

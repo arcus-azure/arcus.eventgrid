@@ -1,5 +1,5 @@
 ﻿using System;
-using Arcus.EventGrid.WebApi.Security;
+using Arcus.EventGrid.Security.WebApi;
 using GuardNet;
 
 // ReSharper disable once CheckNamespace

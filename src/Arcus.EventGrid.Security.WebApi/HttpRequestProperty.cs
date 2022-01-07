@@ -1,4 +1,4 @@
-﻿namespace Arcus.EventGrid.WebApi.Security
+﻿namespace Arcus.EventGrid.Security.WebApi
 {
     /// <summary>
     /// Represents the available inputs for the <see cref="EventGridAuthorizationFilter"/> to authorize the HTTP request using Azure Event Grid.
