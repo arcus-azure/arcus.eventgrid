@@ -2,7 +2,7 @@
 using GuardNet;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Arcus.EventGrid.WebApi.Security
+namespace Arcus.EventGrid.Security.WebApi
 {
     /// <summary>
     /// Represents an attribute to authorize HTTP requests using Azure Event Grid.

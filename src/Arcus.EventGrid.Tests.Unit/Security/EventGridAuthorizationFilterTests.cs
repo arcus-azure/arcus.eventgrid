@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.Threading.Tasks;
-using Arcus.EventGrid.WebApi.Security;
+using Arcus.EventGrid.Security.WebApi;
 using Bogus;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

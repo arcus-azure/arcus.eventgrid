@@ -1,4 +1,4 @@
-﻿namespace Arcus.EventGrid.WebApi.Security
+﻿namespace Arcus.EventGrid.Security.WebApi
 {
     /// <summary>
     /// Represents the additional consumer-configurable options to influence the behavior of the Azure Event Grid authorization (<see cref="EventGridAuthorizationFilter"/>).

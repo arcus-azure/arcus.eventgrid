@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Arcus.EventGrid.WebApi.Security
+namespace Arcus.EventGrid.Security.WebApi
 {
     /// <summary>
     /// Represents an attribute to validate Azure Event Grid subscription events.

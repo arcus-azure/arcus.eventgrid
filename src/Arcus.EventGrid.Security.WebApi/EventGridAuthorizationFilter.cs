@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 
-namespace Arcus.EventGrid.WebApi.Security
+namespace Arcus.EventGrid.Security.WebApi
 {
     /// <summary>
     /// Represents a filter to authorize HTTP requests using Azure Event Grid.

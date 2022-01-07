@@ -15,7 +15,7 @@ We provide support for endpoint validation, when implementing your own custom we
 The features described here require the following package:
 
 ```shell
-PM> Install-Package Arcus.EventGrid.WebApi.Security 
+PM> Install-Package Arcus.EventGrid.Security.WebApi
 ```
 
 ## Azure Event Grid authorization
@@ -135,6 +135,71 @@ public class EventController : ControllerBase
     {
         return Ok();
     }
+}
+```
+
+### Use subscription validation in Azure Functions
+
+This library provides a security library called `Arcus.EventGrid.Security.AzureFunctions` where the subscription validation is available as a dedicated service as shown in the example below.
+
+The features described here require the following package:
+
+```shell
+PM> Install-Package Arcus.EventGrid.Security.AzureFunctions
+```
+
+Make sure you register the Azure EventGrid validation in the `Startup`:
+
+```csharp
+using Arcus.EventGrid.Security.Core;
+
+[assembly: FunctionsStartup(typeof(Startup))]
+
+public class Startup : FunctionsStartup
+{
+    public void Configure(IFunctionsHostBuilder builder)
+    {
+        builder.Services.AddEventGridSubscriptionValidation();
+    }
+}
+```
+
+This registration allows you to use the `IEventGridSubscriptionValidator` within your Azure Function:
+
+```csharp
+using Arcus.EventGrid.Security.Core.Validation;
+
+public class AzureMonitorScaledFunction
+{
+    private readonly IEventGridSubscriptionValidator _eventGridSubscriptionValidator
+
+    public AzureMonitorScaledFunction(IEventGridSubscriptionValidator eventGridSubscriptionValidator)
+    {
+        _eventGridSubscriptionValidator = eventGridSubscriptionValidator;
+    }
+
+    [FunctionName("azure-monitor-scaled-app-event")]
+    public async Task<IActionResult> Run(
+        [HttpTrigger(AuthorizationLevel.Function, "post", "options", Route = "v1/autoscale/azure-monitor/app")] HttpRequest request)
+    {
+        // Option #1: CloudEvents support.
+        if (HttpMethods.IsOptions(request.Method))
+        {
+            IActionResult result = _eventGridSubscriptionValidator.ValidateCloudEventsHandshakeRequest(request);
+            return result;
+        }
+
+        // Option #2: Azure EventGrid subscription event support.
+        if (request.Headers.TryGetValue("Aeg-Event-Type", out StringValues eventTypes)
+            && eventTypes.Contains("SubscriptionValidation"))
+        {
+            IActionResult result = await _eventGridSubscriptionValidator.ValidateEventGridSubscriptionEventRequestAsync(request);
+            return result;
+        }
+
+        // Other logic...
+    }
+
 }
 ```
 
