@@ -14,12 +14,11 @@ We provide support for endpoint validation, when implementing your own custom we
 
 The features described here require the following package:
 
+> **⚠ This package used to be called `Arcus.EventGrid.Security`. Please make sure that you migrate towards this package as it's not being actively maintained beyond v3.2.**
+
 ```shell
 PM> Install-Package Arcus.EventGrid.Security.WebApi
 ```
-
-> ⚠ This package used to be called `Arcus.EventGrid.Security`. Please make sure that you migrate towards this package as it's not being actively maintained beyond v3.2.
-
 ## Azure Event Grid authorization
 
 Azure Event Grid authorization allows to secure your webhook with a secret key (taken from the query string or an HTTP header). 
