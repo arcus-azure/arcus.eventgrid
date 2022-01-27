@@ -16,6 +16,7 @@ namespace Arcus.EventGrid.Security
     /// <summary>
     ///     Event grid web hook validation attribute
     /// </summary>
+    [Obsolete("Use the 'Arcus.EventGrid.WebApi.Security' package instead where Azure EventGrid subscription validation happens via an attribute on class and/or operation level")]
     public class EventGridSubscriptionValidator : ActionFilterAttribute
     {
         /// <summary>
