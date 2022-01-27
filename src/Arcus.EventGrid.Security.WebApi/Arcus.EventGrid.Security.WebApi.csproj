@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Arcus.EventGrid.Security.Core\Arcus.EventGrid.Security.Core.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
 

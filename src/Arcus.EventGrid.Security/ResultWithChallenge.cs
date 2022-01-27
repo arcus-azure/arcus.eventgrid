@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -7,6 +8,7 @@ using System.Web.Http;
 
 namespace Arcus.EventGrid.Security
 {
+    [Obsolete("Use the 'Arcus.EventGrid.WebApi.Security' package instead where Azure EventGrid authorization and subscription validation is now located")]
     public class ResultWithChallenge : IHttpActionResult
     {
         private const string AuthenticationScheme = "secretkey";

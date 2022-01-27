@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using Arcus.EventGrid.Tests.Integration.WebApi.Fixture;
 using Arcus.EventGrid.Tests.Integration.WebApi.Security.Controllers;
-using Arcus.EventGrid.WebApi.Security;
+using Arcus.EventGrid.Security.WebApi;
 using Arcus.Testing.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

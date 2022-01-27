@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Copyright>Copyright (c) Arcus</Copyright>
+    <PackageLicenseUrl>https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/arcus-azure/arcus.eventgrid</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
+    <PackageTags>Azure;Event Grid</PackageTags>
+    <Company>Arcus</Company>
+    <Description>Provides comon security capabilities to simplify the authentication and endpoint handshake for Azure Event Grid</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Guard.NET" Version="1.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
+  </ItemGroup>
+
+</Project>
