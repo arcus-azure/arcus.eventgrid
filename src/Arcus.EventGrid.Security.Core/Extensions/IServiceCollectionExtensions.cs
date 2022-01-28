@@ -8,6 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// Extensions on the application services related to Azure EventGrid security.
     /// </summary>
+    // ReSharper disable once InconsistentNaming
     public static class IServiceCollectionExtensions
     {
         /// <summary>

@@ -25,6 +25,90 @@ namespace Arcus.EventGrid.Contracts
     public sealed class Event : IEvent, IEquatable<Event>
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="Event"/> class based on <see cref="CloudEvent"/> information.
+        /// </summary>
+        /// <param name="id">The unique identifier of the event.</param>
+        /// <param name="subject">The publisher-defined path to the event subject.</param>
+        /// <param name="eventType">The registered event types for this event's source.</param>
+        /// <param name="eventTime">The time the event is generated based on the provider's UTC time.</param>
+        /// <param name="data">The payload of the event.</param>
+        /// <param name="source">The origin of the event.</param>
+        /// <param name="topic">The full resource path to the event source. This field is not writable. Event Grid provides this value.</param>
+        /// <param name="specVersion">The version of the CloudEvent specification.</param>
+        /// <param name="attributes">The attributes of this event.</param>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when the <paramref name="id"/>, the <paramref name="eventType"/>, or the <paramref name="data"/> is <c>null</c>.
+        /// </exception>
+        public Event(
+            string id,
+            string subject,
+            string eventType,
+            DateTime? eventTime,
+            object data,
+            Uri source,
+            string topic,
+            CloudEventsSpecVersion specVersion,
+            IDictionary<string, object> attributes)
+        {
+            Guard.NotNull(id, nameof(id), "Requires an ID to identify the event");
+            Guard.NotNull(eventType, nameof(eventType), "Requires a type of the event");
+            Guard.NotNull(data, nameof(data), "Requires payload data of the event");
+
+            Id = id;
+            Subject = subject;
+            EventType = eventType;
+            EventTime = eventTime ?? default(DateTimeOffset);
+            Data = data;
+            Source = source;
+            Topic = topic;
+            SpecVersion = specVersion;
+            Attributes = new ReadOnlyDictionary<string, object>(attributes ?? new Dictionary<string, object>());
+            IsCloudEvent = true;
+            IsEventGridEvent = false;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Event"/> class based on <see cref="EventGridEvent"/> information.
+        /// </summary>
+        /// <param name="id">The unique identifier of the event.</param>
+        /// <param name="subject">The publisher-defined path to the event subject.</param>
+        /// <param name="eventType">The registered event types for this event's source.</param>
+        /// <param name="eventTime">The time the event is generated based on the provider's UTC time.</param>
+        /// <param name="data">The payload of the event.</param>
+        /// <param name="topic">The full resource path to the event source. This field is not writable. Event Grid provides this value.</param>
+        /// <param name="dataVersion">The schema version of the data object. The publisher defines the schema version.</param>
+        /// <param name="metaDataVersion">The schema version of the event metadata.</param>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when the <paramref name="id"/>, the <paramref name="eventType"/>, or the <paramref name="data"/> is <c>null</c>.
+        /// </exception>
+        public Event(
+            string id,
+            string subject,
+            string eventType,
+            DateTime? eventTime,
+            object data,
+            string topic,
+            string dataVersion,
+            string metaDataVersion)
+        {
+            Guard.NotNull(id, nameof(id), "Requires an ID to identify the event");
+            Guard.NotNull(eventType, nameof(eventType), "Requires a type of the event");
+            Guard.NotNull(data, nameof(data), "Requires payload data of the event");
+
+            Id = id;
+            Subject = subject;
+            EventType = eventType;
+            EventTime = eventTime ?? default(DateTimeOffset);
+            Data = data;
+            Topic = topic;
+            DataVersion = dataVersion;
+            MetadataVersion = metaDataVersion;
+            Attributes = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>());
+            IsEventGridEvent = true;
+            IsCloudEvent = false;
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Event"/> class.
         /// </summary>
         /// <param name="id">The unique identifier of the event.</param>
@@ -37,6 +121,7 @@ namespace Arcus.EventGrid.Contracts
         /// <param name="dataVersion">The schema version of the data object. The publisher defines the schema version.</param>
         /// <param name="metaDataVersion">The schema version of the event metadata.</param>
         /// <param name="attributes">The attributes of this event.</param>
+        [Obsolete("Use one of the other constructors to be more specific of the event type (CloudEvent of EventGridEvent)")]
         public Event(
             string id,
             string subject,
@@ -66,6 +151,93 @@ namespace Arcus.EventGrid.Contracts
         }
 
         /// <summary>
+        /// Gets the unique identifier for the event.
+        /// </summary>
+        public string Id { get; }
+
+        /// <summary>
+        /// Gets one of the registered event types for this event's source.
+        /// </summary>
+        public string EventType { get; }
+
+        /// <summary>
+        /// Gets the publisher-defined path to the event's subject.
+        /// </summary>
+        public string Subject { get; }
+
+        /// <summary>
+        /// Gets the time the event is generated based on the provider's UTC time.
+        /// </summary>
+        public DateTimeOffset EventTime { get; }
+
+        /// <summary>
+        /// Gets the schema version of the data object. The publisher defines the schema version.
+        /// </summary>
+        public string DataVersion { get; }
+
+        /// <summary>
+        /// Gets the schema version of the event metadata. Event Grid defines the schema of the top-level properties. Event Grid provides this value.
+        /// </summary>
+        public string MetadataVersion { get; }
+
+        /// <summary>
+        /// Gets the full resource path to the event source. This field is not writable. Event Grid provides this value.
+        /// </summary>
+        public string Topic { get; }
+
+        /// <summary>
+        /// Gets the origin of the event.
+        /// </summary>
+        public Uri Source { get; }
+
+        /// <summary>
+        /// Gets the attributes of this event.
+        /// </summary>
+        public IReadOnlyDictionary<string, object> Attributes { get; }
+
+        /// <summary>
+        /// Gets the payload of the event.
+        /// </summary>
+        public object Data { get; }
+
+        /// <summary>
+        /// Gets the optional specifications version of the <see cref="CloudEvent"/>.
+        /// </summary>
+        /// <remarks>
+        ///     Only available when the <see cref="Event"/> is an <see cref="CloudEvent"/>.
+        /// </remarks>
+        public CloudEventsSpecVersion? SpecVersion { get; }
+
+        /// <summary>
+        /// Gets the flag indicating whether or not the current event is a <see cref="CloudEvent"/>.
+        /// </summary>
+        public bool IsCloudEvent { get; }
+
+        /// <summary>
+        /// Gets the flag indicating whether or not the current event is an <see cref="EventGridEvent"/>.
+        /// </summary>
+        public bool IsEventGridEvent { get; }
+
+        /// <summary>
+        /// Gets the typed data payload from the abstracted event.
+        /// </summary>
+        /// <typeparam name="TData">The type of the payload the event is assumed to have.</typeparam>
+        public TData GetPayload<TData>()
+        {
+            if (Data is null)
+            {
+                return default(TData);
+            }
+
+            if (Data is TData data)
+            {
+                return data;
+            }
+
+            return JObject.Parse(Data.ToString()).ToObject<TData>();
+        }
+
+        /// <summary>
         /// Represent this model as a <see cref="CloudEvent"/> or <c>null</c>.
         /// </summary>
         public CloudEvent AsCloudEvent(
@@ -73,12 +245,12 @@ namespace Arcus.EventGrid.Contracts
             CloudEventsSpecVersion? specVersion = null,
             IEnumerable<ICloudEventExtension> extensions = null)
         {
-            var version = specVersion.GetValueOrDefault(CloudEventsSpecVersion.Default);
+            CloudEventsSpecVersion version = (specVersion ?? SpecVersion).GetValueOrDefault(CloudEventsSpecVersion.Default);
             if (Attributes.Count > 0)
             {
                 var cloudEvent = new CloudEvent(version, extensions);
                 IDictionary<string, object> attributes = cloudEvent.GetAttributes();
-                
+
                 foreach (KeyValuePair<string, object> keyValuePair in Attributes)
                 {
                     attributes[keyValuePair.Key] = keyValuePair.Value;
@@ -86,21 +258,19 @@ namespace Arcus.EventGrid.Contracts
 
                 return cloudEvent;
             }
-            else
+
+            return new CloudEvent(
+                version,
+                EventType,
+                Source ?? source,
+                Subject ?? String.Empty,
+                Id,
+                EventTime.DateTime,
+                extensions?.ToArray())
             {
-                return new CloudEvent(
-                    version, 
-                    EventType, 
-                    Source ?? source, 
-                    Subject ?? String.Empty, 
-                    Id, 
-                    EventTime.DateTime,
-                    extensions?.ToArray())
-                {
-                    Data = Data,
-                    DataContentType = new ContentType("application/json")
-                };
-            }
+                Data = Data,
+                DataContentType = new ContentType("application/json")
+            };
         }
 
         /// <summary>
@@ -136,7 +306,7 @@ namespace Arcus.EventGrid.Contracts
             {
                 return null;
             }
-            
+
             return new Event(
                 id: cloudEvent.Id,
                 subject: cloudEvent.Subject,
@@ -145,6 +315,7 @@ namespace Arcus.EventGrid.Contracts
                 data: cloudEvent.Data,
                 source: cloudEvent.Source,
                 topic: cloudEvent.Source?.OriginalString.Split('#').FirstOrDefault(),
+                specVersion: cloudEvent.SpecVersion,
                 attributes: cloudEvent.GetAttributes());
         }
 
@@ -157,7 +328,7 @@ namespace Arcus.EventGrid.Contracts
             {
                 return null;
             }
-            
+
             return new Event(
                 id: eventGridEvent.Id,
                 subject: eventGridEvent.Subject,
@@ -167,76 +338,6 @@ namespace Arcus.EventGrid.Contracts
                 topic: eventGridEvent.Topic,
                 dataVersion: eventGridEvent.DataVersion,
                 metaDataVersion: eventGridEvent.MetadataVersion);
-        }
-
-        /// <summary>
-        ///     Gets the unique identifier for the event.
-        /// </summary>
-        public string Id { get; }
-
-        /// <summary>
-        ///     Gets one of the registered event types for this event's source.
-        /// </summary>
-        public string EventType { get; }
-
-        /// <summary>
-        ///     Gets the publisher-defined path to the event's subject.
-        /// </summary>
-        public string Subject { get; }
-
-        /// <summary>
-        ///     Gets the time the event is generated based on the provider's UTC time.
-        /// </summary>
-        public DateTimeOffset EventTime { get; }
-
-        /// <summary>
-        ///     Gets the schema version of the data object. The publisher defines the schema version.
-        /// </summary>
-        public string DataVersion { get; }
-
-        /// <summary>
-        ///     Gets the schema version of the event metadata. Event Grid defines the schema of the top-level properties. Event Grid
-        ///     provides this value.
-        /// </summary>
-        public string MetadataVersion { get; }
-
-        /// <summary>
-        ///     Gets the full resource path to the event source. This field is not writable. Event Grid provides this value.
-        /// </summary>
-        public string Topic { get; }
-
-        /// <summary>
-        ///     Gets the origin of the event.
-        /// </summary>
-        public Uri Source { get; }
-
-        /// <summary>
-        ///     Gets the attributes of this event.
-        /// </summary>
-        public IReadOnlyDictionary<string, object> Attributes { get; }
-
-        /// <summary>
-        ///     Gets the payload of the event.
-        /// </summary>
-        public object Data { get; }
-
-        /// <summary>
-        /// Gets the typed data payload from the abstracted event.
-        /// </summary>
-        /// <typeparam name="TData">The type of the payload the event is assumed to have.</typeparam>
-        public TData GetPayload<TData>()
-        {
-            if (Data is null)
-            {
-                return default(TData);
-            }
-
-            if (Data is TData data)
-            {
-                return data;
-            }
-
-            return JObject.Parse(Data.ToString()).ToObject<TData>();
         }
 
         /// <summary>

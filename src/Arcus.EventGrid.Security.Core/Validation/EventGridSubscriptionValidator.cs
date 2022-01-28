@@ -73,7 +73,7 @@ namespace Arcus.EventGrid.Security.Core.Validation
             if (string.IsNullOrWhiteSpace(json))
             {
                 _logger.LogError("Cannot validate Azure Event Grid subscription in the HTTP request body because the request has no body");
-                return new BadRequestObjectResult("Cannot valdiate Azure Event Grid susbscription in the HTTP request body because the request has no body");
+                return new BadRequestObjectResult("Cannot validate Azure Event Grid subscription in the HTTP request body because the request has no body");
             }
 
             EventBatch<Event> eventBatch = EventParser.Parse(json);
