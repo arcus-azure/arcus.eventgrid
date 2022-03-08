@@ -11,10 +11,11 @@ The `Arcus.EventGrid` package provides several ways to deserializing events.
 
 Following paragraphs describe each supported type of event.
 
-- [Deserializing Built-In Azure Events](#deserializing-built-in-azure-events)
-- [Deserializing CloudEvent Events](#deserializing-cloudevent-events)
-- [Deserializing Event Grid Events](#deserializing-event-grid-events)
-- [Deserializing Custom Events](#deserializing-custom-events)
+- [Deserializing Events](#deserializing-events)
+  - [Deserializing Built-In Azure Events](#deserializing-built-in-azure-events)
+  - [Deserializing CloudEvent Events](#deserializing-cloudevent-events)
+  - [Deserializing Event Grid Events](#deserializing-event-grid-events)
+  - [Deserializing Custom Events](#deserializing-custom-events)
 
 ### Deserializing Built-In Azure Events
 
@@ -23,7 +24,7 @@ When using official Azure events, you can use `.ParseFromData<>` to deserialize 
 ```csharp
 using Arcus.EventGrid;
 using Arcus.EventGrid.Parsers;
-using Mircosoft.Azure.EventGrid.Models;
+using Microsoft.Azure.EventGrid.Models;
 
 // Parse directly from an event data type with the `.Parse` function.
 byte[] rawEvent = ...
@@ -36,7 +37,7 @@ EventGridEvent eventGridEvent = eventBatch.Events.Single();
 // Or explicitly.
 EventGridEvent eventGridEvent = eventBatch.Events.Single().AsEventGridEvent();
 
-// The actual EventGrid payload can be retrieved by passing allong the Azure SDK model type.
+// The actual EventGrid payload can be retrieved by passing along the Azure SDK model type.
 var storageEventData = eventGridEvent.GetPayload<StorageBlobCreatedEventData>();
 ```
 
@@ -61,7 +62,7 @@ var events = eventBatch.Events;
 // and can be cast implicitly like so, 
 CloudEvent cloudEvent = events.First();
 
-// Or explictly.
+// Or explicitly.
 CloudEvent cloudEvent = events.First().AsCloudEvent();
 ```
 
@@ -103,7 +104,7 @@ NewCarRegistered eventGridMessage = eventGridBatch.Events.First();
 
 // The original event payload can now be accessed.
 CarEventData typedEventPayload = eventGridMessage.GetPayload();
-object untypedEventPaylaod = eventGridMessage.Data;
+object untypedEventPayload = eventGridMessage.Data;
 ```
 
 [&larr; back](/)

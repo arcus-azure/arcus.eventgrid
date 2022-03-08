@@ -14,10 +14,11 @@ Easy to start:
 
 Here is what this article will cover:
 
-- [Receiving events in your tests](#receiving-events-in-your-tests)
-- [The Azure infrastructure](#azure-infrastructure)
-- [Test Example](#example)
-- [Troubleshooting tests](#troubleshooting-tests)
+- [Running integration tests with Arcus](#running-integration-tests-with-arcus)
+  - [Receiving events in your tests](#receiving-events-in-your-tests)
+  - [Example](#example)
+  - [Azure infrastructure](#azure-infrastructure)
+  - [Troubleshooting tests](#troubleshooting-tests)
     - [Use logging](#use-logging)
     - [Keeping a test subscription on the topic](#keeping-a-test-subscription-on-the-topic)
 
@@ -29,7 +30,7 @@ You can easily check if an event is received:
 _serviceBusEventConsumerHost.GetReceivedEvent(eventId, retryCount: 5)
 ```
 
-As requests are flowing in asynchronously, we provide the capability to retry the looking for an event which is using an exponential backoff.
+As requests are flowing in asynchronously, we provide the capability to retry the looking for an event which is using an exponential back off.
 
 In order to use this host, we require you to set up a small infrastructure in Azure that is consuming all events on your custom Azure Event Grid topic.
 

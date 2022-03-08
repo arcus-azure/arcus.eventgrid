@@ -14,10 +14,11 @@ Easy to start:
 
 Here is what this article will cover:
 
-- [Receiving events in your tests](#receiving-events-in-your-tests)
-- [The Azure infrastructure](#azure-infrastructure)
-- [Test Example](#example)
-- [Troubleshooting tests](#troubleshooting-tests)
+- [Running integration tests with Arcus](#running-integration-tests-with-arcus)
+  - [Receiving events in your tests](#receiving-events-in-your-tests)
+  - [Example](#example)
+  - [Azure infrastructure](#azure-infrastructure)
+  - [Troubleshooting tests](#troubleshooting-tests)
     - [Use logging](#use-logging)
     - [Keeping a test subscription on the topic](#keeping-a-test-subscription-on-the-topic)
 
@@ -120,7 +121,8 @@ You can turn this off by configuring this on the `ServiceBusEventConsumerHostOpt
 ```csharp
 var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(serviceBusTopicName, serviceBusConnectionString)
 {
-    SubscriptionBehavior = SubscriptionBehavior.KeepOnClosure // Default: SubscriptionBehavior.DeleteOnClosure
+    // Default: SubscriptionBehavior.DeleteOnClosure
+    SubscriptionBehavior = SubscriptionBehavior.KeepOnClosure
 };
 ```
 
