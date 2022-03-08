@@ -7,8 +7,16 @@ layout: default
 
 We provide support for endpoint validation, when implementing your own custom web hook.
 
-* [Azure Event Grid authorization](#azure-event-grid-authorization)
-* [Azure Event Grid subscription validation](#azure-event-grid-subscription-validation)
+- [Endpoint validation](#endpoint-validation)
+  - [Installation](#installation)
+  - [Azure Event Grid authorization](#azure-event-grid-authorization)
+    - [Enforce authorization globally](#enforce-authorization-globally)
+      - [Configuration](#configuration)
+    - [Enforce authorization per controller or operation](#enforce-authorization-per-controller-or-operation)
+      - [Configuration](#configuration-1)
+  - [Azure Event Grid subscription validation](#azure-event-grid-subscription-validation)
+    - [Enforce subscription validation per controller or operation](#enforce-subscription-validation-per-controller-or-operation)
+    - [Use subscription validation in Azure Functions](#use-subscription-validation-in-azure-functions)
 
 ## Installation
 
@@ -106,7 +114,7 @@ The `EventGridAuthorizationAttribute` attribute has some additional consumer-con
 ## Azure Event Grid subscription validation
 
 This library provides an Azure Event Grid subscription validation. It can receive Azure Event Grid events from an Event subscription and validates the contents.
-This is described in full at [the offical Microsoft docs](https://docs.microsoft.com/en-us/azure/event-grid/receive-events).
+This is described in full at [the official Microsoft docs](https://docs.microsoft.com/en-us/azure/event-grid/receive-events).
 
 ### Enforce subscription validation per controller or operation
 
@@ -125,7 +133,7 @@ public class EventController : ControllerBase
     // For CloudEvents validation:
     // When receiving an HTTP OPTIONS request, looks for the `WebHook-Request-Origin` request header.
     // -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // For Azure Event Grid valdiation:
+    // For Azure Event Grid validation:
     // Looks for the `Aeg-Event-Type` header in the HTTP request, if it contains the `SubscriptionValidation` value the request body will be deserialized and validated.
     // The action attribute will short-circuit the incoming request and return the validation result as an `SubscriptionValidationResponse` 
     // (see: https://docs.microsoft.com/en-us/dotnet/api/microsoft.azure.eventgrid.models.subscriptionvalidationresponse?view=azure-dotnet).

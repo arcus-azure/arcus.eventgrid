@@ -31,14 +31,14 @@ There are 2 attributes available to secure operations:
 These attributes will only allow an operation to be called, if the configured secret key value is found in the HTTP header or the Query String with the configured key name.
 
 #### The EventGridAuthorization attribute
-This attribute has the following public constructor.  This constructor sets the header or querystring name and the hard coded secret value.
+This attribute has the following public constructor.  This constructor sets the header or query string name and the hard coded secret value.
 
 ```csharp
 [EventGridAuthorization("keyName", "keyValue")]
 ```
 
 #### The DynamicEventGridAuthorization attribute
-This attribute has the following public constructors.  This constructor sets the header or querystring name to the provided value (or defaults to 'x-api-key' for the default constructor).
+This attribute has the following public constructors.  This constructor sets the header or query string name to the provided value (or defaults to 'x-api-key' for the default constructor).
 
 ```csharp
 [DynamicEventGridAuthorizationAttribute()]
