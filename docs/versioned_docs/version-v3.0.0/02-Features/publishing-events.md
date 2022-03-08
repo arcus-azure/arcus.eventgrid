@@ -106,7 +106,7 @@ await eventGridPublisher.PublishRawCloudEventAsync(eventId, eventSubject, rawEve
 
 The `EventGridPublisherBuilder` also provides several ways to publish events in a resilient manner. Resilient meaning we support three ways to add resilience to your event publishing:
 
-- **Exponential retry**: makes the publishing resilient by retrying a specified number of times with exponential backoff.
+- **Exponential retry**: makes the publishing resilient by retrying a specified number of times with exponential back off.
 
 ```csharp
 EventGridPublisherBuilder.ForTopic(topicEndpoint)
