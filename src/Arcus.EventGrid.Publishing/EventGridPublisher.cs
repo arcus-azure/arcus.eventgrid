@@ -306,7 +306,7 @@ namespace Arcus.EventGrid.Publishing
 
         private async Task PublishContentToTopicAsync(HttpContent content, string logEventType)
         {
-            using (DependencyMeasurement measurement = DependencyMeasurement.Start())
+            using (DurationMeasurement measurement = DurationMeasurement.Start())
             {
                 var isSuccessful = false;
                 try

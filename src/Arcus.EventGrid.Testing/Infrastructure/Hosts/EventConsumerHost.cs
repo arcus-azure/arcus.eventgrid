@@ -22,7 +22,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
     public class EventConsumerHost
     {
         // TODO: is 'static' correct here? Multiple event consumers should have different sets of received events, right?
-        private static readonly ConcurrentDictionary<string, string> ReceivedEvents = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> ReceivedEvents = new ConcurrentDictionary<string, string>();
         
         /// <summary>
         ///     Gets the logger associated with this event consumer.
