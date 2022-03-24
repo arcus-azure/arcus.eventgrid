@@ -296,11 +296,10 @@ namespace Arcus.EventGrid.Publishing
             await PublishContentToTopicAsync(content, logEventType: $"[{String.Join(", ", events.Select(ev => ev.EventType ?? "<no-event-type>"))}]");
         }
 
-        private HttpContent CreateSerializedJsonHttpContent<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
+        private static HttpContent CreateSerializedJsonHttpContent<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
         {
             string json = JsonConvert.SerializeObject(events.ToArray());
             var content = new StringContent(json);
-            content.Headers.Add("aeg-sas-key", _authenticationKey);
 
             return content;
         }
@@ -342,6 +341,7 @@ namespace Arcus.EventGrid.Publishing
 
         private async Task<HttpResponseMessage> SendHttpRequestAsync(HttpContent content)
         {
+            content.Headers.Add("aeg-sas-key", _authenticationKey);
             return await _resilientPolicy.ExecuteAsync(() => HttpClient.PostAsync(TopicEndpoint, content));
         }
 
