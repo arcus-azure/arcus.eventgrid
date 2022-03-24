@@ -9,7 +9,6 @@ using Arcus.EventGrid.Contracts.Interfaces;
 using Arcus.EventGrid.Publishing.Interfaces;
 using Arcus.Observability.Telemetry.Core;
 using CloudNative.CloudEvents;
-using Flurl.Http;
 using GuardNet;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -30,6 +29,7 @@ namespace Arcus.EventGrid.Publishing
         private readonly EventGridPublisherOptions _options;
 
         private static readonly JsonEventFormatter JsonEventFormatter = new JsonEventFormatter();
+        private static readonly HttpClient HttpClient = new HttpClient();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventGridPublisher"/> class.
@@ -296,23 +296,27 @@ namespace Arcus.EventGrid.Publishing
             await PublishContentToTopicAsync(content, logEventType: $"[{String.Join(", ", events.Select(ev => ev.EventType ?? "<no-event-type>"))}]");
         }
 
-        private static HttpContent CreateSerializedJsonHttpContent<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
+        private HttpContent CreateSerializedJsonHttpContent<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
         {
             string json = JsonConvert.SerializeObject(events.ToArray());
             var content = new StringContent(json);
+            content.Headers.Add("aeg-sas-key", _authenticationKey);
 
             return content;
         }
 
         private async Task PublishContentToTopicAsync(HttpContent content, string logEventType)
         {
+#if NET6_0
+            using (DurationMeasurement measurement = DurationMeasurement.Start())
+#else
             using (DependencyMeasurement measurement = DependencyMeasurement.Start())
+#endif
             {
                 var isSuccessful = false;
                 try
                 {
-                    using (HttpResponseMessage response =
-                        await _resilientPolicy.ExecuteAsync(() => SendAuthorizedHttpPostRequestAsync(content)))
+                    using (HttpResponseMessage response = await SendHttpRequestAsync(content))
                     {
                         isSuccessful = response.IsSuccessStatusCode;
                         if (!response.IsSuccessStatusCode)
@@ -336,13 +340,9 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private async Task<HttpResponseMessage> SendAuthorizedHttpPostRequestAsync(HttpContent content)
+        private async Task<HttpResponseMessage> SendHttpRequestAsync(HttpContent content)
         {
-            IFlurlRequest authorizedRequest = 
-                TopicEndpoint.WithHeader(name: "aeg-sas-key", value: _authenticationKey);
-            
-            HttpResponseMessage response = await authorizedRequest.SendAsync(HttpMethod.Post, content);
-            return response;
+            return await _resilientPolicy.ExecuteAsync(() => HttpClient.PostAsync(TopicEndpoint, content));
         }
 
 

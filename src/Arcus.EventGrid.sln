@@ -1,17 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29230.47
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid", "Arcus.EventGrid\Arcus.EventGrid.csproj", "{D934DF77-120F-4B90-A036-8A74E3A50B41}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Publishing", "Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj", "{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9A28129D-EE46-43AB-BA44-E1F546F3B3DA}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Security", "Arcus.EventGrid.Security\Arcus.EventGrid.Security.csproj", "{A6C908D6-CEF3-4156-9BA0-5A4996CF4559}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Tests.InMemoryApi", "Arcus.EventGrid.Tests.InMemoryApi\Arcus.EventGrid.Tests.InMemoryApi.csproj", "{75DA4772-1E5E-4128-8F07-9D117B102313}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.All", "Arcus.EventGrid.All\Arcus.EventGrid.All.csproj", "{AE321ACE-D9C5-468F-8F69-B36394FBEAA3}"
 EndProject
@@ -27,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Security.We
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Security.Core", "Arcus.EventGrid.Security.Core\Arcus.EventGrid.Security.Core.csproj", "{BBA7895F-38AB-42D8-93C3-776CDA0284C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arcus.EventGrid.Security.AzureFunctions", "Arcus.EventGrid.Security.AzureFunctions\Arcus.EventGrid.Security.AzureFunctions.csproj", "{94589506-186C-4FBA-989C-9F57743E2381}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Security.AzureFunctions", "Arcus.EventGrid.Security.AzureFunctions\Arcus.EventGrid.Security.AzureFunctions.csproj", "{94589506-186C-4FBA-989C-9F57743E2381}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,14 +39,6 @@ Global
 		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A6C908D6-CEF3-4156-9BA0-5A4996CF4559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6C908D6-CEF3-4156-9BA0-5A4996CF4559}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6C908D6-CEF3-4156-9BA0-5A4996CF4559}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6C908D6-CEF3-4156-9BA0-5A4996CF4559}.Release|Any CPU.Build.0 = Release|Any CPU
-		{75DA4772-1E5E-4128-8F07-9D117B102313}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{75DA4772-1E5E-4128-8F07-9D117B102313}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{75DA4772-1E5E-4128-8F07-9D117B102313}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{75DA4772-1E5E-4128-8F07-9D117B102313}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AE321ACE-D9C5-468F-8F69-B36394FBEAA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AE321ACE-D9C5-468F-8F69-B36394FBEAA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE321ACE-D9C5-468F-8F69-B36394FBEAA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -88,7 +76,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{75DA4772-1E5E-4128-8F07-9D117B102313} = {9A28129D-EE46-43AB-BA44-E1F546F3B3DA}
 		{2D4D4863-F92A-4639-91AE-9EC5FC43F8A1} = {9A28129D-EE46-43AB-BA44-E1F546F3B3DA}
 		{5303F5CA-5F12-4605-BF0E-02182C41CEB3} = {9A28129D-EE46-43AB-BA44-E1F546F3B3DA}
 		{362EF67C-4C16-4F56-ADAF-25345BA71692} = {9A28129D-EE46-43AB-BA44-E1F546F3B3DA}

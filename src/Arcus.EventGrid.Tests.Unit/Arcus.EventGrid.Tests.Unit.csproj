@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;netcoreapp3.1</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arcus.Observability.Telemetry.Core" Version="2.0.0" />
+    <PackageReference Include="Arcus.Observability.Telemetry.Core" Version="2.4.0" />
     <PackageReference Include="Arcus.Testing.Security" Version="0.2.0-preview-2" />
     <PackageReference Include="Bogus" Version="29.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
@@ -18,10 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Security.AzureFunctions\Arcus.EventGrid.Security.AzureFunctions.csproj" />
-    <ProjectReference Include="..\Arcus.EventGrid.Security\Arcus.EventGrid.Security.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Testing\Arcus.EventGrid.Testing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj" />
-    <ProjectReference Include="..\Arcus.EventGrid.Tests.InMemoryApi\Arcus.EventGrid.Tests.InMemoryApi.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Security.WebApi\Arcus.EventGrid.Security.WebApi.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
