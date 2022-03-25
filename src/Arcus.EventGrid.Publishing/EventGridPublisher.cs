@@ -348,7 +348,7 @@ namespace Arcus.EventGrid.Publishing
 
         private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
         {
-            var rawResponse = String.Empty;
+            var rawResponse = string.Empty;
 
             try
             {
@@ -356,7 +356,7 @@ namespace Arcus.EventGrid.Publishing
             }
             finally
             {
-                throw new ApplicationException($"Event grid publishing failed with status {response.StatusCode} and content {rawResponse}");
+                throw new ApplicationException($"Azure Event Grid publishing failed with status {response.StatusCode} and content {rawResponse}");
             }
         }
     }
