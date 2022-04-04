@@ -153,7 +153,11 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             CloudEvent receivedEvent = 
                 _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (CloudEvent ev) => ev.Id == eventId, 
+                    (CloudEvent ev) =>
+                    {
+                        _testOutput.WriteLine("Filter on event ID: {0} = {1}", eventId, ev.Id);
+                        return ev.Id == eventId;
+                    }, 
                     TimeSpan.FromSeconds(40));
             
             Assert.Equal(eventId, receivedEvent.Id);

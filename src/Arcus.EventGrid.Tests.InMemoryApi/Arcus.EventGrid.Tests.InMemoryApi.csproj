@@ -9,8 +9,4 @@
     <PackageReference Include="Microsoft.Owin.Testing" Version="4.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Arcus.EventGrid.Security\Arcus.EventGrid.Security.csproj" />
-  </ItemGroup>
-
 </Project>
