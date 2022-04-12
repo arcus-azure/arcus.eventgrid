@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Publishing"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9A28129D-EE46-43AB-BA44-E1F546F3B3DA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.All", "Arcus.EventGrid.All\Arcus.EventGrid.All.csproj", "{AE321ACE-D9C5-468F-8F69-B36394FBEAA3}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Tests.Integration", "Arcus.EventGrid.Tests.Integration\Arcus.EventGrid.Tests.Integration.csproj", "{2D4D4863-F92A-4639-91AE-9EC5FC43F8A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Tests.Core", "Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj", "{5303F5CA-5F12-4605-BF0E-02182C41CEB3}"
@@ -39,10 +37,6 @@ Global
 		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AE321ACE-D9C5-468F-8F69-B36394FBEAA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AE321ACE-D9C5-468F-8F69-B36394FBEAA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AE321ACE-D9C5-468F-8F69-B36394FBEAA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AE321ACE-D9C5-468F-8F69-B36394FBEAA3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2D4D4863-F92A-4639-91AE-9EC5FC43F8A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D4D4863-F92A-4639-91AE-9EC5FC43F8A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D4D4863-F92A-4639-91AE-9EC5FC43F8A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
