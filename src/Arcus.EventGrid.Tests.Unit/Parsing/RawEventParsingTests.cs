@@ -9,6 +9,7 @@ using Arcus.EventGrid.Tests.Core.Events.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
+#pragma warning disable CS0618 // Ignore deprecated types as we are testing them.
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
 {

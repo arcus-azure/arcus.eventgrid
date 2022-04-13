@@ -118,7 +118,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             // Arrange
             const string licensePlate = "1-TOM-337";
-            const string expectedSubject = "/";
             var eventId = Guid.NewGuid().ToString();
             var @event = new NewCarRegistered(eventId, licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(@event.Data);

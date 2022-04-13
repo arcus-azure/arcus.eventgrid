@@ -60,10 +60,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             string eventId = null;
             string eventType = "Arcus.Samples.Cars.NewCarRegistered";
             string eventBody = "{\"licensePlate\": \"1-TOM-1337\"}";
-            string eventSubject = "/cars/volvo";
-            string dataVersion = "1.0";
-            DateTimeOffset eventTime = DateTimeOffset.UtcNow;
-
+            
             // Act
             var eventGridPublisher =
                 EventGridPublisherBuilder

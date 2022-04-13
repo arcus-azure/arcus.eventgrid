@@ -7,6 +7,7 @@ using Microsoft.Azure.EventGrid.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
+#pragma warning disable CS0618 // Ignore deprecated types as we are testing them.
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
 {
@@ -496,8 +497,7 @@ namespace Arcus.EventGrid.Tests.Unit.Parsing
         {
             // Arrange
             const string eventType = "Microsoft.Storage.BlobCreated",
-                         source = "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account}#blobServices/default/containers/{storage-container}/blobs/{new-file}",
-                         eventId = "173d9985-401e-0075-2497-de268c06ff25",
+                eventId = "173d9985-401e-0075-2497-de268c06ff25",
                          eventTime = "2018-04-28T02:18:47.1281675+00:00";
 
             const string api = "PutBlockList",
