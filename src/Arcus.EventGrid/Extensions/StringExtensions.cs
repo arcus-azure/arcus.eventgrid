@@ -1,8 +1,12 @@
 ﻿using GuardNet;
 using Newtonsoft.Json.Linq;
 
+// ReSharper disable once CheckNamespace
 namespace System
 {
+    /// <summary>
+    /// Extensions on the <c>string</c> type related to event interaction.
+    /// </summary>
     public static class StringExtensions
     {
         /// <summary>

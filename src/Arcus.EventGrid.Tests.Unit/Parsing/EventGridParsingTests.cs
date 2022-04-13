@@ -7,6 +7,7 @@ using Arcus.EventGrid.Tests.Unit.Artifacts;
 using Microsoft.Azure.EventGrid.Models;
 using Newtonsoft.Json;
 using Xunit;
+#pragma warning disable CS0618 // Ignore deprecated types as we are testing them.
 
 namespace Arcus.EventGrid.Tests.Unit.Parsing
 {

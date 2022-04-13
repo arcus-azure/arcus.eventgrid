@@ -9,6 +9,7 @@ namespace Microsoft.Azure.Functions.Extensions.DependencyInjection
     /// <summary>
     /// Extensions on the Azure Functions <see cref="IFunctionsHostBuilder"/> to add Azure EventGrid security related methods.
     /// </summary>
+    // ReSharper disable once InconsistentNaming
     public static class IFunctionsHostBuilderExtensions
     {
         /// <summary>
