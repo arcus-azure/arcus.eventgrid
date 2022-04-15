@@ -38,28 +38,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
-        public async Task PublishSingleEventGridEvent_WithInvalidRetrieval_TimesOut()
-        {
-            // Arrange
-            const string eventSubject = "integration-test";
-            const string licensePlate = "1-TOM-337";
-            var eventId = Guid.NewGuid().ToString();
-            var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
-
-            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
-
-            // Act
-            await publisher.PublishAsync(@event);
-            TracePublishedEvent(eventId, @event);
-
-            // Assert
-            Assert.Throws<TimeoutException>(
-                () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (EventGridEvent eventGridEvent) => eventGridEvent.Id == "not existing ID",
-                    timeout: TimeSpan.FromSeconds(5)));
-        }
-
-        [Fact]
         public async Task PublishSingleEventGridEvent_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
@@ -104,7 +82,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             Assert.Equal(expected.Subject, actual.Subject);
             ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
         }
-        
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -201,6 +179,15 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
+        public void PublishSingleEventGridEvent_WithInvalidRetrieval_TimesOut()
+        {
+            Assert.Throws<TimeoutException>(
+                () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (EventGridEvent eventGridEvent) => eventGridEvent.Id == "not existing ID",
+                    timeout: TimeSpan.FromSeconds(5)));
         }
 
         [Fact]

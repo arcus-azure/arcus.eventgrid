@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Net.Mime;
-using System.Threading;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Publishing.Interfaces;
 using Arcus.EventGrid.Tests.Core;
-using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using CloudNative.CloudEvents;
@@ -37,32 +33,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task InitializeAsync()
         {
             _endpoint = await EventGridTopicEndpoint.CreateForCloudEventAsync(_config, _testOutput);
-        }
-
-        [Fact]
-        public async Task PublishSingleCloudEvent_WithInvalidRetrieval_TimesOut()
-        {
-            // Arrange
-            const string eventSubject = "integration-test";
-            const string licensePlate = "1-TOM-337";
-            var eventId = Guid.NewGuid().ToString();
-            var @event = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), eventSubject, eventId)
-            {
-                Data = new CarEventData(licensePlate),
-                DataContentType = new ContentType("application/json")
-            };
-
-            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
-
-            // Act
-            await publisher.PublishAsync(@event);
-            TracePublishedEvent(eventId, @event);
-
-            // Assert
-            Assert.Throws<TimeoutException>(
-                () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (CloudEvent cloudEvent) => cloudEvent.Id == "not existing ID", 
-                    timeout: TimeSpan.FromSeconds(5)));
         }
 
         [Fact]
@@ -150,7 +120,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, cloudEvent.Type, expectedSubject, licensePlate, receivedEvent);
         }
-        
+
         [Fact]
         public async Task PublishSingleRawEventWithSubject_WithBuilder_ValidParameters_Succeeds()
         {
@@ -220,6 +190,15 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             string receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, cloudEvent.Type, cloudEvent.Subject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
+        public void PublishSingleCloudEvent_WithInvalidRetrieval_TimesOut()
+        {
+            Assert.Throws<TimeoutException>(
+                () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (CloudEvent cloudEvent) => cloudEvent.Id == "not existing ID", 
+                    timeout: TimeSpan.FromSeconds(5)));
         }
 
         private void TracePublishedEvent(string eventId, object events)
