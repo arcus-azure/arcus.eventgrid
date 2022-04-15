@@ -2,6 +2,9 @@
 
 namespace Arcus.EventGrid.Contracts.Interfaces
 {
+    /// <summary>
+    /// Represents an abstraction on the Azure EventGrid and CloudEvents event models to have a cannonical event structure.
+    /// </summary>
     public interface IEvent
     {
         /// <summary>
