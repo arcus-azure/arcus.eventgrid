@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Net.Mime;
+using System.Threading;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Publishing.Interfaces;
 using Arcus.EventGrid.Tests.Core;
+using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using CloudNative.CloudEvents;
@@ -35,6 +37,32 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task InitializeAsync()
         {
             _endpoint = await EventGridTopicEndpoint.CreateForCloudEventAsync(_config, _testOutput);
+        }
+
+        [Fact]
+        public async Task PublishSingleCloudEvent_WithInvalidRetrieval_TimesOut()
+        {
+            // Arrange
+            const string eventSubject = "integration-test";
+            const string licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var @event = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), eventSubject, eventId)
+            {
+                Data = new CarEventData(licensePlate),
+                DataContentType = new ContentType("application/json")
+            };
+
+            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
+
+            // Act
+            await publisher.PublishAsync(@event);
+            TracePublishedEvent(eventId, @event);
+
+            // Assert
+            Assert.Throws<TimeoutException>(
+                () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (CloudEvent cloudEvent) => cloudEvent.Id == "not existing ID", 
+                    timeout: TimeSpan.FromSeconds(5)));
         }
 
         [Fact]
@@ -131,7 +159,6 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             const string expectedSubject = "/";
             var eventId = Guid.NewGuid().ToString();
             var data = new CarEventData(licensePlate);
-            var rawEventBody = JsonConvert.SerializeObject(data);
             var cloudEvent = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), subject: expectedSubject, id: eventId, DateTime.UtcNow)
             {
                 Data = data,
@@ -141,13 +168,9 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
 
             // Act
-            await publisher.PublishRawCloudEventAsync(
-                cloudEvent.SpecVersion,
-                cloudEvent.Id,
-                cloudEvent.Type,
-                cloudEvent.Source,
-                rawEventBody,
-                cloudEvent.Subject);
+            _testOutput.WriteLine("Publish CloudEvent (Id='{0}') to Azure Event Grid", eventId);
+            await publisher.PublishAsync(cloudEvent);
+              
             TracePublishedEvent(eventId, cloudEvent);
 
             // Assert
@@ -158,7 +181,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                         _testOutput.WriteLine("Filter on event ID: {0} = {1}", eventId, ev.Id);
                         return ev.Id == eventId;
                     }, 
-                    TimeSpan.FromSeconds(40));
+                    TimeSpan.FromSeconds(5));
             
             Assert.Equal(eventId, receivedEvent.Id);
             Assert.Equal(cloudEvent.Subject, receivedEvent.Subject);

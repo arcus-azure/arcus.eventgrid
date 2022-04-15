@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Polly;
+using Polly.Timeout;
 
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
@@ -147,8 +148,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             if (result.Outcome is OutcomeType.Failure)
             {
-                throw new TimeoutException(
-                    "Could not in the time available receive an event from Event Grid on the Service Bus topic");
+                if (result.FinalException is TimeoutRejectedException)
+                {
+                    throw new TimeoutException(
+                        "Could not in the time available receive an event from Event Grid on the Service Bus topic");
+                }
+
+                throw result.FinalException;
             }
 
             return result.Result;
@@ -181,8 +187,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             if (result.Outcome is OutcomeType.Failure)
             {
-                throw new TimeoutException(
-                    $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                if (result.FinalException is TimeoutRejectedException)
+                {
+                    throw new TimeoutException(
+                        $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                }
+
+                throw result.FinalException;
             }
 
             return result.Result;
@@ -215,8 +226,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             if (result.Outcome is OutcomeType.Failure)
             {
-                throw new TimeoutException(
-                    $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                if (result.FinalException is TimeoutRejectedException)
+                {
+                    throw new TimeoutException(
+                        $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                }
+
+                throw result.FinalException;
             }
 
             return result.Result;
@@ -255,8 +271,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             
             if (result.Outcome is OutcomeType.Failure)
             {
-                throw new TimeoutException(
-                    $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                if (result.FinalException is TimeoutRejectedException)
+                {
+                    throw new TimeoutException(
+                        $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                }
+
+                throw result.FinalException;
             }
 
             return result.Result;

@@ -38,6 +38,28 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
+        public async Task PublishSingleEventGridEvent_WithInvalidRetrieval_TimesOut()
+        {
+            // Arrange
+            const string eventSubject = "integration-test";
+            const string licensePlate = "1-TOM-337";
+            var eventId = Guid.NewGuid().ToString();
+            var @event = new NewCarRegistered(eventId, eventSubject, licensePlate);
+
+            IEventGridPublisher publisher = EventPublisherFactory.CreateEventGridEventPublisher(_config);
+
+            // Act
+            await publisher.PublishAsync(@event);
+            TracePublishedEvent(eventId, @event);
+
+            // Assert
+            Assert.Throws<TimeoutException>(
+                () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (EventGridEvent eventGridEvent) => eventGridEvent.Id == "not existing ID",
+                    timeout: TimeSpan.FromSeconds(5)));
+        }
+
+        [Fact]
         public async Task PublishSingleEventGridEvent_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
