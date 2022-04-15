@@ -300,6 +300,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Policy<TResult> timeoutPolicy =
                 Policy.Timeout(timeout)
                       .Wrap(Policy.HandleResult(resultPredicate)
+                                  .Or<Exception>()
                                   .WaitAndRetryForever(retryCount => TimeSpan.FromSeconds(1)));
 
             return timeoutPolicy;
