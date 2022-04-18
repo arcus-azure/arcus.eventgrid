@@ -130,6 +130,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             const string expectedSubject = "/";
             var eventId = Guid.NewGuid().ToString();
             var data = new CarEventData(licensePlate);
+            var rawEventBody = JsonConvert.SerializeObject(data);
             var cloudEvent = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), subject: expectedSubject, id: eventId, DateTime.UtcNow)
             {
                 Data = data,
@@ -140,8 +141,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Act
             _testOutput.WriteLine("Publish CloudEvent (Id='{0}') to Azure Event Grid", eventId);
-            await publisher.PublishAsync(cloudEvent);
-              
+            await publisher.PublishRawCloudEventAsync(
+                cloudEvent.SpecVersion,
+                cloudEvent.Id,
+                cloudEvent.Type,
+                cloudEvent.Source,
+                rawEventBody,
+                cloudEvent.Subject);
+
             TracePublishedEvent(eventId, cloudEvent);
 
             // Assert
