@@ -300,7 +300,8 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Policy<TResult> timeoutPolicy =
                 Policy.Timeout(timeout)
                       .Wrap(Policy.HandleResult(resultPredicate)
-                                  .Or<Exception>()
+                                  // Sometimes, the receiving of CloudEvents events results in this kind of exception where the 'schemaUrl' is not a valid URL structure.
+                                  .Or<InvalidOperationException>(exception => exception.Message?.Contains("schemaUrl") is true)
                                   .WaitAndRetryForever(retryCount => TimeSpan.FromSeconds(1)));
 
             return timeoutPolicy;
