@@ -120,15 +120,8 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             string rawReceivedEvents = string.Empty;
             try
             {
-                if (receivedMessage.ContentType == "application/json")
-                {
-                    rawReceivedEvents = receivedMessage.Body.ToString();
-                    EventsReceived(rawReceivedEvents);
-                }
-                else
-                {
-                    Logger.LogWarning("Cannot correctly receive Azure Service Bus message '{MessageId}' because it had not a valid JSON body", receivedMessage.MessageId);
-                }
+                rawReceivedEvents = receivedMessage.Body.ToString();
+                EventsReceived(rawReceivedEvents);
 
                 await eventArgs.CompleteMessageAsync(eventArgs.Message);
                 Logger.LogInformation("Message '{messageId}' was successfully handled", receivedMessage.MessageId);
