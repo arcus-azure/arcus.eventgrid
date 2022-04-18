@@ -151,7 +151,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                         _testOutput.WriteLine("Filter on event ID: {0} = {1}", eventId, ev.Id);
                         return ev.Id == eventId;
                     }, 
-                    TimeSpan.FromSeconds(5));
+                    TimeSpan.FromSeconds(40));
             
             Assert.Equal(eventId, receivedEvent.Id);
             Assert.Equal(cloudEvent.Subject, receivedEvent.Subject);
