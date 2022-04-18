@@ -13,6 +13,7 @@ using Xunit.Abstractions;
 namespace Arcus.EventGrid.Tests.Integration.Publishing
 {
     [Trait(name: "Category", value: "Integration")]
+    [Collection(TestCollections.Integration)]
     public class CloudEventPublishing : IAsyncLifetime
     {
         private readonly TestConfig _config = TestConfig.Create();

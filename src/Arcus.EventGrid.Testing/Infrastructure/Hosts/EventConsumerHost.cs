@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
@@ -9,7 +8,6 @@ using CloudNative.CloudEvents;
 using GuardNet;
 using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Polly;
@@ -22,8 +20,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
     /// </summary>
     public class EventConsumerHost
     {
-        // TODO: is 'static' correct here? Multiple event consumers should have different sets of received events, right?
-        private static readonly ConcurrentDictionary<string, string> ReceivedEvents = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> _receivedEvents = new ConcurrentDictionary<string, string>();
         
         /// <summary>
         ///     Gets the logger associated with this event consumer.
@@ -51,7 +48,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <exception cref="ArgumentException">Thrown when the <paramref name="rawReceivedEvents"/> is blank.</exception>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="logger"/> is <c>null</c>.</exception>
         /// <exception cref="JsonReaderException">Thrown when the <paramref name="rawReceivedEvents"/> failed to be read as valid JSON.</exception>
-        protected static void EventsReceived(string rawReceivedEvents, ILogger logger)
+        protected void EventsReceived(string rawReceivedEvents, ILogger logger)
         {
             Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents), "Requires a non-blank raw event payload containing the serialized received events");
             Guard.NotNull(logger, nameof(logger), "Requires an logger instance to write event information of the received events");
@@ -74,7 +71,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             }
         }
 
-        private static void SaveEvent(JToken parsedEvent, string rawReceivedEvents, ILogger logger)
+        private void SaveEvent(JToken parsedEvent, string rawReceivedEvents, ILogger logger)
         {
             string eventId = DetermineEventId(parsedEvent);
             if (eventId is null)
@@ -84,7 +81,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             else
             {
                 logger.LogTrace("Received event with ID: {EventId} and payload: {EventPayload}", eventId, parsedEvent);
-                ReceivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents);
+                _receivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents);
             }
         }
 
@@ -300,8 +297,6 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Policy<TResult> timeoutPolicy =
                 Policy.Timeout(timeout)
                       .Wrap(Policy.HandleResult(resultPredicate)
-                                  // Sometimes, the receiving of CloudEvents events results in this kind of exception where the 'schemaUrl' is not a valid URL structure.
-                                  .Or<InvalidOperationException>(exception => exception.Message?.Contains("schemaUrl") is true)
                                   .WaitAndRetryForever(retryCount => TimeSpan.FromSeconds(1)));
 
             return timeoutPolicy;
@@ -309,21 +304,21 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
         private Event TryGetReceivedEvent(Func<Event, bool> eventFilter)
         {
-            if (ReceivedEvents.IsEmpty)
+            if (_receivedEvents.IsEmpty)
             {
                 Logger.LogTrace("No received events found");
             }
             else
             {
-                Logger.LogTrace("Current received event batches are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
+                Logger.LogTrace("Current received event batches are: {ReceivedEvents}", String.Join(", ", _receivedEvents.Keys));
                 Event[] eventBatches =
-                    ReceivedEvents.Values
+                    _receivedEvents.Values
                         .Select(EventParser.Parse)
                         .SelectMany(batch => batch.Events)
                         .Where(ev => ev != null)
                         .ToArray();
 
-                Logger.LogTrace("Currently {ReceivedEvents} event batches received which results in {ValidReceivedEvents} valid parsed events", ReceivedEvents.Count, eventBatches.Length);
+                Logger.LogTrace("Currently {ReceivedEvents} event batches received which results in {ValidReceivedEvents} valid parsed events", _receivedEvents.Count, eventBatches.Length);
                 Event @event = eventBatches.FirstOrDefault(eventFilter);
                 if (@event != null)
                 {
@@ -331,7 +326,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                 }
                 else
                 {
-                    Logger.LogInformation("None of the received events matches the event filter: {ReceivedEvents}", String.Join(Environment.NewLine, ReceivedEvents.Values));
+                    Logger.LogInformation("None of the received events matches the event filter: {ReceivedEvents}", String.Join(Environment.NewLine, _receivedEvents.Values));
                 }
 
                 return @event;
@@ -342,14 +337,14 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
         private string TryGetReceivedEvent(string eventId)
         {
-            if (ReceivedEvents.IsEmpty)
+            if (_receivedEvents.IsEmpty)
             {
                 Logger.LogTrace("No received events found");
             }
             else
             {
-                Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
-                if (ReceivedEvents.TryGetValue(eventId, out string rawEvent))
+                Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", _receivedEvents.Keys));
+                if (_receivedEvents.TryGetValue(eventId, out string rawEvent))
                 {
                     Logger.LogInformation("Found received event with ID: {EventId}", eventId);
                     return rawEvent;
