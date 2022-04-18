@@ -123,7 +123,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
                 if (receivedMessage.ContentType == "application/json")
                 {
                     rawReceivedEvents = receivedMessage.Body.ToString();
-                    EventsReceived(rawReceivedEvents, Logger);
+                    EventsReceived(rawReceivedEvents);
                 }
                 else
                 {

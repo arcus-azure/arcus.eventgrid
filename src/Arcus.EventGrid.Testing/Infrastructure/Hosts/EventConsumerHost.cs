@@ -39,7 +39,35 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Logger = logger;
         }
 
-        // TODO: is 'static' correct here? Couldn't we provide a instance member where we use the constructor-provided logger instead?
+
+        /// <summary>
+        /// Handles new received events into the event consumer that can later be retrieved.
+        /// </summary>
+        /// <param name="rawReceivedEvents">The raw payload containing all received events.</param>
+        /// <exception cref="ArgumentException">Thrown when the <paramref name="rawReceivedEvents"/> is blank.</exception>
+        /// <exception cref="JsonReaderException">Thrown when the <paramref name="rawReceivedEvents"/> failed to be read as valid JSON.</exception>
+        protected void EventsReceived(string rawReceivedEvents)
+        {
+            Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents), "Requires a non-blank raw event payload containing the serialized received events");
+
+            JToken jToken = JToken.Parse(rawReceivedEvents);
+            if (jToken.Type is JTokenType.Array)
+            {
+                foreach (JToken parsedEvent in jToken.Children())
+                {
+                    SaveEvent(parsedEvent, rawReceivedEvents, Logger);
+                }
+            }
+            else if (jToken.Type is JTokenType.Object)
+            {
+                SaveEvent(jToken, rawReceivedEvents, Logger);
+            }
+            else
+            {
+                Logger.LogWarning("Could not save event because it doesn't represents either a JSON array (multiple events) or object (single event): '{EventPayload}'", rawReceivedEvents);
+            }
+        }
+
         /// <summary>
         /// Handles new received events into the event consumer that can later be retrieved.
         /// </summary>
@@ -48,6 +76,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <exception cref="ArgumentException">Thrown when the <paramref name="rawReceivedEvents"/> is blank.</exception>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="logger"/> is <c>null</c>.</exception>
         /// <exception cref="JsonReaderException">Thrown when the <paramref name="rawReceivedEvents"/> failed to be read as valid JSON.</exception>
+        [Obsolete("Use the overload without the logger instead")]
         protected void EventsReceived(string rawReceivedEvents, ILogger logger)
         {
             Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents), "Requires a non-blank raw event payload containing the serialized received events");
