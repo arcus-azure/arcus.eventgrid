@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
@@ -9,10 +8,9 @@ using CloudNative.CloudEvents;
 using GuardNet;
 using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Polly;
+using Polly.Timeout;
 
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
@@ -21,13 +19,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
     /// </summary>
     public class EventConsumerHost
     {
-        // TODO: is 'static' correct here? Multiple event consumers should have different sets of received events, right?
-        private static readonly ConcurrentDictionary<string, string> ReceivedEvents = new ConcurrentDictionary<string, string>();
-        
-        /// <summary>
-        ///     Gets the logger associated with this event consumer.
-        /// </summary>
-        protected ILogger Logger { get; }
+        private readonly ConcurrentDictionary<string, (string originalEvent, Event parsedEvent)> _events = new ConcurrentDictionary<string, (string, Event)>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventConsumerHost"/> class.
@@ -41,7 +33,27 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Logger = logger;
         }
 
-        // TODO: is 'static' correct here? Couldn't we provide a instance member where we use the constructor-provided logger instead?
+        /// <summary>
+        /// Gets the logger associated with this event consumer.
+        /// </summary>
+        protected ILogger Logger { get; }
+
+
+        /// <summary>
+        /// Handles new received events into the event consumer that can later be retrieved.
+        /// </summary>
+        /// <param name="rawReceivedEvents">The raw payload containing all received events.</param>
+        /// <exception cref="ArgumentException">Thrown when the <paramref name="rawReceivedEvents"/> is blank.</exception>
+        /// <exception cref="JsonReaderException">Thrown when the <paramref name="rawReceivedEvents"/> failed to be read as valid JSON.</exception>
+        protected void EventsReceived(string rawReceivedEvents)
+        {
+            Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents), "Requires a non-blank raw event payload containing the serialized received events");
+
+#pragma warning disable CS0618
+            EventsReceived(rawReceivedEvents, Logger);
+#pragma warning restore CS0618
+        }
+
         /// <summary>
         /// Handles new received events into the event consumer that can later be retrieved.
         /// </summary>
@@ -50,40 +62,17 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <exception cref="ArgumentException">Thrown when the <paramref name="rawReceivedEvents"/> is blank.</exception>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="logger"/> is <c>null</c>.</exception>
         /// <exception cref="JsonReaderException">Thrown when the <paramref name="rawReceivedEvents"/> failed to be read as valid JSON.</exception>
-        protected static void EventsReceived(string rawReceivedEvents, ILogger logger)
+        [Obsolete("Use the overload without the logger instead")]
+        protected void EventsReceived(string rawReceivedEvents, ILogger logger)
         {
             Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents), "Requires a non-blank raw event payload containing the serialized received events");
             Guard.NotNull(logger, nameof(logger), "Requires an logger instance to write event information of the received events");
-            
-            JToken jToken = JToken.Parse(rawReceivedEvents);
-            if (jToken.Type is JTokenType.Array)
-            {
-                foreach (JToken parsedEvent in jToken.Children())
-                {
-                    SaveEvent(parsedEvent, rawReceivedEvents, logger);
-                }
-            }
-            else if (jToken.Type is JTokenType.Object)
-            {
-                SaveEvent(jToken, rawReceivedEvents, logger);
-            }
-            else
-            {
-                logger.LogWarning("Could not save event because it doesn't represents either a JSON array (multiple events) or object (single event): '{EventPayload}'", rawReceivedEvents);
-            }
-        }
 
-        private static void SaveEvent(JToken parsedEvent, string rawReceivedEvents, ILogger logger)
-        {
-            string eventId = DetermineEventId(parsedEvent);
-            if (eventId is null)
+            EventBatch<Event> eventBatch = EventParser.Parse(rawReceivedEvents);
+            foreach (Event receivedEvent in eventBatch.Events)
             {
-                logger.LogWarning("Could not save event because event was received without an event ID and payload: {EventPayload}", parsedEvent);
-            }
-            else
-            {
-                logger.LogTrace("Received event with ID: {EventId} and payload: {EventPayload}", eventId, parsedEvent);
-                ReceivedEvents.AddOrUpdate(eventId, rawReceivedEvents, (key, value) => rawReceivedEvents);
+                logger.LogTrace("Received event '{EventId}' on event consumer host", receivedEvent.Id);
+                _events.AddOrUpdate(receivedEvent.Id, (rawReceivedEvents, receivedEvent), (id, ev) => (rawReceivedEvents, receivedEvent));
             }
         }
 
@@ -147,8 +136,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             if (result.Outcome is OutcomeType.Failure)
             {
-                throw new TimeoutException(
-                    "Could not in the time available receive an event from Event Grid on the Service Bus topic");
+                if (result.FinalException is TimeoutRejectedException)
+                {
+                    throw new TimeoutException(
+                        "Could not in the time available receive an event from Event Grid on the Service Bus topic");
+                }
+
+                throw result.FinalException;
             }
 
             return result.Result;
@@ -181,8 +175,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             if (result.Outcome is OutcomeType.Failure)
             {
-                throw new TimeoutException(
-                    $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                if (result.FinalException is TimeoutRejectedException)
+                {
+                    throw new TimeoutException(
+                        $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                }
+
+                throw result.FinalException;
             }
 
             return result.Result;
@@ -215,8 +214,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             if (result.Outcome is OutcomeType.Failure)
             {
-                throw new TimeoutException(
-                    $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                if (result.FinalException is TimeoutRejectedException)
+                {
+                    throw new TimeoutException(
+                        $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                }
+
+                throw result.FinalException;
             }
 
             return result.Result;
@@ -255,8 +259,13 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             
             if (result.Outcome is OutcomeType.Failure)
             {
-                throw new TimeoutException(
-                    $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                if (result.FinalException is TimeoutRejectedException)
+                {
+                    throw new TimeoutException(
+                        $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
+                }
+
+                throw result.FinalException;
             }
 
             return result.Result;
@@ -286,32 +295,25 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
         private Event TryGetReceivedEvent(Func<Event, bool> eventFilter)
         {
-            if (ReceivedEvents.IsEmpty)
+            if (_events.IsEmpty)
             {
                 Logger.LogTrace("No received events found");
             }
             else
             {
-                Logger.LogTrace("Current received event batches are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
-                Event[] eventBatches =
-                    ReceivedEvents.Values
-                        .Select(EventParser.Parse)
-                        .SelectMany(batch => batch.Events)
-                        .Where(ev => ev != null)
-                        .ToArray();
+                Logger.LogTrace("Current received event batches are: {ReceivedEvents}", String.Join(", ", _events.Keys));
 
-                Logger.LogTrace("Currently {ReceivedEvents} event batches received which results in {ValidReceivedEvents} valid parsed events", ReceivedEvents.Count, eventBatches.Length);
-                Event @event = eventBatches.FirstOrDefault(eventFilter);
-                if (@event != null)
+                (string eventId, (string originalEvent, Event parsedEvent)) = _events.FirstOrDefault(ev => eventFilter(ev.Value.parsedEvent));
+                if (parsedEvent != null)
                 {
-                    Logger.LogInformation("Found received event with ID: {EventId}", @event.Id);
+                    Logger.LogInformation("Found received event with ID: {EventId}", eventId);
                 }
                 else
                 {
-                    Logger.LogInformation("None of the received events matches the event filter: {ReceivedEvents}", String.Join(Environment.NewLine, ReceivedEvents.Values));
+                    Logger.LogInformation("None of the received events matches the event filter: {ReceivedEvents}", String.Join(Environment.NewLine, _events.Keys));
                 }
 
-                return @event;
+                return parsedEvent;
             }
 
             return null;
@@ -319,35 +321,18 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
         private string TryGetReceivedEvent(string eventId)
         {
-            if (ReceivedEvents.IsEmpty)
+            if (_events.IsEmpty)
             {
-                Logger.LogTrace("No received events found");
+                Logger.LogTrace("No received events found with event ID: '{EventId}'", eventId);
             }
             else
             {
-                Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", ReceivedEvents.Keys));
-                if (ReceivedEvents.TryGetValue(eventId, out string rawEvent))
+                Logger.LogTrace("Current received events are: {ReceivedEvents}", String.Join(", ", _events.Keys));
+                if (_events.TryGetValue(eventId, out (string originalEvent, Event parsedEvent) item))
                 {
                     Logger.LogInformation("Found received event with ID: {EventId}", eventId);
-                    return rawEvent;
+                    return item.originalEvent;
                 }
-            }
-
-            return null;
-        }
-
-        private static string DetermineEventId(JToken parsedEvent)
-        {
-            if (parsedEvent is null)
-            {
-                throw new InvalidOperationException(
-                    "Could not parse the incoming raw event to a valid JSON structure, make sure that the consumed events in the test are serialized as JSON tokens");
-            }
-            
-            // TODO: configurable event ID retrieval?
-            if (parsedEvent is JObject jObject && jObject.TryGetValue("Id", StringComparison.InvariantCultureIgnoreCase, out JToken eventIdNode))
-            {
-                return eventIdNode.ToString();
             }
 
             return null;

@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 namespace Arcus.EventGrid.Tests.Integration.Publishing
 {
     [Trait(name: "Category", value: "Integration")]
+    [Collection(TestCollections.Integration)]
     public class EventGridEventPublishingTests : IAsyncLifetime
     {
         private readonly TestConfig _config = TestConfig.Create();
@@ -82,7 +83,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             Assert.Equal(expected.Subject, actual.Subject);
             ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
         }
-        
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -179,6 +180,15 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+        }
+
+        [Fact]
+        public void PublishSingleEventGridEvent_WithInvalidRetrieval_TimesOut()
+        {
+            Assert.Throws<TimeoutException>(
+                () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (EventGridEvent eventGridEvent) => eventGridEvent.Id == "not existing ID",
+                    timeout: TimeSpan.FromSeconds(5)));
         }
 
         [Fact]

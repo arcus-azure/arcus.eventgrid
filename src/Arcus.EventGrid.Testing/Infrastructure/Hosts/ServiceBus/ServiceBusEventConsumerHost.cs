@@ -121,7 +121,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus
             try
             {
                 rawReceivedEvents = receivedMessage.Body.ToString();
-                EventsReceived(rawReceivedEvents, Logger);
+                EventsReceived(rawReceivedEvents);
 
                 await eventArgs.CompleteMessageAsync(eventArgs.Message);
                 Logger.LogInformation("Message '{messageId}' was successfully handled", receivedMessage.MessageId);
