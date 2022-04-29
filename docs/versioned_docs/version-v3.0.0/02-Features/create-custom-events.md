@@ -10,7 +10,7 @@ We allow you to create custom events next to the [official Azure SDK event schem
 The official SDK provides a class called `EventGridEvent` which provides your event data as an ordinary .NET `object`.
 We provide a variation of the official `EventGridEvent` which provides your data as a typed instance instead.
 
-This makes sure that your new custom events are both type-safe and are supported by any official functions that uses the official `EventGridEvent`.
+This makes sure that your new custom events are both type-safe and are supported by any official functions that use the official `EventGridEvent`.
 
 ```csharp
 using Arcus.EventGrid.Contracts;
