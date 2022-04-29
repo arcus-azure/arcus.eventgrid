@@ -33,6 +33,13 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Services.AddSingleton<IEventGridPublisher>(serviceProvider =>
             {
                 var publisher = serviceProvider.GetService<IEventGridPublisher>();
+                if (publisher is null)
+                {
+                    throw new InvalidOperationException(
+                        "Cannot add the exponential back-off resilience to the Azure EventGrid publisher because no such publisher was registered before this point, " +
+                        "make sure that you correctly call the 'AddEventGridPublishing' before calling this extension");
+                }
+
                 return new ResilientEventGridPublisher(exponentialRetryPolicy, publisher);
             });
 
@@ -70,6 +77,13 @@ namespace Microsoft.Extensions.DependencyInjection
             services.Services.AddSingleton<IEventGridPublisher>(serviceProvider =>
             {
                 var publisher = serviceProvider.GetService<IEventGridPublisher>();
+                if (publisher is null)
+                {
+                    throw new InvalidOperationException(
+                        "Cannot add the circuit breaker resilience to the Azure EventGrid publisher because no such publisher was registered before this point, " +
+                        "make sure that you correctly call the 'AddEventGridPublishing' before calling this extension");
+                }
+
                 return new ResilientEventGridPublisher(circuitBreakerPolicy, publisher);
             });
 
