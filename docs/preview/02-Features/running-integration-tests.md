@@ -26,7 +26,7 @@ Here is what this article will cover:
 ### Receiving events in your tests
 By using the `ServiceBusEventConsumerHost` you can subscribe to Azure Event Grid events on a custom topic and consume them in your tests.
 
-As requests are flowing in asynchronously, we provide the capability to retry the looking for an event which is using an exponential back off.
+As requests are flowing in asynchronously, we provide the capability to retry the lookup for an event which is using an exponential back-off.
 
 In order to use this host, we require you to set up a small infrastructure in Azure that is consuming all events on your custom Azure Event Grid topic.
 
