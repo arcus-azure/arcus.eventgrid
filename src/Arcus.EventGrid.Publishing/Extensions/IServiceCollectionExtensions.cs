@@ -41,6 +41,10 @@ namespace Microsoft.Extensions.DependencyInjection
             Guard.NotNullOrWhitespace(authenticationKeySecretName, nameof(authenticationKeySecretName), "Requires a non-blank secret name to the authentication key secret to interact with the Azure EventGrid topic");
             Guard.For(() => Uri.IsWellFormedUriString(topicEndpoint, UriKind.Absolute) == false,
                 new UriFormatException("Requires a URI-valid topic endpoint for the Azure EventGrid publisher"));
+            Guard.For<UriFormatException>(
+                () => !topicEndpoint.StartsWith(Uri.UriSchemeHttp)
+                      && !topicEndpoint.StartsWith(Uri.UriSchemeHttps),
+                "Requires an Azure Event Grid topic endpoint that's either an HTTP or HTTPS endpoint");
 
             return AddEventGridPublishing(services, topicEndpoint, authenticationKeySecretName, configureOptions: null);
         }
@@ -70,8 +74,13 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             Guard.NotNull(services, nameof(services), "Requires a set of registered application service collection to register the Azure EventGrid publisher");
             Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "Requires a non-blank topic endpoint for the Azure EventGrid publisher");
+            Guard.NotNullOrWhitespace(authenticationKeySecretName, nameof(authenticationKeySecretName), "Requires a non-blank secret name to the authentication key secret to interact with the Azure EventGrid topic");
             Guard.For(() => Uri.IsWellFormedUriString(topicEndpoint, UriKind.Absolute) == false,
-                new ArgumentException("Requires a URI-valid topic endpoint for the Azure EventGrid publisher", nameof(topicEndpoint)));
+                new UriFormatException("Requires a URI-valid topic endpoint for the Azure EventGrid publisher"));
+            Guard.For<UriFormatException>(
+                () => !topicEndpoint.StartsWith(Uri.UriSchemeHttp)
+                      && !topicEndpoint.StartsWith(Uri.UriSchemeHttps),
+                "Requires an Azure Event Grid topic endpoint that's either an HTTP or HTTPS endpoint");
 
             return AddEventGridPublishing(services, (serviceProvider, options) =>
             {
@@ -123,15 +132,18 @@ namespace Microsoft.Extensions.DependencyInjection
             Guard.NotNull(services, nameof(services), "Requires a set of registered application service collection to register the Azure EventGrid publisher");
             Guard.NotNull(implementationFactory, nameof(implementationFactory), "Requires an implementation factory function to create a custom Azure EventGrid publisher");
 
-            services.AddHttpClient();
-            services.AddSingleton(serviceProvider =>
+            Func<IServiceProvider, IEventGridPublisher> createPublisher = serviceProvider =>
             {
                 var options = new EventGridPublisherOptions();
                 configureOptions?.Invoke(options);
 
                 return implementationFactory(serviceProvider, options);
-            });
-            return new EventGridPublishingServiceCollection(services);
+            };
+
+            services.AddHttpClient();
+            services.AddSingleton(createPublisher);
+
+            return new EventGridPublishingServiceCollection(services, createPublisher);
         }
     }
 }

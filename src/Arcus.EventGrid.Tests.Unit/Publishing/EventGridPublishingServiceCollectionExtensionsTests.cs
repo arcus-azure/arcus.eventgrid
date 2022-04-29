@@ -3,6 +3,7 @@ using Arcus.EventGrid.Publishing;
 using Arcus.EventGrid.Publishing.Interfaces;
 using Bogus;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Unit.Publishing
@@ -19,7 +20,8 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             int retryCount = BogusGenerator.Random.Int(min: 0);
 
             EventGridPublishingServiceCollection collection = 
-                services.AddEventGridPublishing("https://topic-endpoint", "<auth-secert-name>");
+                services.AddSecretStore(stores => stores.AddInMemory())
+                        .AddEventGridPublishing("https://topic-endpoint", "<auth-secert-name>");
 
             // Act
             collection.WithExponentialRetry<ApplicationException>(retryCount);
@@ -54,7 +56,8 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             var durationOfBreak = new TimeSpan(BogusGenerator.Random.Long(TimeSpan.Zero.Ticks, TimeSpan.MaxValue.Ticks));
 
             EventGridPublishingServiceCollection collection =
-                services.AddEventGridPublishing("https://topic-endpoint", "<auth-secert-name>");
+                services.AddSecretStore(stores => stores.AddInMemory())
+                        .AddEventGridPublishing("https://topic-endpoint", "<auth-secert-name>");
 
             // Act
             collection.WithCircuitBreaker<ApplicationException>(exceptionsAllowedBeforeBreaking, durationOfBreak);

@@ -64,7 +64,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             var services = new ServiceCollection();
 
             // Act / Assert
-            Assert.ThrowsAny<ArgumentException>(
+            Assert.ThrowsAny<UriFormatException>(
                 () => services.AddEventGridPublishing(topicEndpoint, "<auth-secret-name>"));
         }
 
@@ -136,7 +136,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             var services = new ServiceCollection();
 
             // Act / Assert
-            Assert.ThrowsAny<ArgumentException>(
+            Assert.ThrowsAny<UriFormatException>(
                 () => services.AddEventGridPublishing(topicEndpoint, "<auth-secret-name>", options => { }));
         }
 

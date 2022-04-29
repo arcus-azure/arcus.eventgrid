@@ -30,9 +30,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 Policy.Handle<TException>()
                       .WaitAndRetryAsync(retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
-            services.Services.AddSingleton<IEventGridPublisher>(serviceProvider =>
+            Func<IServiceProvider, IEventGridPublisher> createPublisher = serviceProvider =>
             {
-                var publisher = serviceProvider.GetService<IEventGridPublisher>();
+                IEventGridPublisher publisher = services.CreatePublisher(serviceProvider);
                 if (publisher is null)
                 {
                     throw new InvalidOperationException(
@@ -41,9 +41,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
 
                 return new ResilientEventGridPublisher(exponentialRetryPolicy, publisher);
-            });
+            };
 
-            return services;
+            services.Services.AddSingleton(createPublisher);
+            return new EventGridPublishingServiceCollection(services.Services, createPublisher);
         }
 
         /// <summary>
@@ -74,9 +75,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 Policy.Handle<TException>()
                       .CircuitBreakerAsync(exceptionsAllowedBeforeBreaking, durationOfBreak);
 
-            services.Services.AddSingleton<IEventGridPublisher>(serviceProvider =>
+            Func<IServiceProvider, IEventGridPublisher> createPublisher = serviceProvider =>
             {
-                var publisher = serviceProvider.GetService<IEventGridPublisher>();
+                IEventGridPublisher publisher = services.CreatePublisher(serviceProvider);
                 if (publisher is null)
                 {
                     throw new InvalidOperationException(
@@ -85,9 +86,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
 
                 return new ResilientEventGridPublisher(circuitBreakerPolicy, publisher);
-            });
+            };
 
-            return services;
+            services.Services.AddSingleton(createPublisher);
+            return new EventGridPublishingServiceCollection(services.Services, createPublisher);
         }
     }
 }
