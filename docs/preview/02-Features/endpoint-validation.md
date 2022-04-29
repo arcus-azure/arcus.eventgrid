@@ -44,7 +44,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public class Startup
 {
-    public void ConfigureService(IServiceCollection services)
+    public void ConfigureServices(IServiceCollection services)
     {
         // Looks for the 'x-api-key' header in the HTTP request and tries to match it with the secret retrieved in the secret store with the name 'MySecret'.
         services.AddMvc(options => options.Filters.AddEventGridAuthorization(HttpRequestProperty.Header, "x-api-key", "MySecret")));
@@ -65,7 +65,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public class Startup
 {
-    public void ConfigureService(IServiceCollection services)
+    public void ConfigureServices(IServiceCollection services)
     {
         // Looks for the 'x-api-key' header in the HTTP request and tries to match it with the secret retrieved in the secret store with the name 'MySecret'.
         services.AddMvc(options => options.Filters.AddEventGridAuthorization(HttpRequestProperty.Header, "x-api-key", "MySecret", options =>
