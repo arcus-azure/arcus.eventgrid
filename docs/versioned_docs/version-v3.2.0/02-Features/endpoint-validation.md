@@ -30,7 +30,7 @@ PM> Install-Package Arcus.EventGrid.Security.WebApi
 ## Azure Event Grid authorization
 
 Azure Event Grid authorization allows to secure your webhook with a secret key (taken from the query string or an HTTP header). 
-This is needed, because Azure Event Grid is send a validation request to a newly configured web hook, in order to prevent people leveraging Azure Event Grid to bring down a 3rd party API. 
+This is required, because Azure Event Grid sends a validation request to a newly configured web hook, in order to prevent people leveraging Azure Event Grid to bring down a 3rd party API. 
 
 The implementation we provide, is echoing back the validation key on your operation, in order to have the validation by Event Grid out of the box.
 
