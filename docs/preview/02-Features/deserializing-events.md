@@ -7,7 +7,7 @@ layout: default
 
 The `Arcus.EventGrid` package provides several ways to deserializing events.
 
-Following paragraphs describe each supported type of event.
+Following paragraphs describe each supported way to deserialize an event.
 
 - [Deserializing Events](#deserializing-events)
   - [Deserializing Built-In Azure Events](#deserializing-built-in-azure-events)
