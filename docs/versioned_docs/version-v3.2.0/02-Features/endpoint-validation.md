@@ -149,7 +149,7 @@ public class EventController : ControllerBase
 
 ### Use subscription validation in Azure Functions
 
-This library provides a security library called `Arcus.EventGrid.Security.AzureFunctions` where the subscription validation is available as a dedicated service as shown in the example below.
+The security library called `Arcus.EventGrid.Security.AzureFunctions` provides subscription validation as a dedicated service as shown in the example below.
 
 The features described here require the following package:
 
