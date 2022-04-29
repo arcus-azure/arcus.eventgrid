@@ -17,7 +17,7 @@ Following paragraphs describe each supported way to deserialize an event.
 
 ### Deserializing Built-In Azure Events
 
-When using official Azure events, you can use `.ParseFromData<>` to deserialize them based on the built-in types as shown in the example:
+When using official Azure events, you can use `.ParseFromData<>` to deserialize then those based on the built-in types as shown in the example:
 
 ```csharp
 using Arcus.EventGrid;
