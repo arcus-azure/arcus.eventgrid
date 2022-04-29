@@ -5,8 +5,6 @@ layout: default
 
 ## Publishing Events
 
-![](https://img.shields.io/badge/Available%20starting-v3.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v3.0.0)
-
 We provide support for publishing custom events to a custom Azure Event Grid Topics.
 
 Import the following namespace into your project:
@@ -72,8 +70,6 @@ await eventGridPublisher.PublishManyAsync(events);
 
 ### Publishing Raw Events
 
-![](https://img.shields.io/badge/Available%20starting-v3.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v3.0.0)
-
 **Publishing raw EventGridEvent's**
 
 We provide the capability to push EventGridEvents without a schema based on a raw JSON string.
@@ -108,8 +104,6 @@ await eventGridPublisher.PublishRawCloudEventAsync(eventId, eventSubject, rawEve
 
 ### Resilient Publishing
 
-![](https://img.shields.io/badge/Available%20starting-v2.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v2.0.0)
-
 The `EventGridPublisherBuilder` also provides several ways to publish events in a resilient manner. Resilient meaning we support three ways to add resilience to your event publishing:
 
 - **Exponential retry**: makes the publishing resilient by retrying a specified number of times with exponential back off.
@@ -139,5 +133,3 @@ EventGridPublisherBuilder.ForTopic(topicEndpoint)
                          .WithCircuitBreaker(exceptionsBeforeBreaking, durationOfBreak)
                          .Build();
 ```
-
-[&larr; back](/)

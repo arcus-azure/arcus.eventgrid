@@ -53,7 +53,7 @@ public class Startup
 ```
 
 For this setup to work, an Arcus secret store is required as the provided secret name (in this case `"MySecret"`) will be looked up.
-See [our offical documentation](https://security.arcus-azure.net/features/secret-store/) for more information about setting this up.
+See [our official documentation](https://security.arcus-azure.net/features/secret-store/) for more information about setting this up.
 
 #### Configuration
 
@@ -100,7 +100,7 @@ public class EventController : ControllerBase
 ```
 
 For this setup to work, an Arcus secret store is required as the provided secret name (in this case `"MySecret"`) will be looked up.
-See [our offical documentation](https://security.arcus-azure.net/features/secret-store/) for more information about setting this up.
+See [our official documentation](https://security.arcus-azure.net/features/secret-store/) for more information about setting this up.
 
 #### Configuration
 
@@ -211,5 +211,3 @@ public class AzureMonitorScaledFunction
 
 }
 ```
-
-[&larr; back](/)

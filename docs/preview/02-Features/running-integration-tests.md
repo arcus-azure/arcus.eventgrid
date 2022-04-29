@@ -5,8 +5,6 @@ layout: default
 
 ## Running integration tests with Arcus
 
-![](https://img.shields.io/badge/Available%20starting-v3.0-green?link=https://github.com/arcus-azure/arcus.eventgrid/releases/tag/v3.0.0)
-
 We provide some minimal testing infrastructure that allows you to run integration tests on top of Azure Event Grid.
 
 Easy to start:
@@ -165,5 +163,3 @@ var serviceBusEventConsumerHostOptions = new ServiceBusEventConsumerHostOptions(
     SubscriptionBehavior = SubscriptionBehavior.KeepOnClosure
 };
 ```
-
-[&larr; back](/)
