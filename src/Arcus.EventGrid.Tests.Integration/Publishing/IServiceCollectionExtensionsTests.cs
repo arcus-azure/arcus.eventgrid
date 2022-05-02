@@ -122,6 +122,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var services = new ServiceCollection();
             services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, authenticationKey))
                     .AddEventGridPublishing("https://invalid-topic-endpoint", authenticationKeySecretName)
+                    .WithExponentialRetry<HttpRequestException>(retryCount: 2)
                     .WithCircuitBreaker<HttpRequestException>(exceptionsAllowedBeforeBreaking: 1, durationOfBreak: TimeSpan.FromSeconds(5));
 
             IServiceProvider serviceProvider = services.BuildServiceProvider();
