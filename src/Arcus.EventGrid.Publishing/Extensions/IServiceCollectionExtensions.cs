@@ -141,9 +141,11 @@ namespace Microsoft.Extensions.DependencyInjection
             };
 
             services.AddHttpClient();
-            services.AddSingleton(createPublisher);
 
-            return new EventGridPublishingServiceCollection(services, createPublisher);
+            ServiceDescriptor serviceDescriptor = ServiceDescriptor.Singleton(createPublisher);
+            services.Add(serviceDescriptor);
+
+            return new EventGridPublishingServiceCollection(services, createPublisher, serviceDescriptor);
         }
     }
 }

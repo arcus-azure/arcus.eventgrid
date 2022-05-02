@@ -42,9 +42,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 return new ResilientEventGridPublisher(exponentialRetryPolicy, publisher);
             };
+            var serviceDescriptor = ServiceDescriptor.Singleton(createPublisher);
+            services.Services.Add(serviceDescriptor);
+            services.Services.Remove(services.RegisteredEventGridPublisher);
 
-            services.Services.AddSingleton(createPublisher);
-            return new EventGridPublishingServiceCollection(services.Services, createPublisher);
+            return new EventGridPublishingServiceCollection(services.Services, createPublisher, serviceDescriptor);
         }
 
         /// <summary>
@@ -87,9 +89,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 return new ResilientEventGridPublisher(circuitBreakerPolicy, publisher);
             };
-
+            var serviceDescriptor = ServiceDescriptor.Singleton(createPublisher);
             services.Services.AddSingleton(createPublisher);
-            return new EventGridPublishingServiceCollection(services.Services, createPublisher);
+            services.Services.Remove(services.RegisteredEventGridPublisher);
+
+            return new EventGridPublishingServiceCollection(services.Services, createPublisher, serviceDescriptor);
         }
     }
 }

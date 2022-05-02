@@ -22,7 +22,8 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
 
             // Assert
             IServiceProvider provider = services.BuildServiceProvider();
-            var publisher = provider.GetService<IEventGridPublisher>();
+            var publishers = provider.GetServices<IEventGridPublisher>();
+            IEventGridPublisher publisher = Assert.Single(publishers);
             Assert.NotNull(publisher);
             Assert.IsType<EventGridPublisher>(publisher);
         }
@@ -80,7 +81,8 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
 
             // Assert
             IServiceProvider provider = services.BuildServiceProvider();
-            var publisher = provider.GetService<IEventGridPublisher>();
+            var publishers = provider.GetServices<IEventGridPublisher>();
+            IEventGridPublisher publisher = Assert.Single(publishers);
             Assert.NotNull(publisher);
             Assert.IsType<EventGridPublisher>(publisher);
         }
