@@ -36,7 +36,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-To create an `IEventGridPublisher` instance directly via the `EventGridPublisherBuilder`, the authentication key of your custom topic endpoint is required. Since the authentication key is passed directly, this approach doesn't require the Arcus secret store.
+To create an `IEventGridPublisher` instance directly via the `EventGridPublisherBuilder`, the authentication key of your custom topic endpoint is required. Since the authentication key is passed directly, this approach doesn't require the Arcus secret store.  Nevertheless, it is advised to safely store your authentication key in a secret store.
 
 ```csharp
 using Arcus.EventGrid.Publishing;
