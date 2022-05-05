@@ -129,7 +129,7 @@ var @event = new CloudEvent(
 // Publish a single event.
 await publisher.PublishAsync(@event);
 
-// Alternatively you can publish a list of events using.
+// Alternatively you can publish a list of events using the `PublishMany` method.
 await publisher.PublishManyAsync(events);
 ```
 
