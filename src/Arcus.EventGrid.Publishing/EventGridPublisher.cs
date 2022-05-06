@@ -8,10 +8,12 @@ using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Contracts.Interfaces;
 using Arcus.EventGrid.Publishing.Interfaces;
 using Arcus.Observability.Telemetry.Core;
+using Arcus.Security.Core;
 using CloudNative.CloudEvents;
 using GuardNet;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Rest.TransientFaultHandling;
 using Newtonsoft.Json;
 using Polly;
 
@@ -23,13 +25,19 @@ namespace Arcus.EventGrid.Publishing
     /// <seealso cref="IEventGridPublisher"/>
     public class EventGridPublisher : IEventGridPublisher
     {
-        private readonly AsyncPolicy _resilientPolicy;
-        private readonly string _authenticationKey;
-        private readonly ILogger _logger;
-        private readonly EventGridPublisherOptions _options;
+        private const string DefaultAuthenticationHeaderName = "aeg-sas-key";
 
+        private readonly AsyncPolicy _resilientPolicy = Policy.NoOpAsync();
+        private readonly string _authenticationKey;
+        private readonly HttpClient _injectedHttpClient;
+        private readonly string _authenticationKeySecretName;
+        private readonly ISecretProvider _secretProvider;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly EventGridPublisherOptions _options;
+        private readonly ILogger _logger;
+
+        private static readonly HttpClient DefaultHttpClient = new HttpClient();
         private static readonly JsonEventFormatter JsonEventFormatter = new JsonEventFormatter();
-        private static readonly HttpClient HttpClient = new HttpClient();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventGridPublisher"/> class.
@@ -74,8 +82,51 @@ namespace Arcus.EventGrid.Publishing
 
             _authenticationKey = authenticationKey;
             _resilientPolicy = resilientPolicy;
-            _logger = logger ?? NullLogger.Instance;
             _options = options;
+            _logger = logger ?? NullLogger.Instance;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventGridPublisher"/> class.
+        /// </summary>
+        /// <param name="topicEndpoint">The URL of custom Azure Event Grid topic.</param>
+        /// <param name="authenticationKeySecretName">The authentication secret name for the custom Azure Event Grid topic.</param>
+        /// <param name="logger">The logger instance to write dependency telemetry during the interaction with the Azure Event Grid topic</param>
+        /// <param name="httpClientFactory">The registered HTTP client factory in the application, to create streamlined HTTP requests to the Azure EventGrid resource.</param>
+        /// <param name="options">The optional settings on the <see cref="IEventGridPublisher"/>.</param>
+        /// <param name="secretProvider">The registered secret store provider to retrieve the authentication secret for the <paramref name="authenticationKeySecretName"/>.</param>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when the <paramref name="topicEndpoint"/>, the <paramref name="secretProvider"/>,
+        ///     the <paramref name="httpClientFactory"/>, or the <paramref name="options"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown when the <paramref name="authenticationKeySecretName"/> is blank.</exception>
+        /// <exception cref="UriFormatException">Thrown when the <paramref name="topicEndpoint"/> is not a valid HTTP endpoint.</exception>
+        internal EventGridPublisher(
+            Uri topicEndpoint,
+            string authenticationKeySecretName,
+            ISecretProvider secretProvider,
+            IHttpClientFactory httpClientFactory,
+            EventGridPublisherOptions options,
+            ILogger logger)
+        {
+            Guard.NotNull(topicEndpoint, nameof(topicEndpoint), "Requires an Azure EventGrid topic endpoint");
+            Guard.NotNullOrWhitespace(authenticationKeySecretName, nameof(authenticationKeySecretName), "Requires an non-blank authentication secret name to authenticate to a Azure EventGrid topic");
+            Guard.NotNull(secretProvider, nameof(secretProvider), "Requires a secret provider to authenticate with the Azure EventGrid topic endpoint");
+            Guard.NotNull(httpClientFactory, nameof(httpClientFactory), "Requires a HTTP client factory to create streamlined HTTP clients when publishing events to Azure EventGrid");
+            Guard.NotNull(options, nameof(options), "Requires a set of options to configure the Azure EventGrid publisher");
+            Guard.For<UriFormatException>(
+                () => topicEndpoint.Scheme != Uri.UriSchemeHttp
+                      && topicEndpoint.Scheme != Uri.UriSchemeHttps,
+                "Requires an Azure Event Grid topic endpoint with either a HTTP or HTTPS scheme");
+
+            _injectedHttpClient = httpClientFactory.CreateClient();
+
+            TopicEndpoint = topicEndpoint.OriginalString;
+            _authenticationKeySecretName = authenticationKeySecretName;
+            _secretProvider = secretProvider;
+            _httpClientFactory = httpClientFactory;
+            _options = options;
+            _logger = logger ?? NullLogger.Instance;
         }
 
         /// <summary>
@@ -259,7 +310,7 @@ namespace Arcus.EventGrid.Publishing
                 new ArgumentException("Requires all cloud events to be non-null when publishing to Azure Event Grid", nameof(events)));
 
             var content = new CloudEventBatchContent(events, ContentMode.Structured, JsonEventFormatter);
-            await PublishContentToTopicAsync(content, logEventType: $"[{String.Join(", ", events.Select(ev => ev.Type ?? "<no-event-type>"))}]");
+            await PublishContentToTopicAsync(content, eventType: $"[{String.Join(", ", events.Select(ev => ev.Type ?? "<no-event-type>"))}]");
         }
 
         /// <summary>
@@ -293,7 +344,7 @@ namespace Arcus.EventGrid.Publishing
                 new ArgumentException("Requires all events to be non-null when publishing to Azure Event Grid", nameof(events)));
 
             HttpContent content = CreateSerializedJsonHttpContent(events);
-            await PublishContentToTopicAsync(content, logEventType: $"[{String.Join(", ", events.Select(ev => ev.EventType ?? "<no-event-type>"))}]");
+            await PublishContentToTopicAsync(content, eventType: $"[{String.Join(", ", events.Select(ev => ev.EventType ?? "<no-event-type>"))}]");
         }
 
         private static HttpContent CreateSerializedJsonHttpContent<TEvent>(IEnumerable<TEvent> events) where TEvent : class, IEvent
@@ -304,7 +355,7 @@ namespace Arcus.EventGrid.Publishing
             return content;
         }
 
-        private async Task PublishContentToTopicAsync(HttpContent content, string logEventType)
+        private async Task PublishContentToTopicAsync(HttpContent content, string eventType)
         {
 #if NET6_0
             using (DurationMeasurement measurement = DurationMeasurement.Start())
@@ -315,12 +366,15 @@ namespace Arcus.EventGrid.Publishing
                 var isSuccessful = false;
                 try
                 {
-                    using (HttpResponseMessage response = await SendHttpRequestAsync(content))
+                    string authenticationKey = await DetermineAuthenticationKeyAsync();
+                    content.Headers.Add(DefaultAuthenticationHeaderName, authenticationKey);
+
+                    using (HttpResponseMessage response = await SendHttpPostRequestToTopicAsync(content))
                     {
                         isSuccessful = response.IsSuccessStatusCode;
                         if (!response.IsSuccessStatusCode)
                         {
-                            await ThrowApplicationExceptionAsync(response);
+                            await ThrowExceptionForHttpResponseAsync(response);
                         }
                     }
                 }
@@ -330,7 +384,7 @@ namespace Arcus.EventGrid.Publishing
                     {
                         _logger.LogDependency(
                             dependencyType: "Azure Event Grid",
-                            dependencyData: logEventType ?? "<no-event-type>", 
+                            dependencyData: eventType ?? "<no-event-type>", 
                             targetName: TopicEndpoint, 
                             isSuccessful: isSuccessful, 
                             measurement: measurement); 
@@ -339,14 +393,39 @@ namespace Arcus.EventGrid.Publishing
             }
         }
 
-        private async Task<HttpResponseMessage> SendHttpRequestAsync(HttpContent content)
+        private async Task<string> DetermineAuthenticationKeyAsync()
         {
-            content.Headers.Add("aeg-sas-key", _authenticationKey);
-            return await _resilientPolicy.ExecuteAsync(() => HttpClient.PostAsync(TopicEndpoint, content));
+            if (_secretProvider is null 
+                && string.IsNullOrWhiteSpace(_authenticationKeySecretName) 
+                && !string.IsNullOrWhiteSpace(_authenticationKey))
+            {
+                return _authenticationKey;
+            }
+
+            if (_secretProvider != null
+                && !string.IsNullOrWhiteSpace(_authenticationKeySecretName)
+                && string.IsNullOrWhiteSpace(_authenticationKey))
+            {
+                string authenticationKey = await _secretProvider.GetRawSecretAsync(_authenticationKeySecretName);
+                return authenticationKey;
+            }
+
+            throw new InvalidOperationException(
+                "Cannot determine whether the authentication secret to interact with the Azure EventGrid resource should be provided directly or come from the Arcus secret store," +
+                "please either provider a valid secret store combination (see https://security.arcus-azure.net/features/secret-store for more information), or provide the authentication key directly");
         }
 
+        private async Task<HttpResponseMessage> SendHttpPostRequestToTopicAsync(HttpContent content)
+        {
+            if (_httpClientFactory is null)
+            {
+                return await _resilientPolicy.ExecuteAsync(() => DefaultHttpClient.PostAsync(TopicEndpoint, content));
+            }
 
-        private static async Task ThrowApplicationExceptionAsync(HttpResponseMessage response)
+            return await _resilientPolicy.ExecuteAsync(() => _injectedHttpClient.PostAsync(TopicEndpoint, content));
+        }
+
+        private static async Task ThrowExceptionForHttpResponseAsync(HttpResponseMessage response)
         {
             var rawResponse = string.Empty;
 
@@ -356,7 +435,10 @@ namespace Arcus.EventGrid.Publishing
             }
             finally
             {
-                throw new ApplicationException($"Azure Event Grid publishing failed with status {response.StatusCode} and content {rawResponse}");
+                throw new HttpRequestWithStatusException($"Azure Event Grid publishing failed with status {response.StatusCode} and content {rawResponse}")
+                {
+                    StatusCode = response.StatusCode
+                };
             }
         }
     }
