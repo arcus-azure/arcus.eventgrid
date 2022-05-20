@@ -6,6 +6,7 @@
     <PackageLicenseUrl>https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://eventgrid.arcus-azure.net/</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Azure;Event Grid</PackageTags>
     <Company>Arcus</Company>
     <Description>Provides security capabilities to simplify the authentication and endpoint handshake for Azure Event Grid in Azure Functions</Description>

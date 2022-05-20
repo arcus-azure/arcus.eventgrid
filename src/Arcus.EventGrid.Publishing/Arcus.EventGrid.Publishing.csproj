@@ -2,14 +2,15 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;netcoreapp3.1;netstandard2.1</TargetFrameworks>
+    <Authors>Arcus</Authors>
+    <Company>Arcus</Company>
     <Copyright>Copyright (c) Arcus</Copyright>
+    <Description>Provides capability to push events to Azure Event Grid</Description>
     <PackageLicenseUrl>https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://eventgrid.arcus-azure.net/</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Azure;Event Grid</PackageTags>
-    <Authors>Arcus</Authors>
-    <Company>Arcus</Company>
-    <Description>Provides capability to push events to Azure Event Grid</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

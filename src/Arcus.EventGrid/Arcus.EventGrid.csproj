@@ -6,8 +6,9 @@
     <Company>Arcus</Company>
     <PackageProjectUrl>https://eventgrid.arcus-azure.net/</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageTags>Azure;Event Grid</PackageTags>
     <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>Azure;Event Grid</PackageTags>
     <Copyright>Copyright (c) Arcus</Copyright>
     <Description>Provides core capabilities for using Event Grid with Arcus</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

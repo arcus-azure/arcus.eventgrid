@@ -7,6 +7,7 @@
     <PackageLicenseUrl>https://github.com/arcus-azure/arcus.eventgrid/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://eventgrid.arcus-azure.net/</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/arcus-azure/arcus/master/media/arcus.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Azure;Event Grid;Testing</PackageTags>
     <Description>Provides infrastructure to build automated testing with Azure Event Grid.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
