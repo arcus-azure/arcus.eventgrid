@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Arcus.Observability.Correlation;
 using Arcus.Observability.Telemetry.Core;
@@ -12,27 +13,28 @@ namespace Azure.Messaging.EventGrid
     /// <summary>
     /// Represents an <see cref="EventGridPublisherClient"/> implementation that provides built-in correlation tracking during event publishing.
     /// </summary>
-    public class EventGridPublisherWithTrackingClient : EventGridPublisherClient
+    public class EventGridPublisherClientWithTracking : EventGridPublisherClient
     {
         private readonly string _topicEndpoint, _authenticationKeySecretName;
         private readonly ISecretProvider _secretProvider;
-        private readonly ICorrelationInfoAccessor _correlationAccessor;
-
+        
         private EventGridPublisherClient _publisher;
         private static readonly SemaphoreSlim LockCreateEventGridPublisherClient = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EventGridPublisherWithTrackingClient" /> class.
+        /// Initializes a new instance of the <see cref="EventGridPublisherClientWithTracking" /> class.
         /// </summary>
         /// <param name="topicEndpoint">The Azure Event Grid topic endpoint to where the events should be published.</param>
         /// <param name="authenticationKeySecretName">The secret name where the authentication key to initiate Azure Event Grid interaction is stored in the Arcus secret store.</param>
         /// <param name="secretProvider">The Arcus secret store implementation to retrieve the authentication key from the <paramref name="authenticationKeySecretName"/>.</param>
-        /// <param name="correlationAccessor">The correlation accessor implementation to retrieve the current set correlation when enriching the publishing events</param>
+        /// <param name="correlationAccessor">The correlation accessor implementation to retrieve the current correlation model when enriching the publishing events</param>
         /// <param name="options">The additional options to influence the correlation tracking and internal HTTP request which represents the publishing event.</param>
         /// <param name="logger">The logger instance to track the Azure Event Grid dependency with correlation information.</param>
         /// <exception cref="ArgumentException">Thrown when the <paramref name="topicEndpoint"/> or the <paramref name="authenticationKeySecretName"/> is blank.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="secretProvider"/>, <paramref name="options"/>, or the <paramref name="logger"/> is <c>null</c>.</exception>
-        public EventGridPublisherWithTrackingClient(
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when the <paramref name="secretProvider"/>, <paramref name="correlationAccessor"/>, <paramref name="options"/>, or the <paramref name="logger"/> is <c>null</c>.
+        /// </exception>
+        public EventGridPublisherClientWithTracking(
             string topicEndpoint,
             string authenticationKeySecretName,
             ISecretProvider secretProvider,
@@ -43,17 +45,24 @@ namespace Azure.Messaging.EventGrid
             Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "Requires a non-blank Azure Event Grid topic endpoint to register the Azure Event Grid publisher with built-in correlation tracking");
             Guard.NotNullOrWhitespace(authenticationKeySecretName, nameof(authenticationKeySecretName), "Requires a non-blank authentication key to initiate interaction with the Azure Event Grid when registering the Azure Event Grid publisher with built-in correlation tracking");
             Guard.NotNull(secretProvider, nameof(secretProvider), "Requires an Arcus secret store implementation to retrieve the authentication key to initiate interaction with Azure Event Grid");
+            Guard.NotNull(correlationAccessor, nameof(correlationAccessor), "Requires an correlation accessor implementation to retrieve the current correlation model when enriching the publishing event");
             Guard.NotNull(options, nameof(options), "Requires a set of additional options to influence the correlation tracking and internal HTTP request which represents the publishing event");
             Guard.NotNull(logger, nameof(logger), "Requires a logger instance to track the Azure Event Grid dependency with correlation information");
 
             _topicEndpoint = topicEndpoint;
             _authenticationKeySecretName = authenticationKeySecretName;
             _secretProvider = secretProvider;
-            _correlationAccessor = correlationAccessor;
-
+        
+            CorrelationAccessor = correlationAccessor;
             Options = options;
             Logger = logger;
         }
+
+        /// <summary>
+        /// Gets the available accessor instance to retrieve the current correlation information model used during the tracking of the publishing event.
+        /// </summary>
+        protected ICorrelationInfoAccessor CorrelationAccessor { get; }
+
 
         /// <summary>
         /// Gets the additional options to influence the correlation tracking and internal HTTP request which represents the publishing event.
@@ -266,33 +275,33 @@ namespace Azure.Messaging.EventGrid
             return await TrackPublishEventAsync<IEnumerable<BinaryData>>(customEvents, events => _publisher.SendEventsAsync(events, cancellationToken));
         }
 
-        private Response TrackPublishEvent<TEvent>(object @event, Func<TEvent, Response> publishEvent)
+        private Response TrackPublishEvent<TEvent>(object oneOrManyEvents, Func<TEvent, Response> publishEvent)
         {
             AuthenticateClient();
 
             string dependencyId = Options.GenerateDependencyId();
-            string transactionId = _correlationAccessor.GetCorrelationInfo()?.TransactionId;
-            @event = SetCorrelationPropertiesInEvent(@event, dependencyId, transactionId);
+            string transactionId = CorrelationAccessor.GetCorrelationInfo()?.TransactionId;
+            oneOrManyEvents = SetCorrelationPropertiesInEvent(oneOrManyEvents, dependencyId, transactionId);
 
             bool isSuccessful = false;
             using (var measurement = DurationMeasurement.Start())
             {
                 try
                 {
-                    Response response = Options.SyncPolicy.Execute(() => publishEvent((TEvent)@event));
+                    Response response = Options.SyncPolicy.Execute(() => publishEvent((TEvent)oneOrManyEvents));
                     isSuccessful = true;
 
                     return response;
                 }
                 finally
                 {
-                    string eventType = DetermineEventType(@event);
+                    string eventType = DetermineEventType(oneOrManyEvents);
                     LogEventGridDependency(eventType, isSuccessful, measurement, dependencyId);
                 }
             }
         }
 
-        private void AuthenticateClient()
+       private void AuthenticateClient()
         {
             LockCreateEventGridPublisherClient.Wait();
 
@@ -312,33 +321,33 @@ namespace Azure.Messaging.EventGrid
             }
         }
 
-        private async Task<Response> TrackPublishEventAsync<TEvent>(object @event, Func<TEvent, Task<Response>> publishEvent)
+        private async Task<Response> TrackPublishEventAsync<TEvent>(object oneOrManyEvents, Func<TEvent, Task<Response>> publishEvent)
         {
             await AuthenticateClientAsync();
 
             string dependencyId = Options.GenerateDependencyId();
-            string transactionId = _correlationAccessor.GetCorrelationInfo()?.TransactionId;
-            @event = SetCorrelationPropertiesInEvent(@event, dependencyId, transactionId);
+            string transactionId = CorrelationAccessor.GetCorrelationInfo()?.TransactionId;
+            oneOrManyEvents = SetCorrelationPropertiesInEvent(oneOrManyEvents, dependencyId, transactionId);
 
             bool isSuccessful = false;
             using (var measurement = DurationMeasurement.Start())
             {
                 try
                 {
-                    Response response = await Options.AsyncPolicy.ExecuteAsync(() => publishEvent((TEvent)@event));
+                    Response response = await Options.AsyncPolicy.ExecuteAsync(() => publishEvent((TEvent)oneOrManyEvents));
                     isSuccessful = true;
 
                     return response;
                 }
                 finally
                 {
-                    string eventType = DetermineEventType(@event);
+                    string eventType = DetermineEventType(oneOrManyEvents);
                     LogEventGridDependency(eventType, isSuccessful, measurement, dependencyId);
                 }
             }
         }
 
-        private async Task AuthenticateClientAsync()
+       private async Task AuthenticateClientAsync()
         {
             await LockCreateEventGridPublisherClient.WaitAsync();
 
@@ -376,7 +385,7 @@ namespace Azure.Messaging.EventGrid
             }
         }
 
-        protected object SetCorrelationPropertiesInEvent(object @event, string dependencyId, string transactionId)
+        private object SetCorrelationPropertiesInEvent(object @event, string dependencyId, string transactionId)
         {
             if (!Options.EnableDependencyTracking)
             {
@@ -433,23 +442,65 @@ namespace Azure.Messaging.EventGrid
             return results.ToArray();
         }
 
+        /// <summary>
+        /// Sets the correlation property in the <paramref name="eventGridEvent"/>'s event JSON data.
+        /// </summary>
+        /// <param name="eventGridEvent">The event to enrich with the correlation property.</param>
+        /// <param name="propertyName">The name of the correlation property.</param>
+        /// <param name="propertyValue">The value of the correlation property</param>
+        /// <returns>
+        ///     The updated <see cref="EventGridEvent"/> with the correlation property set.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        ///     Thrown when the <paramref name="eventGridEvent"/>'s data cannot be enriched with the correlation property due to a JSON failure.
+        /// </exception>
         protected virtual EventGridEvent SetCorrelationPropertyInEventGridEvent(EventGridEvent eventGridEvent, string propertyName, string propertyValue)
         {
-            JsonNode node = JsonNode.Parse(eventGridEvent.Data);
-            node![propertyName] = propertyValue;
+            try
+            {
+                JsonNode dataNode = JsonNode.Parse(eventGridEvent.Data);
+                if (dataNode is null)
+                {
+                    throw new JsonException("Parsing custom event to JSON format resulted in 'null' value");
+                }
 
-            eventGridEvent.Data = BinaryData.FromString(node.ToJsonString());
-            return eventGridEvent;
+                dataNode[propertyName] = propertyValue;
+
+                eventGridEvent.Data = BinaryData.FromString(dataNode.ToJsonString());
+                return eventGridEvent;
+            }
+            catch (JsonException exception)
+            {
+                Logger.LogError(exception, "Cannot enrich event grid event with correlation property '{PropertyName}' because the event's data doesn't have the correct JSON format", propertyName);
+                
+                throw new InvalidOperationException(
+                    $"Cannot publish event grid event(s) because the correlation property '{propertyName}' could not be set, " 
+                    + "please make sure that the event's data represents a JSON model where the correlation information can be set", 
+                    exception);
+            }
         }
 
         private ReadOnlyMemory<byte> SetCorrelationPropertyInEncodedCloudEvents(ReadOnlyMemory<byte> encodedCloudEvents, string propertyName, string propertyValue)
         {
-            CloudEvent[] parsedEvents = CloudEvent.ParseMany(BinaryData.FromBytes(encodedCloudEvents));
+            try
+            {
+                BinaryData beforeData = BinaryData.FromBytes(encodedCloudEvents);
+                CloudEvent[] parsedEvents = CloudEvent.ParseMany(beforeData);
 
-            IEnumerable<CloudEvent> cloudEvents = SetCorrelationPropertyInCloudEvents(parsedEvents, propertyName, propertyValue);
+                IEnumerable<CloudEvent> cloudEvents = SetCorrelationPropertyInCloudEvents(parsedEvents, propertyName, propertyValue);
 
-            BinaryData data = BinaryData.FromObjectAsJson(cloudEvents);
-            return new ReadOnlyMemory<byte>(data.ToArray());
+                BinaryData afterData = BinaryData.FromObjectAsJson(cloudEvents);
+                return new ReadOnlyMemory<byte>(afterData.ToArray());
+            }
+            catch (JsonException exception)
+            {
+                Logger.LogError(exception, "Cannot enrich encoded cloud event with correlation property '{PropertyName}' because the event's data doesn't have the correct JSON format", propertyName);
+                
+                throw new InvalidOperationException(
+                    $"Cannot publish encoded cloud events because the correlation property '{propertyName}' could not be set, " 
+                    + "please make sure that the event's data represents a JSON model where the correlation information can be set", 
+                    exception);
+            }
         }
 
         private IEnumerable<CloudEvent> SetCorrelationPropertyInCloudEvents(IEnumerable<CloudEvent> events, string propertyName, string propertyValue)
@@ -464,13 +515,42 @@ namespace Azure.Messaging.EventGrid
             return results.ToArray();
         }
 
-        protected virtual CloudEvent SetCorrelationPropertyInCloudEvent(CloudEvent cloudEvent, string upstreamServicePropertyName, string propertyValue)
+        /// <summary>
+        /// Sets the correlation property in the <paramref name="cloudEvent"/>'s event JSON data.
+        /// </summary>
+        /// <param name="cloudEvent">The event to enrich with the correlation property.</param>
+        /// <param name="propertyName">The name of the correlation property.</param>
+        /// <param name="propertyValue">The value of the correlation property</param>
+        /// <returns>
+        ///     The updated <see cref="CloudEvent"/> with the correlation property set.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        ///     Thrown when the <paramref name="cloudEvent"/>'s data cannot be enriched with the correlation property due to a JSON failure.
+        /// </exception>
+        protected virtual CloudEvent SetCorrelationPropertyInCloudEvent(CloudEvent cloudEvent, string propertyName, string propertyValue)
         {
-            JsonNode node = JsonNode.Parse(cloudEvent.Data);
-            node![upstreamServicePropertyName] = propertyValue;
+            try
+            {
+                JsonNode dataNode = JsonNode.Parse(cloudEvent.Data);
+                if (dataNode is null)
+                {
+                    throw new JsonException("Parsing custom event to JSON format resulted in 'null' value");
+                }
 
-            cloudEvent.Data = BinaryData.FromString(node.ToJsonString());
-            return cloudEvent;
+                dataNode[propertyName] = propertyValue;
+
+                cloudEvent.Data = BinaryData.FromString(dataNode.ToJsonString());
+                return cloudEvent;
+            }
+            catch (JsonException exception)
+            {
+                Logger.LogError(exception, "Cannot enrich cloud event with correlation property '{PropertyName}' because the event's data doesn't have the correct JSON format", propertyName);
+                
+                throw new InvalidOperationException(
+                    $"Cannot publish cloud event(s) because the correlation property '{propertyName}' could not be set, " 
+                    + "please make sure that the event's data represents a JSON model where the correlation information can be set", 
+                    exception);
+            }
         }
 
         private IEnumerable<BinaryData> SetCorrelationPropertyInCustomEvents(IEnumerable<BinaryData> datas, string propertyName, string propertyValue)
@@ -485,12 +565,46 @@ namespace Azure.Messaging.EventGrid
             return results.ToArray();
         }
 
-        protected virtual BinaryData SetCorrelationPropertyInCustomEvent(BinaryData data, string upstreamServicePropertyName, string propertyValue)
+        /// <summary>
+        /// Sets the correlation property in the event's encoded JSON <paramref name="data"/>.
+        /// </summary>
+        /// <param name="data">The binary data representing the custom event to enrich with the correlation property.</param>
+        /// <param name="propertyName">The name of the correlation property.</param>
+        /// <param name="propertyValue">The value of the correlation property</param>
+        /// <returns>
+        ///     The updated encoded event as <see cref="BinaryData"/> with the correlation property set.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        ///     Thrown when the <paramref name="data"/> cannot be enriched with the correlation property due to a JSON failure.
+        /// </exception>
+        protected virtual BinaryData SetCorrelationPropertyInCustomEvent(BinaryData data, string propertyName, string propertyValue)
         {
-            JsonNode node = JsonNode.Parse(data);
-            node![upstreamServicePropertyName] = propertyValue;
+            try
+            {
+                JsonNode node = JsonNode.Parse(data);
+                if (node is null)
+                {
+                    throw new JsonException("Parsing custom event to JSON format resulted in 'null' value");
+                }
 
-            return BinaryData.FromString(node.ToJsonString());
+                JsonNode dataNode = node["data"];
+                if (dataNode is null)
+                {
+                    throw new JsonException("Custom event JSON format doesn't have event 'data' property");
+                }
+
+                dataNode[propertyName] = propertyValue;
+                return BinaryData.FromString(node.ToJsonString());
+            }
+            catch (JsonException exception)
+            {
+                Logger.LogError(exception, "Cannot enrich custom event with correlation property '{PropertyName}' because the custom event doesn't have the correct JSON format", propertyName);
+                
+                throw new InvalidOperationException(
+                    $"Cannot publish custom event(s) because the correlation property '{propertyName}' could not be set, " 
+                    + "please make sure that the custom event represents a JSON model with a 'data' property where the correlation information can be set", 
+                    exception);
+            }
         }
 
         private void LogEventGridDependency(string eventType, bool isSuccessful, DurationMeasurement measurement, string dependencyId)

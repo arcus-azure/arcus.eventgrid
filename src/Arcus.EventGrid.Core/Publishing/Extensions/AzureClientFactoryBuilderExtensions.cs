@@ -68,16 +68,21 @@ namespace Microsoft.Extensions.Azure
                 if (secretProvider is null)
                 {
                     throw new InvalidOperationException(
-                        "Requires an Arcus secret store registration to retrieve the authentication key to authenticate with Azure EventGrid while creating an EventGrid publisher instance");
+                        "Requires an Arcus secret store registration to retrieve the authentication key to authenticate with Azure Event Grid while creating an Event Grid publisher instance");
                 }
 
                 var correlationAccessor = provider.GetService<ICorrelationInfoAccessor>();
+                if (correlationAccessor is null)
+                {
+                    throw new InvalidOperationException(
+                        "Requires an Arcus correlation registration to retrieve the current correlation model to enrich the send out event to Azure Event Grid");
+                }
 
                 ILogger<EventGridPublisherClient> logger =
                     provider.GetService<ILogger<EventGridPublisherClient>>()
                     ?? NullLogger<EventGridPublisherClient>.Instance;
 
-                return new EventGridPublisherWithTrackingClient(topicEndpoint, authenticationKeySecretName, secretProvider, correlationAccessor, options, logger);
+                return new EventGridPublisherClientWithTracking(topicEndpoint, authenticationKeySecretName, secretProvider, correlationAccessor, options, logger);
             });
         }
 
@@ -89,12 +94,12 @@ namespace Microsoft.Extensions.Azure
         ///           For more on the Arcus secret store: <a href="https://security.arcus-azure.net/features/secret-store" />.</para>
         /// </remarks>
         /// <param name="builder">The Azure builder to add the client to.</param>
-        /// <param name="implementationFactory">The function to create an instance of the <see cref="EventGridPublisherWithTrackingClient"/>.</param>
+        /// <param name="implementationFactory">The function to create an instance of the <see cref="EventGridPublisherClientWithTracking"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or the <paramref name="implementationFactory"/> is <c>null</c>.</exception>
         public static IAzureClientBuilder<EventGridPublisherClient, EventGridPublisherClientWithTrackingOptions> AddEventGridPublisherClient<TPublisherClient>(
                 this AzureClientFactoryBuilder builder,
                 Func<IServiceProvider, TPublisherClient> implementationFactory)
-                where TPublisherClient : EventGridPublisherWithTrackingClient
+                where TPublisherClient : EventGridPublisherClientWithTracking
         {
             Guard.NotNull(builder, nameof(builder), "Requires an Azure builder instance to add the Azure Event Grid publisher with built-in correlation tracking");
             Guard.NotNull(implementationFactory, nameof(implementationFactory), "Requires an implementation factory function to create the Azure Event Grid publisher instance");
@@ -111,13 +116,13 @@ namespace Microsoft.Extensions.Azure
         /// </remarks>
         /// <param name="builder">The Azure builder to add the client to.</param>
         /// <param name="configureOptions">The function to configure additional options that influence the correlation tracking during event publishing to Azure Event Grid.</param>
-        /// <param name="implementationFactory">The function to create an instance of the <see cref="EventGridPublisherWithTrackingClient"/>.</param>
+        /// <param name="implementationFactory">The function to create an instance of the <see cref="EventGridPublisherClientWithTracking"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or the <paramref name="implementationFactory"/> is <c>null</c>.</exception>
         public static IAzureClientBuilder<EventGridPublisherClient, EventGridPublisherClientWithTrackingOptions> AddEventGridPublisherClient<TPublisherClient>(
             this AzureClientFactoryBuilder builder,
             Action<EventGridPublisherClientWithTrackingOptions> configureOptions,
             Func<IServiceProvider, EventGridPublisherClientWithTrackingOptions, TPublisherClient> implementationFactory)
-            where TPublisherClient : EventGridPublisherWithTrackingClient
+            where TPublisherClient : EventGridPublisherClientWithTracking
         {
             Guard.NotNull(builder, nameof(builder), "Requires an Azure builder instance to add the Azure Event Grid publisher with built-in correlation tracking");
             Guard.NotNull(implementationFactory, nameof(implementationFactory), "Requires an implementation factory function to create the Azure Event Grid publisher instance");

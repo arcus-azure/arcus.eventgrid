@@ -108,7 +108,7 @@ namespace Azure.Messaging.EventGrid
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="retryCount" /> is less than zero.</exception>
         public void WithExponentialRetry<TException>(int retryCount) where TException : Exception
         {
-            Guard.NotLessThan(retryCount, 0, nameof(retryCount), "Requires a retry count for the exponential retry that's greater than zero");
+            Guard.NotLessThanOrEqualTo(retryCount, 0, nameof(retryCount), "Requires a retry count for the exponential retry that's greater than zero");
 
             AsyncPolicy = Policy.Handle<TException>().WaitAndRetryAsync(retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
             SyncPolicy = Policy.Handle<TException>().WaitAndRetry(retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
@@ -135,7 +135,7 @@ namespace Azure.Messaging.EventGrid
             where TException : Exception
         {
             Guard.NotLessThanOrEqualTo(exceptionsAllowedBeforeBreaking, 0, nameof(exceptionsAllowedBeforeBreaking), "Requires a allowed exceptions count before the circuit breaker activates that's greater than zero");
-            Guard.NotLessThan(durationOfBreak, TimeSpan.Zero, nameof(durationOfBreak), "Requires a circuit breaker time duration that's a positive time range");
+            Guard.NotLessThanOrEqualTo(durationOfBreak, TimeSpan.Zero, nameof(durationOfBreak), "Requires a circuit breaker time duration that's a positive time range");
 
             AsyncPolicy = Policy.Handle<TException>().CircuitBreakerAsync(exceptionsAllowedBeforeBreaking, durationOfBreak);
             SyncPolicy = Policy.Handle<TException>().CircuitBreaker(exceptionsAllowedBeforeBreaking, durationOfBreak);

@@ -14,11 +14,12 @@ using Arcus.EventGrid.Tests.Integration.Fixture;
 namespace Arcus.EventGrid.Tests.Integration.Publishing
 {
     [Trait("Category", "Integration")]
-    public class CloudEventsEventGridPublisherWithTrackingClientTests : EventGridPublisherWithTrackingClientTests, IAsyncLifetime
+    [Collection(TestCollections.Integration)]
+    public class EventGridPublisherClientWithTrackingCloudEventsTests : EventGridPublisherClientWithTrackingTests, IAsyncLifetime
     {
         private EventGridTopicEndpoint _cloudEventEndpoint;
 
-        public CloudEventsEventGridPublisherWithTrackingClientTests(ITestOutputHelper testOutput) 
+        public EventGridPublisherClientWithTrackingCloudEventsTests(ITestOutputHelper testOutput) 
             : base(EventSchema.CloudEvent, testOutput)
         {
         }
@@ -41,6 +42,12 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task SendCloudEventAsync_SingleWithOptions_Succeeds()
         {
             await TestSendCloudEventWithOptionsAsync((client, cloudEvent) => client.SendEventAsync(cloudEvent));
+        }
+
+        [Fact]
+        public async Task SendCloudEventAsync_SingleWithImplementation_Succeeds()
+        {
+            await TestSendCloudEventWithImplementationAsync((client, cloudEvent) => client.SendEventAsync(cloudEvent));
         }
 
         [Fact]
@@ -259,6 +266,23 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             AssertCloudEventForData(cloudEvent);
         }
 
+        private async Task TestSendCloudEventWithImplementationAsync(Func<EventGridPublisherClient, CloudEvent, Task<Response>> usePublisherAsync)
+        {
+            // Arrange
+            CloudEvent cloudEvent = CreateCloudEventFromData(new CarEventData("1-ARCUS-337"));
+            EventGridPublisherClient client = CreateRegisteredClientWithCustomImplementation();
+
+            // ACt
+            using (Response response = await usePublisherAsync(client, cloudEvent))
+            {
+                Assert.False(response.IsError, response.ReasonPhrase);
+            }
+
+            // Assert
+            AssertDependencyTracking();
+            AssertCloudEventForData(cloudEvent);
+        }
+
         private static CloudEvent CreateCloudEventFromData(CarEventData eventData)
         {
             var cloudEvent = new CloudEvent(
@@ -280,6 +304,42 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             string receivedEvent = _cloudEventEndpoint.ServiceBusEventConsumerHost.GetReceivedEvent(cloudEvent.Id);
             ArcusAssert.ReceivedNewCarRegisteredEvent(cloudEvent.Id, cloudEvent.Type, cloudEvent.Subject, eventData.LicensePlate, receivedEvent);
+        }
+
+        [Fact]
+        public async Task SendCloudEventAsync_Single_FailWhenEventDataIsNotJson()
+        {
+            // Arrange
+            var data = BinaryData.FromBytes(BogusGenerator.Random.Bytes(100));
+            var cloudEvent = new CloudEvent("source", "type", data, "text/plain");
+            EventGridPublisherClient client = CreateRegisteredClient();
+
+            // Act / Assert
+            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEventAsync(cloudEvent));
+        }
+
+        [Fact]
+        public async Task SendCloudEventAsync_ManyEncoded_FailWhenEventsAreNoCloudEvents()
+        {
+            // Arrange
+            var data = BogusGenerator.Random.Bytes(100);
+            var memory = new ReadOnlyMemory<byte>(data);
+            EventGridPublisherClient client = CreateRegisteredClient();
+
+            // Act / Assert
+            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEncodedCloudEventsAsync(memory));
+        }
+
+        [Fact]
+        public void SendCloudEventSync_ManyEncoded_FailWhenEventsAreNoCloudEvents()
+        {
+            // Arrange
+            var data = BogusGenerator.Random.Bytes(100);
+            var memory = new ReadOnlyMemory<byte>(data);
+            EventGridPublisherClient client = CreateRegisteredClient();
+
+            // Act / Assert
+            Assert.ThrowsAny<InvalidOperationException>(() => client.SendEncodedCloudEvents(memory));
         }
 
         /// <summary>

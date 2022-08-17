@@ -14,11 +14,11 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 {
     [Trait("Category", "Integration")]
     [Collection(TestCollections.Integration)]
-    public class EventGridEventsGridPublisherWithTrackingClientTests : EventGridPublisherWithTrackingClientTests, IAsyncLifetime
+    public class EventGridPublisherClientWithTrackingEventGridEventTests : EventGridPublisherClientWithTrackingTests, IAsyncLifetime
     {
         private EventGridTopicEndpoint _eventGridEventEndpoint;
 
-        public EventGridEventsGridPublisherWithTrackingClientTests(ITestOutputHelper testOutput) 
+        public EventGridPublisherClientWithTrackingEventGridEventTests(ITestOutputHelper testOutput) 
             : base(EventSchema.EventGrid, testOutput)
         {
         }
@@ -44,6 +44,24 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
+        public async Task SendEventGridEventAsync_SingleWithImplementation_Succeeds()
+        {
+            await TestSendEventGridEventWithImplementationAsync((client, eventGridEvent) => client.SendEventAsync(eventGridEvent));
+        }
+
+        [Fact]
+        public async Task SendCustomEventAsync_Single_Succeeds()
+        {
+            await TestSendEventGridEventAsync(async (client, eventGridEvent) =>
+            {
+                BinaryData data = BinaryData.FromObjectAsJson(eventGridEvent);
+
+                Response response = await client.SendEventAsync(data);
+                return response;
+            });
+        }
+
+        [Fact]
         public async Task SendEventGridEventAsync_Many_Succeeds()
         {
             await TestSendEventGridEventAsync((client, eventGridEvent) => client.SendEventsAsync(new[] { eventGridEvent }));
@@ -53,6 +71,18 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task SendEventGridEventAsync_ManyWithOptions_Succeeds()
         {
             await TestSendEventGridEventWithOptionsAsync((client, eventGridEvent) => client.SendEventsAsync(new[] { eventGridEvent }));
+        }
+
+        [Fact]
+        public async Task SendCustomEventAsync_Many_Succeeds()
+        {
+            await TestSendEventGridEventAsync(async (client, eventGridEvent) =>
+            {
+                BinaryData data = BinaryData.FromObjectAsJson(eventGridEvent);
+
+                Response response = await client.SendEventsAsync(new [] { data });
+                return response;
+            });
         }
 
         [Fact]
@@ -68,16 +98,39 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
+        public void SendCustomEventSync_Single_Succeeds()
+        {
+            TestSendEventGridEvent((client, eventGridEvent) =>
+            {
+                BinaryData data = BinaryData.FromObjectAsJson(eventGridEvent);
+
+                Response response = client.SendEvent(data);
+                return response;
+            });
+        }
+
+        [Fact]
         public void SendEventGridEventSync_Many_Succeeds()
         {
             TestSendEventGridEvent((client, eventGridEvent) => client.SendEvents(new[] { eventGridEvent }));
         }
 
-        
         [Fact]
         public void SendEventGridEventSync_ManyWithOptions_Succeeds()
         {
             TestSendEventGridEventWithOptions((client, eventGridEvent) => client.SendEvents(new[] { eventGridEvent }));
+        }
+
+        [Fact]
+        public void SendCustomEventSync_Many_Succeeds()
+        {
+            TestSendEventGridEvent((client, eventGridEvent) =>
+            {
+                BinaryData data = BinaryData.FromObjectAsJson(eventGridEvent);
+
+                Response response = client.SendEvents(new [] { data });
+                return response;
+            });
         }
 
         private void TestSendEventGridEvent(Func<EventGridPublisherClient, EventGridEvent, Response> usePublisher)
@@ -97,7 +150,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             AssertEventGridEventForData(eventGridEvent);
         }
 
-         private void TestSendEventGridEventWithOptions(Func<EventGridPublisherClient, EventGridEvent, Response> usePublisher)
+        private void TestSendEventGridEventWithOptions(Func<EventGridPublisherClient, EventGridEvent, Response> usePublisher)
         {
             // Arrange
             string dependencyId = $"parent-{Guid.NewGuid()}";
@@ -158,6 +211,23 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             AssertEventGridEventForData(cloudEvent);
         }
 
+        private async Task TestSendEventGridEventWithImplementationAsync(Func<EventGridPublisherClient, EventGridEvent, Task<Response>> usePublisherAsync)
+        {
+            // Arrange
+            EventGridEvent eventGridEvent = CreateEventGridEventFromData(new CarEventData("1-ARCUS-337"));
+            EventGridPublisherClient client = CreateRegisteredClientWithCustomImplementation();
+
+             // Act
+            using (Response response = await usePublisherAsync(client, eventGridEvent))
+            {
+                Assert.False(response.IsError, response.ReasonPhrase);
+            }
+            
+            // Assert
+            AssertDependencyTracking();
+            AssertEventGridEventForData(eventGridEvent);
+        }
+
         private static EventGridEvent CreateEventGridEventFromData(CarEventData eventData)
         {
             var eventGridEvent = new EventGridEvent(
@@ -179,6 +249,42 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             string receivedEvent = _eventGridEventEndpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventGridEvent.Id);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventGridEvent.Id, eventGridEvent.EventType, eventGridEvent.Subject, eventData.LicensePlate, receivedEvent);
+        }
+
+        [Fact]
+        public async Task SendEventGridEventAsync_Many_FailsWhenEventDataIsNotJson()
+        {
+            // Arrange
+            var data = BinaryData.FromBytes(BogusGenerator.Random.Bytes(100));
+            var eventGridEvent = new EventGridEvent("subject", "type", "version", data);
+            EventGridPublisherClient client = CreateRegisteredClient();
+
+            // Act / Assert
+            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEventsAsync(new[] { eventGridEvent }));
+        }
+
+        [Fact]
+        public async Task SendCustomEventAsync_Single_FailsWhenEventIsNotJson()
+        {
+            // Arrange
+            byte[] data = BogusGenerator.Random.Bytes(100);
+            EventGridPublisherClient client = CreateRegisteredClient();
+
+            // Act / Assert
+            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEventAsync(new BinaryData(data)));
+        }
+
+        [Fact]
+        public void SendCustomEvent_Single_FailsWhenEventHasNoDataProperty()
+        {
+            // Arrange
+            var eventData = new CarEventData("1-ARCUS-337");
+            var data = BinaryData.FromObjectAsJson(eventData);
+
+            EventGridPublisherClient client = CreateRegisteredClient();
+
+            // Act / Assert
+            Assert.ThrowsAny<InvalidOperationException>(() => client.SendEvent(data));
         }
 
         /// <summary>
