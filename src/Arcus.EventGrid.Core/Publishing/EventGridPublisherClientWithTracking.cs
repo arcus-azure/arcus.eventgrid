@@ -334,7 +334,7 @@ namespace Azure.Messaging.EventGrid
             {
                 try
                 {
-                    Response response = await Options.AsyncPolicy.ExecuteAsync(() => publishEvent((TEvent)oneOrManyEvents));
+                    Response response = await Options.AsyncPolicy.ExecuteAsync(() => publishEvent((TEvent) oneOrManyEvents));
                     isSuccessful = true;
 
                     return response;

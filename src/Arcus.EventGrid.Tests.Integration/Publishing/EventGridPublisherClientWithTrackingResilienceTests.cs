@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Tests.Core.Events.Data;
+using Arcus.EventGrid.Tests.Integration.Publishing.Fixture;
 using Arcus.Observability.Correlation;
 using Azure;
 using Azure.Messaging;
@@ -23,32 +24,37 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task SendToTopicEndpoint_WithExponentialRetry_TriesSeveralTimes()
         {
             // Arrange
-            var topicEndpoint = "http://localhost:5000/some/unused/url/without/event-grid/topic";
-            var authenticationKeySecretName = "My-Auth-Key";
-            var retryCount = BogusGenerator.Random.Int(min: 1, max: 3);
-            var services = new ServiceCollection();
-            services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, "some super secret auth key"));
-            services.AddCorrelation();
-            services.AddAzureClients(clients =>
+            await using (var endpoint = await MockTopicEndpoint.StartAsync())
             {
-                clients.AddEventGridPublisherClient(
-                    topicEndpoint,
-                    authenticationKeySecretName,
-                    options => options.WithExponentialRetry<Exception>(retryCount));
-            });
+                var authenticationKeySecretName = "My-Auth-Key";
+                var retryCount = BogusGenerator.Random.Int(min: 1, max: 3);
+                var services = new ServiceCollection();
+                services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, "some super secret auth key"));
+                services.AddCorrelation();
+                services.AddAzureClients(clients =>
+                {
+                    clients.AddEventGridPublisherClient(
+                        endpoint.HostingUrl,
+                        authenticationKeySecretName,
+                        options =>
+                        {
+                            options.Retry.MaxRetries = 0;
+                            options.WithExponentialRetry<RequestFailedException>(retryCount);
+                        });
+                });
 
-            IServiceProvider provider = services.BuildServiceProvider();
-            var correlationAccessor = provider.GetRequiredService<ICorrelationInfoAccessor>();
-            correlationAccessor.SetCorrelationInfo(new CorrelationInfo("operation ID", "transaction ID"));
+                IServiceProvider provider = services.BuildServiceProvider();
+                var correlationAccessor = provider.GetRequiredService<ICorrelationInfoAccessor>();
+                correlationAccessor.SetCorrelationInfo(new CorrelationInfo("operation ID", "transaction ID"));
 
-            var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
-            EventGridPublisherClient client = factory.CreateClient("Default");
-            CloudEvent cloudEvent = GenerateCloudEvent();
-            
-            // Act / Assert
-            var exception = await Assert.ThrowsAnyAsync<AggregateException>(() => client.SendEventAsync(cloudEvent));
-            Assert.Equal(retryCount + 1, exception.InnerExceptions.Count);
-            Assert.All(exception.InnerExceptions, ex => Assert.IsType<RequestFailedException>(ex));
+                var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
+                EventGridPublisherClient client = factory.CreateClient("Default");
+                CloudEvent cloudEvent = GenerateCloudEvent();
+
+                // Act / Assert
+                await Assert.ThrowsAnyAsync<RequestFailedException>(() => client.SendEventAsync(cloudEvent));
+                Assert.Equal(retryCount + 1, endpoint.EndpointCallCount);
+            }
         }
 
         private static CloudEvent GenerateCloudEvent()
@@ -70,31 +76,72 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task SendToTopicEndpoint_WithCircuitBreaker_TriesSeveralTimes()
         {
             // Arrange
-            var topicEndpoint = "http://localhost:5000/some/unused/url/without/event-grid/topic";
-            var authenticationKeySecretName = "My-Auth-Key";
-            var exceptionsAllowedBeforeBreaking = BogusGenerator.Random.Int(min: 1, max: 3);
-            var services = new ServiceCollection();
-            services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, "some super secret auth key"));
-            services.AddCorrelation();
-            services.AddAzureClients(clients =>
+            await using (var endpoint = await MockTopicEndpoint.StartAsync())
             {
-                clients.AddEventGridPublisherClient(
-                    topicEndpoint,
-                    authenticationKeySecretName,
-                    options => options.WithCircuitBreaker<Exception>(exceptionsAllowedBeforeBreaking, TimeSpan.FromMilliseconds(100)));
-            });
+                var authenticationKeySecretName = "My-Auth-Key";
+                var exceptionsAllowedBeforeBreaking = BogusGenerator.Random.Int(min: 1, max: 3);
+                var services = new ServiceCollection();
+                services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, "some super secret auth key"));
+                services.AddCorrelation();
+                services.AddAzureClients(clients =>
+                {
+                    clients.AddEventGridPublisherClient(
+                        endpoint.HostingUrl,
+                        authenticationKeySecretName,
+                        options => options.WithCircuitBreaker<RequestFailedException>(exceptionsAllowedBeforeBreaking, TimeSpan.FromMilliseconds(100)));
+                });
 
-            IServiceProvider provider = services.BuildServiceProvider();
-            var correlationAccessor = provider.GetRequiredService<ICorrelationInfoAccessor>();
-            correlationAccessor.SetCorrelationInfo(new CorrelationInfo("operation ID", "transaction ID"));
+                IServiceProvider provider = services.BuildServiceProvider();
+                var correlationAccessor = provider.GetRequiredService<ICorrelationInfoAccessor>();
+                correlationAccessor.SetCorrelationInfo(new CorrelationInfo("operation ID", "transaction ID"));
 
-            var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
-            EventGridPublisherClient client = factory.CreateClient("Default");
-            EventGridEvent eventGridEvent = GenerateEventGridEvent();
+                var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
+                EventGridPublisherClient client = factory.CreateClient("Default");
+                EventGridEvent eventGridEvent = GenerateEventGridEvent();
             
-            // Act / Assert
-            var exception = await Assert.ThrowsAnyAsync<AggregateException>(() => client.SendEventAsync(eventGridEvent));
-            Assert.All(exception.InnerExceptions, ex => Assert.IsType<RequestFailedException>(ex));
+                // Act / Assert
+                await Assert.ThrowsAnyAsync<RequestFailedException>(() => client.SendEventAsync(eventGridEvent));
+                Assert.True(endpoint.EndpointCallCount > 2);
+            }
+        }
+
+        [Fact]
+        public async Task SendToTopicEndpoint_WithExponentialRetryWithCircuitBreaker_TriesSeveralTimes()
+        {
+            // Arrange
+            await using (var endpoint = await MockTopicEndpoint.StartAsync())
+            {
+                var authenticationKeySecretName = "My-Auth-Key";
+                var retryCount = BogusGenerator.Random.Int(min: 1, max: 3);
+                var exceptionsAllowedBeforeBreaking = BogusGenerator.Random.Int(min: 1, max: 3);
+                var services = new ServiceCollection();
+                services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, "some super secret auth key"));
+                services.AddCorrelation();
+                services.AddAzureClients(clients =>
+                {
+                    clients.AddEventGridPublisherClient(
+                        endpoint.HostingUrl,
+                        authenticationKeySecretName,
+                        options =>
+                        {
+                            options.Retry.MaxRetries = 0;
+                            options.WithExponentialRetry<RequestFailedException>(retryCount);
+                            options.WithCircuitBreaker<RequestFailedException>(exceptionsAllowedBeforeBreaking, TimeSpan.FromMilliseconds(100));
+                        });
+                });
+
+                IServiceProvider provider = services.BuildServiceProvider();
+                var correlationAccessor = provider.GetRequiredService<ICorrelationInfoAccessor>();
+                correlationAccessor.SetCorrelationInfo(new CorrelationInfo("operation ID", "transaction ID"));
+
+                var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
+                EventGridPublisherClient client = factory.CreateClient("Default");
+                CloudEvent cloudEvent = GenerateCloudEvent();
+
+                // Act / Assert
+                await Assert.ThrowsAnyAsync<RequestFailedException>(() => client.SendEventAsync(cloudEvent));
+                Assert.Equal(retryCount + 1, endpoint.EndpointCallCount);
+            }
         }
 
         private static EventGridEvent GenerateEventGridEvent()

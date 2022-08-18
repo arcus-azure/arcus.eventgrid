@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Azure;
 using Polly;
 using Polly.CircuitBreaker;
+using Polly.NoOp;
+using Polly.Retry;
 
 // ReSharper disable once CheckNamespace
 namespace Azure.Messaging.EventGrid
@@ -81,7 +83,10 @@ namespace Azure.Messaging.EventGrid
         public void AddTelemetryContext(Dictionary<string, object> telemetryContext)
         {
             Guard.NotNull(telemetryContext, nameof(telemetryContext), "Requires a telemetry context dictionary to add to the event publishing dependency tracking");
-            TelemetryContext = telemetryContext;
+            foreach (KeyValuePair<string, object> item in telemetryContext)
+            {
+                TelemetryContext.Add(item.Key, item.Value);
+            }
         }
 
         /// <summary>
@@ -110,8 +115,9 @@ namespace Azure.Messaging.EventGrid
         {
             Guard.NotLessThanOrEqualTo(retryCount, 0, nameof(retryCount), "Requires a retry count for the exponential retry that's greater than zero");
 
-            AsyncPolicy = Policy.Handle<TException>().WaitAndRetryAsync(retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
-            SyncPolicy = Policy.Handle<TException>().WaitAndRetry(retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+            AsyncRetryPolicy asyncPolicy = Policy.Handle<TException>().WaitAndRetryAsync(retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+            RetryPolicy syncPolicy = Policy.Handle<TException>().WaitAndRetry(retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+            SetOrUpdatePolicy(asyncPolicy, syncPolicy);
         }
 
         /// <summary>
@@ -137,8 +143,23 @@ namespace Azure.Messaging.EventGrid
             Guard.NotLessThanOrEqualTo(exceptionsAllowedBeforeBreaking, 0, nameof(exceptionsAllowedBeforeBreaking), "Requires a allowed exceptions count before the circuit breaker activates that's greater than zero");
             Guard.NotLessThanOrEqualTo(durationOfBreak, TimeSpan.Zero, nameof(durationOfBreak), "Requires a circuit breaker time duration that's a positive time range");
 
-            AsyncPolicy = Policy.Handle<TException>().CircuitBreakerAsync(exceptionsAllowedBeforeBreaking, durationOfBreak);
-            SyncPolicy = Policy.Handle<TException>().CircuitBreaker(exceptionsAllowedBeforeBreaking, durationOfBreak);
+            AsyncCircuitBreakerPolicy asyncPolicy = Policy.Handle<TException>().CircuitBreakerAsync(exceptionsAllowedBeforeBreaking, durationOfBreak);
+            CircuitBreakerPolicy syncPolicy = Policy.Handle<TException>().CircuitBreaker(exceptionsAllowedBeforeBreaking, durationOfBreak);
+            SetOrUpdatePolicy(asyncPolicy, syncPolicy);
+        }
+
+        private void SetOrUpdatePolicy(AsyncPolicy asyncPolicy, Policy syncPolicy)
+        {
+            if (AsyncPolicy is AsyncNoOpPolicy && SyncPolicy is NoOpPolicy)
+            {
+                AsyncPolicy = asyncPolicy;
+                SyncPolicy = syncPolicy;
+            }
+            else
+            {
+                AsyncPolicy.WrapAsync(asyncPolicy);
+                SyncPolicy.Wrap(syncPolicy);
+            }
         }
     }
 }
