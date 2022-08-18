@@ -22,7 +22,7 @@ namespace Azure.Messaging.EventGrid
     {
         private readonly string _topicEndpoint, _authenticationKeySecretName;
         private readonly ISecretProvider _secretProvider;
-        
+
         private EventGridPublisherClient _publisher;
         private static readonly SemaphoreSlim LockCreateEventGridPublisherClient = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
@@ -67,7 +67,6 @@ namespace Azure.Messaging.EventGrid
         /// Gets the available accessor instance to retrieve the current correlation information model used during the tracking of the publishing event.
         /// </summary>
         protected ICorrelationInfoAccessor CorrelationAccessor { get; }
-
 
         /// <summary>
         /// Gets the additional options to influence the correlation tracking and internal HTTP request which represents the publishing event.

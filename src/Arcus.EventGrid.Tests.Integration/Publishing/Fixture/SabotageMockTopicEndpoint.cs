@@ -9,28 +9,35 @@ using Microsoft.Extensions.Hosting;
 
 namespace Arcus.EventGrid.Tests.Integration.Publishing.Fixture
 {
-    public class EndpointCallCount
-    {
-        public int Count { get; set; }
-    }
-
-    public class MockTopicEndpoint : IAsyncDisposable
+    /// <summary>
+    /// Represents an Azure Event Grid topic endpoint that sabotages requests to the endpoint.
+    /// </summary>
+    public class SabotageMockTopicEndpoint : IAsyncDisposable
     {
         private readonly IHost _host;
 
         private static readonly Faker BogusGenerator = new Faker();
 
-        private MockTopicEndpoint(IHost host, string hostingUrl)
+        private SabotageMockTopicEndpoint(IHost host, string hostingUrl)
         {
             _host = host;
             HostingUrl = hostingUrl;
         }
 
+        /// <summary>
+        /// Gets the URL where this topic endpoint is hosted.
+        /// </summary>
         public string HostingUrl { get; }
 
+        /// <summary>
+        /// Gets the amount that where send to this topic endpoint.
+        /// </summary>
         public int EndpointCallCount => _host.Services.GetRequiredService<EndpointCallCount>().Count;
 
-        public static async Task<MockTopicEndpoint> StartAsync()
+        /// <summary>
+        /// Starts an <see cref="SabotageMockTopicEndpoint"/> on a generated hosting URL.
+        /// </summary>
+        public static async Task<SabotageMockTopicEndpoint> StartAsync()
         {
             string url = $"http://localhost:{BogusGenerator.Random.Int(5000, 5500)}/";
 
@@ -49,7 +56,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing.Fixture
             });
 
             await app.StartAsync();
-            return new MockTopicEndpoint(app, url);
+            return new SabotageMockTopicEndpoint(app, url);
         }
 
         /// <summary>
