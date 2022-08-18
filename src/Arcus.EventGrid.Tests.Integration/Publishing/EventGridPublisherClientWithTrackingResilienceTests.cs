@@ -24,7 +24,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task SendToTopicEndpoint_WithExponentialRetry_TriesSeveralTimes()
         {
             // Arrange
-            await using (var endpoint = await MockTopicEndpoint.StartAsync())
+            await using (var endpoint = await SabotageMockTopicEndpoint.StartAsync())
             {
                 var authenticationKeySecretName = "My-Auth-Key";
                 var retryCount = BogusGenerator.Random.Int(min: 1, max: 3);
@@ -76,7 +76,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task SendToTopicEndpoint_WithCircuitBreaker_TriesSeveralTimes()
         {
             // Arrange
-            await using (var endpoint = await MockTopicEndpoint.StartAsync())
+            await using (var endpoint = await SabotageMockTopicEndpoint.StartAsync())
             {
                 var authenticationKeySecretName = "My-Auth-Key";
                 var exceptionsAllowedBeforeBreaking = BogusGenerator.Random.Int(min: 1, max: 3);
@@ -109,7 +109,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         public async Task SendToTopicEndpoint_WithExponentialRetryWithCircuitBreaker_TriesSeveralTimes()
         {
             // Arrange
-            await using (var endpoint = await MockTopicEndpoint.StartAsync())
+            await using (var endpoint = await SabotageMockTopicEndpoint.StartAsync())
             {
                 var authenticationKeySecretName = "My-Auth-Key";
                 var retryCount = BogusGenerator.Random.Int(min: 1, max: 3);
