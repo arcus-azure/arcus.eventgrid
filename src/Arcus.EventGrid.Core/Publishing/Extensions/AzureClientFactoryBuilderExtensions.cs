@@ -20,8 +20,8 @@ namespace Microsoft.Extensions.Azure
         /// Registers an <see cref="EventGridPublisherClient"/> instance with built-in correlation tracking on a given <paramref name="topicEndpoint"/>.
         /// </summary>
         /// <remarks>
-        ///     <para>Make sure that the application has the Arcus secret store configured correctly.
-        ///           For more on the Arcus secret store: <a href="https://security.arcus-azure.net/features/secret-store" />.</para>
+        ///     <para>Make sure that the application has the Arcus secret store configured correctly. For more on the Arcus secret store: <a href="https://security.arcus-azure.net/features/secret-store" />.</para>
+        ///     <para>Make sure that the application ahs the Arcus correlation configured correctly. For more on the general Arcus correlation: <a href="https://observability.arcus-azure.net/Features/correlation" /> and on Arcus HTTP correlation for web API applications: <a href="https://webapi.arcus-azure.net/features/correlation" />.</para>
         /// </remarks>
         /// <param name="builder">The Azure builder to add the client to.</param>
         /// <param name="topicEndpoint">The Azure Event Grid topic endpoint to where the events should be published.</param>
@@ -44,8 +44,8 @@ namespace Microsoft.Extensions.Azure
         /// Registers an <see cref="EventGridPublisherClient"/> instance with built-in correlation tracking on a given <paramref name="topicEndpoint"/>.
         /// </summary>
         /// <remarks>
-        ///     <para>Make sure that the application has the Arcus secret store configured correctly.
-        ///           For more on the Arcus secret store: <a href="https://security.arcus-azure.net/features/secret-store" />.</para>
+        ///     <para>Make sure that the application has the Arcus secret store configured correctly. For more on the Arcus secret store: <a href="https://security.arcus-azure.net/features/secret-store" />.</para>
+        ///     <para>Make sure that the application ahs the Arcus correlation configured correctly. For more on the general Arcus correlation: <a href="https://observability.arcus-azure.net/Features/correlation" /> and on Arcus HTTP correlation for web API applications: <a href="https://webapi.arcus-azure.net/features/correlation" />.</para>
         /// </remarks>
         /// <param name="builder">The Azure builder to add the client to.</param>
         /// <param name="topicEndpoint">The Azure Event Grid topic endpoint to where the events should be published.</param>
@@ -69,14 +69,16 @@ namespace Microsoft.Extensions.Azure
                 if (secretProvider is null)
                 {
                     throw new InvalidOperationException(
-                        "Requires an Arcus secret store registration to retrieve the authentication key to authenticate with Azure Event Grid while creating an Event Grid publisher instance");
+                        "Requires an Arcus secret store registration to retrieve the authentication key to authenticate with Azure Event Grid while creating an Event Grid publisher instance," 
+                        + "please use 'services.AddCorrelation()' (https://observability.arcus-azure.net/Features/correlation) or 'services.AddHttpCorrelation()' for web API applications (https://webapi.arcus-azure.net/features/correlation)");
                 }
 
                 var correlationAccessor = provider.GetService<ICorrelationInfoAccessor>();
                 if (correlationAccessor is null)
                 {
                     throw new InvalidOperationException(
-                        "Requires an Arcus correlation registration to retrieve the current correlation model to enrich the send out event to Azure Event Grid");
+                        "Requires an Arcus correlation registration to retrieve the current correlation model to enrich the send out event to Azure Event Grid, "
+                        + "please use the 'services.AddSecretStore(...)' or 'host.ConfigureSecretStore(...)' (https://security.arcus-azure.net/features/secret-store)");
                 }
 
                 ILogger<EventGridPublisherClient> logger =
@@ -91,8 +93,8 @@ namespace Microsoft.Extensions.Azure
         /// Registers an <see cref="EventGridPublisherClient"/> instance with built-in correlation tracking.
         /// </summary>
         /// <remarks>
-        ///     <para>Make sure that the application has the Arcus secret store configured correctly.
-        ///           For more on the Arcus secret store: <a href="https://security.arcus-azure.net/features/secret-store" />.</para>
+        ///     <para>Make sure that the application has the Arcus secret store configured correctly. For more on the Arcus secret store: <a href="https://security.arcus-azure.net/features/secret-store" />.</para>
+        ///     <para>Make sure that the application ahs the Arcus correlation configured correctly. For more on the general Arcus correlation: <a href="https://observability.arcus-azure.net/Features/correlation" /> and on Arcus HTTP correlation for web API applications: <a href="https://webapi.arcus-azure.net/features/correlation" />.</para>
         /// </remarks>
         /// <param name="builder">The Azure builder to add the client to.</param>
         /// <param name="implementationFactory">The function to create an instance of the <see cref="EventGridPublisherClientWithTracking"/>.</param>
@@ -112,8 +114,8 @@ namespace Microsoft.Extensions.Azure
         /// Registers an <see cref="EventGridPublisherClient"/> instance with built-in correlation tracking.
         /// </summary>
         /// <remarks>
-        ///     <para>Make sure that the application has the Arcus secret store configured correctly.
-        ///           For more on the Arcus secret store: <a href="https://security.arcus-azure.net/features/secret-store" />.</para>
+        ///     <para>Make sure that the application has the Arcus secret store configured correctly. For more on the Arcus secret store: <a href="https://security.arcus-azure.net/features/secret-store" />.</para>
+        ///     <para>Make sure that the application ahs the Arcus correlation configured correctly. For more on the general Arcus correlation: <a href="https://observability.arcus-azure.net/Features/correlation" /> and on Arcus HTTP correlation for web API applications: <a href="https://webapi.arcus-azure.net/features/correlation" />.</para>
         /// </remarks>
         /// <param name="builder">The Azure builder to add the client to.</param>
         /// <param name="configureOptions">The function to configure additional options that influence the correlation tracking during event publishing to Azure Event Grid.</param>
