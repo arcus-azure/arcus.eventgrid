@@ -1,4 +1,6 @@
-﻿using GuardNet;
+﻿using System;
+using System.Collections.Generic;
+using GuardNet;
 using Microsoft.Extensions.Azure;
 using Polly;
 using Polly.CircuitBreaker;
@@ -73,7 +75,7 @@ namespace Azure.Messaging.EventGrid
         /// <summary>
         /// Gets the telemetry context used during event publishing dependency tracking.
         /// </summary>
-        internal Dictionary<string, object> TelemetryContext { get; private set; }
+        internal Dictionary<string, object> TelemetryContext { get; } = new Dictionary<string, object>();
 
         /// <summary>
         /// Adds a telemetry context while tracking the Azure Event Grid dependency.

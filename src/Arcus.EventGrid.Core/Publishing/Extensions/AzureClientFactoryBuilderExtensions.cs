@@ -1,4 +1,5 @@
-﻿using Arcus.Observability.Correlation;
+﻿using System;
+using Arcus.Observability.Correlation;
 using Arcus.Security.Core;
 using Azure.Core.Extensions;
 using Azure.Messaging.EventGrid;
