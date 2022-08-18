@@ -56,30 +56,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 DataContentType = new ContentType("application/json")
             };
 
-            string topicEndpoint = _config.GetEventGridTopicEndpoint(EventSchema.CloudEvent);
-            string endpointKey = _config.GetEventGridEndpointKey(EventSchema.CloudEvent);
-            string authenticationKeySecretName = "EventGridAuthenticationKey";
-            var services = new ServiceCollection();
-            services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, endpointKey));
-            services.AddAzureClients(clients =>
-            {
-                clients.AddEventGridPublisherClient(topicEndpoint, authenticationKeySecretName)
-                       .WithName("EventGridPublisher");
-            });
-            IServiceProvider provider = services.BuildServiceProvider();
-            var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
-            EventGridPublisherClient client = factory.CreateClient("EventGridPublisher");
-
-            client.SendEvent(new Azure.Messaging.CloudEvent("http://test-host", "NewCarRegistered", new CarEventData(licensePlate))
-            {
-                Id = eventId,
-                Subject = eventSubject
-            });
-
-            //IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
+            IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
 
             // Act
-            //await publisher.PublishAsync(@event);
+            await publisher.PublishAsync(@event);
             TracePublishedEvent(eventId, @event);
 
             // Assert
