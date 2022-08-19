@@ -154,10 +154,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             // Arrange
             string dependencyId = $"parent-{Guid.NewGuid()}";
-            string key = $"key-{Guid.NewGuid()}", value = $"value-{Guid.NewGuid()}";
-            var telemetryContext = new Dictionary<string, object> { [key] = value };
+            string key1 = $"key-{Guid.NewGuid()}", value1 = $"value-{Guid.NewGuid()}";
+            string key2 = $"key-{Guid.NewGuid()}", value2 = $"value-{Guid.NewGuid()}";
             EventGridEvent cloudEvent = CreateEventGridEventFromData(new CarEventData("1-ARCUS-337"));
-            EventGridPublisherClient client = CreateRegisteredClientWithCustomOptions(dependencyId, telemetryContext);
+            EventGridPublisherClient client = CreateRegisteredClientWithCustomOptions(dependencyId, options =>
+            {
+                options.AddTelemetryContext(new Dictionary<string, object> { [key1] = value1 });
+                options.AddTelemetryContext(new Dictionary<string, object> { [key2] = value2, [key1] = value2 });
+            });
 
             // Act
             using (Response response = usePublisher(client, cloudEvent))
@@ -167,8 +171,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             string logMessage = AssertDependencyTracking(dependencyId);
-            Assert.Contains(key, logMessage);
-            Assert.Contains(value, logMessage);
+            Assert.Contains(key1, logMessage);
+            Assert.DoesNotContain(value1, logMessage);
+            Assert.Contains(key2, logMessage);
+            Assert.Contains(value2, logMessage);
             AssertEventGridEventForData(cloudEvent);
         }
 
@@ -193,10 +199,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             // Arrange
             string dependencyId = $"parent-{Guid.NewGuid()}";
-            string key = $"key-{Guid.NewGuid()}", value = $"value-{Guid.NewGuid()}";
-            var telemetryContext = new Dictionary<string, object> { [key] = value };
+            string key1 = $"key-{Guid.NewGuid()}", value1 = $"value-{Guid.NewGuid()}";
+            string key2 = $"key-{Guid.NewGuid()}", value2 = $"value-{Guid.NewGuid()}";
             EventGridEvent cloudEvent = CreateEventGridEventFromData(new CarEventData("1-ARCUS-337"));
-            EventGridPublisherClient client = CreateRegisteredClientWithCustomOptions(dependencyId, telemetryContext);
+            EventGridPublisherClient client = CreateRegisteredClientWithCustomOptions(dependencyId, options =>
+            {
+                options.AddTelemetryContext(new Dictionary<string, object> { [key1] = value1 });
+                options.AddTelemetryContext(new Dictionary<string, object> { [key2] = value2, [key1] = value2 });
+            });
 
             // Act
             using (Response response = await usePublisherAsync(client, cloudEvent))
@@ -206,8 +216,10 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             string logMessage = AssertDependencyTracking(dependencyId);
-            Assert.Contains(key, logMessage);
-            Assert.Contains(value, logMessage);
+            Assert.Contains(key1, logMessage);
+            Assert.DoesNotContain(value1, logMessage);
+            Assert.Contains(key2, logMessage);
+            Assert.Contains(value2, logMessage);
             AssertEventGridEventForData(cloudEvent);
         }
 

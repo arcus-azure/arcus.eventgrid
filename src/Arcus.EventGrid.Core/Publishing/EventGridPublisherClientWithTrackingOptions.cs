@@ -87,7 +87,7 @@ namespace Azure.Messaging.EventGrid
             Guard.NotNull(telemetryContext, nameof(telemetryContext), "Requires a telemetry context dictionary to add to the event publishing dependency tracking");
             foreach (KeyValuePair<string, object> item in telemetryContext)
             {
-                TelemetryContext.Add(item.Key, item.Value);
+                TelemetryContext[item.Key] = item.Value;
             }
         }
 

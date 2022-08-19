@@ -78,7 +78,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             });
         }
 
-        protected EventGridPublisherClient CreateRegisteredClientWithCustomOptions(string dependencyId, Dictionary<string, object> telemetryContext)
+        protected EventGridPublisherClient CreateRegisteredClientWithCustomOptions(string dependencyId, Action<EventGridPublisherClientWithTrackingOptions> configureOptions)
         {
             _customAssertOperationParentIdProperty = message =>
             {
@@ -98,7 +98,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 options.UpstreamServicePropertyName = "customOperationParentId";
                 options.TransactionIdEventDataPropertyName = "customTransactionId";
                 options.GenerateDependencyId = () => dependencyId;
-                options.AddTelemetryContext(telemetryContext);
+                configureOptions(options);
             });
         }
 
