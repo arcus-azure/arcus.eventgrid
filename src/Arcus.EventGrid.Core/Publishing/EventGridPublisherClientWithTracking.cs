@@ -83,7 +83,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="cloudEvent"> The set of events to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Response SendEvent(CloudEvent cloudEvent, CancellationToken cancellationToken = new CancellationToken())
+        public override Response SendEvent(CloudEvent cloudEvent, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(cloudEvent, nameof(cloudEvent), "Requires a cloud event instance to publish the event to the Azure Event Grid topic");
             return TrackPublishEvent<CloudEvent>(cloudEvent, ev => _publisher.SendEvent(ev, cancellationToken));
@@ -95,7 +95,7 @@ namespace Azure.Messaging.EventGrid
         /// <param name="cloudEvent"> The set of events to be published to Event Grid.</param>
         /// <param name="channelName">The partner topic channel to publish the event to.</param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Response SendEvent(CloudEvent cloudEvent, string channelName, CancellationToken cancellationToken = new CancellationToken())
+        public override Response SendEvent(CloudEvent cloudEvent, string channelName, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(cloudEvent, nameof(cloudEvent), "Requires a cloud event instance to publish the event to the Azure Event Grid topic");
             return TrackPublishEvent<CloudEvent>(cloudEvent, ev => _publisher.SendEvent(ev, channelName, cancellationToken));
@@ -105,7 +105,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="cloudEvent"> The set of events to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override async Task<Response> SendEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken = new CancellationToken())
+        public override async Task<Response> SendEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(cloudEvent, nameof(cloudEvent), "Requires a cloud event instance to publish the event to the Azure Event Grid topic");
             return await TrackPublishEventAsync<CloudEvent>(cloudEvent, ev => _publisher.SendEventAsync(ev, cancellationToken));
@@ -117,7 +117,7 @@ namespace Azure.Messaging.EventGrid
         /// <param name="cloudEvent"> The set of events to be published to Event Grid.</param>
         /// <param name="channelName">The partner topic channel to publish the event to.</param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override async Task<Response> SendEventAsync(CloudEvent cloudEvent, string channelName, CancellationToken cancellationToken = new CancellationToken())
+        public override async Task<Response> SendEventAsync(CloudEvent cloudEvent, string channelName, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(cloudEvent, nameof(cloudEvent), "Requires a cloud event instance to publish the event to the Azure Event Grid topic");
             return await TrackPublishEventAsync<CloudEvent>(cloudEvent, ev => _publisher.SendEventAsync(ev, channelName, cancellationToken));
@@ -128,7 +128,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="cloudEvents"> The set of events to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Response SendEvents(IEnumerable<CloudEvent> cloudEvents, CancellationToken cancellationToken = new CancellationToken())
+        public override Response SendEvents(IEnumerable<CloudEvent> cloudEvents, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(cloudEvents, nameof(cloudEvents), "Requires a set of cloud event instances to publish the event to the Azure Event Grid topic");
             return TrackPublishEvent<IEnumerable<CloudEvent>>(cloudEvents, events => _publisher.SendEvents(events, cancellationToken));
@@ -139,7 +139,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="cloudEvents"> The set of events to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override async Task<Response> SendEventsAsync(IEnumerable<CloudEvent> cloudEvents, CancellationToken cancellationToken = new CancellationToken())
+        public override async Task<Response> SendEventsAsync(IEnumerable<CloudEvent> cloudEvents, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(cloudEvents, nameof(cloudEvents), "Requires a set of cloud event instances to publish the event to the Azure Event Grid topic");
             return await TrackPublishEventAsync<IEnumerable<CloudEvent>>(cloudEvents, events => _publisher.SendEventsAsync(events, cancellationToken));
@@ -151,7 +151,7 @@ namespace Azure.Messaging.EventGrid
         /// <param name="cloudEvents"> The set of events to be published to Event Grid. </param>
         /// <param name="channelName">The partner topic channel to publish the event to.</param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Response SendEvents(IEnumerable<CloudEvent> cloudEvents, string channelName, CancellationToken cancellationToken = new CancellationToken())
+        public override Response SendEvents(IEnumerable<CloudEvent> cloudEvents, string channelName, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(cloudEvents, nameof(cloudEvents), "Requires a set of cloud event instances to publish the event to the Azure Event Grid topic");
             return TrackPublishEvent<IEnumerable<CloudEvent>>(cloudEvents, events => _publisher.SendEvents(events, channelName, cancellationToken));
@@ -163,7 +163,7 @@ namespace Azure.Messaging.EventGrid
         /// <param name="cloudEvents"> The set of events to be published to Event Grid.</param>
         /// <param name="channelName">The partner topic channel to publish the event to.</param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override async Task<Response> SendEventsAsync(IEnumerable<CloudEvent> cloudEvents, string channelName, CancellationToken cancellationToken = new CancellationToken())
+        public override async Task<Response> SendEventsAsync(IEnumerable<CloudEvent> cloudEvents, string channelName, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(cloudEvents, nameof(cloudEvents), "Requires a set of cloud event instances to publish the event to the Azure Event Grid topic");
             return await TrackPublishEventAsync<IEnumerable<CloudEvent>>(cloudEvents, events => _publisher.SendEventsAsync(events, channelName, cancellationToken));
@@ -174,7 +174,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="cloudEvents"> The set of encoded cloud events to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Response SendEncodedCloudEvents(ReadOnlyMemory<byte> cloudEvents, CancellationToken cancellationToken = new CancellationToken())
+        public override Response SendEncodedCloudEvents(ReadOnlyMemory<byte> cloudEvents, CancellationToken cancellationToken = default)
         {
             Guard.For(() => cloudEvents.IsEmpty, new ArgumentException("Requires a set of cloud event instances to publish the event to the Azure Event Grid topic", nameof(cloudEvents)));
             return TrackPublishEvent<ReadOnlyMemory<byte>>(cloudEvents, events => _publisher.SendEncodedCloudEvents(events, cancellationToken));
@@ -185,7 +185,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="cloudEvents"> The set of encoded cloud events to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override async Task<Response> SendEncodedCloudEventsAsync(ReadOnlyMemory<byte> cloudEvents, CancellationToken cancellationToken = new CancellationToken())
+        public override async Task<Response> SendEncodedCloudEventsAsync(ReadOnlyMemory<byte> cloudEvents, CancellationToken cancellationToken = default)
         {
             Guard.For(() => cloudEvents.IsEmpty, new ArgumentException("Requires a set of cloud event instances to publish the event to the Azure Event Grid topic", nameof(cloudEvents)));
             return await TrackPublishEventAsync<ReadOnlyMemory<byte>>(cloudEvents, events => _publisher.SendEncodedCloudEventsAsync(events, cancellationToken));
@@ -196,7 +196,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="eventGridEvent"> The set of events to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Response SendEvent(EventGridEvent eventGridEvent, CancellationToken cancellationToken = new CancellationToken())
+        public override Response SendEvent(EventGridEvent eventGridEvent, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(eventGridEvent, nameof(eventGridEvent), "Requires a Event Grid event instance to publish the event to the Azure Event Grid topic");
             return TrackPublishEvent<EventGridEvent>(eventGridEvent, ev => _publisher.SendEvent(ev, cancellationToken));
@@ -207,7 +207,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="eventGridEvent"> The event to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override async Task<Response> SendEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken = new CancellationToken())
+        public override async Task<Response> SendEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(eventGridEvent, nameof(eventGridEvent), "Requires a Event Grid event instance to publish the event to the Azure Event Grid topic");
             return await TrackPublishEventAsync<EventGridEvent>(eventGridEvent, ev => _publisher.SendEventAsync(ev, cancellationToken));
@@ -218,7 +218,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="eventGridEvents"> The set of events to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Response SendEvents(IEnumerable<EventGridEvent> eventGridEvents, CancellationToken cancellationToken = new CancellationToken())
+        public override Response SendEvents(IEnumerable<EventGridEvent> eventGridEvents, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(eventGridEvents, nameof(eventGridEvents), "Requires a set of Event Grid event instances to publish the event to the Azure Event Grid topic");
             return TrackPublishEvent<IEnumerable<EventGridEvent>>(eventGridEvents, events => _publisher.SendEvents(events, cancellationToken));
@@ -229,7 +229,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="eventGridEvents"> The set of events to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override async Task<Response> SendEventsAsync(IEnumerable<EventGridEvent> eventGridEvents, CancellationToken cancellationToken = new CancellationToken())
+        public override async Task<Response> SendEventsAsync(IEnumerable<EventGridEvent> eventGridEvents, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(eventGridEvents, nameof(eventGridEvents), "Requires a set of Event Grid event instances to publish the event to the Azure Event Grid topic");
             return await TrackPublishEventAsync<IEnumerable<EventGridEvent>>(eventGridEvents, events => _publisher.SendEventsAsync(events, cancellationToken));
@@ -240,7 +240,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="customEvent">A custom schema event to be published to Event Grid.</param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Response SendEvent(BinaryData customEvent, CancellationToken cancellationToken = new CancellationToken())
+        public override Response SendEvent(BinaryData customEvent, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(customEvent, nameof(customEvent), "Requires a custom event instances to publish the event to the Azure Event Grid topic");
             return TrackPublishEvent<BinaryData>(customEvent, ev => _publisher.SendEvent(ev, cancellationToken));
@@ -251,7 +251,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="customEvent"> A custom schema event to be published to Event Grid. </param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Task<Response> SendEventAsync(BinaryData customEvent, CancellationToken cancellationToken = new CancellationToken())
+        public override Task<Response> SendEventAsync(BinaryData customEvent, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(customEvent, nameof(customEvent), "Requires a custom event instance to publish the event to the Azure Event Grid topic");
             return TrackPublishEventAsync<BinaryData>(customEvent, ev => _publisher.SendEventAsync(ev, cancellationToken));
@@ -262,7 +262,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="customEvents">The set of custom schema events to be published to Event Grid.</param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override Response SendEvents(IEnumerable<BinaryData> customEvents, CancellationToken cancellationToken = new CancellationToken())
+        public override Response SendEvents(IEnumerable<BinaryData> customEvents, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(customEvents, nameof(customEvents), "Requires a set of custom event instances to publish the event to the Azure Event Grid topic");
             return TrackPublishEvent<IEnumerable<BinaryData>>(customEvents, events => _publisher.SendEvents(events, cancellationToken));
@@ -273,7 +273,7 @@ namespace Azure.Messaging.EventGrid
         /// </summary>
         /// <param name="customEvents">The set of custom schema events to be published to Event Grid.</param>
         /// <param name="cancellationToken"> An optional cancellation token instance to signal the request to cancel the operation.</param>
-        public override async Task<Response> SendEventsAsync(IEnumerable<BinaryData> customEvents, CancellationToken cancellationToken = new CancellationToken())
+        public override async Task<Response> SendEventsAsync(IEnumerable<BinaryData> customEvents, CancellationToken cancellationToken = default)
         {
             Guard.NotNull(customEvents, nameof(customEvents), "Requires a set of custom event instances to publish the event to the Azure Event Grid topic");
             return await TrackPublishEventAsync<IEnumerable<BinaryData>>(customEvents, events => _publisher.SendEventsAsync(events, cancellationToken));
