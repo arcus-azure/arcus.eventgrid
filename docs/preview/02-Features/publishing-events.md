@@ -17,7 +17,7 @@ PM> Install-Package Arcus.EventGrid.Core
 > **⚠ Publishing events used to be in the package called `Arcus.EventGrid.Publishing`. Please make sure that you migrate towards `Arcus.EventGrid.Core` as it's not being actively maintained beyond v3.2.**
 
 ## Usage
-Adding simple Azure EventGrid publishing to your application only required the following registration.
+Adding simple Azure EventGrid publishing to your application only requires the following registration.
 > ⚠ Note that this way of registering requires the [Arcus secrect store](https://security.arcus-azure.net/features/secret-store) to retrieve the necessary authentication secrets to interact with the Azure EventGrid topic.
 > ⚠ Note that this way of registering requires the [Arcus correlation](https://observability.arcus-azure.net/Features/correlation) to retrieve the current application's correlation model to enrich the publishing events.
 
