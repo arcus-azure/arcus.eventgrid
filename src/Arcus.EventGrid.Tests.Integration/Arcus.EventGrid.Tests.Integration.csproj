@@ -7,7 +7,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-    <PackageReference Include="Arcus.Observability.Telemetry.Core" Version="2.4.0" />
     <PackageReference Include="Arcus.Testing.Logging" Version="0.3.0" />
     <PackageReference Include="Arcus.Testing.Security.Providers.InMemory" Version="0.3.0" />
     <PackageReference Include="Bogus" Version="29.0.2" />
@@ -17,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Arcus.EventGrid.Core\Arcus.EventGrid.Core.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Testing\Arcus.EventGrid.Testing.csproj" />

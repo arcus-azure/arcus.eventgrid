@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net6.0;netcoreapp3.1</TargetFrameworks>
     <Authors>Arcus</Authors>
     <Company>Arcus</Company>
     <PackageProjectUrl>https://eventgrid.arcus-azure.net/</PackageProjectUrl>
@@ -21,21 +21,18 @@
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Guard.NET" Version="2.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'net6.0'">
-    <PackageReference Include="Guard.NET" Version="1.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <PackageReference Include="System.Text.Json" Version="6.0.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CloudNative.CloudEvents" Version="1.3.80" />
-    <!-- Start deprecated packages -->
-    <PackageReference Include="Microsoft.Azure.EventGrid" Version="3.2.0" />
-    <!-- End deprecated packages -->
+    <PackageReference Include="Arcus.Observability.Correlation" Version="[2.5.0,3.0.0)" />
+    <PackageReference Include="Arcus.Observability.Telemetry.Core" Version="[2.5.0,3.0.0)" />
+    <PackageReference Include="Arcus.Security.Core" Version="[1.7.0,2.0.0)" />
+    <PackageReference Include="Azure.Messaging.EventGrid" Version="4.11.0" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.3.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Polly" Version="7.2.1" />
   </ItemGroup>
 
 </Project>
