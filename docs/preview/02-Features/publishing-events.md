@@ -5,7 +5,7 @@ layout: default
 
 # Azure Event Grid publishing
 We provide support for publishing Azure EventGrid, CloudEvents and custom events to a custom Azure Event Grid topics. 
-This event publishing builds on top of the existing [`EventGridPublisherClient`](https://www.nuget.org/packages/Azure.Messaging.EventGrid/) that can either be added to the application's dependency container. The injected Azure clients is a great way to centrilize your Azure interaction in the startup code of your application.
+This event publishing builds on top of the existing [`EventGridPublisherClient`](https://www.nuget.org/packages/Azure.Messaging.EventGrid/) that can either be added to the application's dependency container. The injected Azure client is a great way to centralize your Azure interaction in the startup code of your application.
 Arcus enhances the existing Event Grid publisher with dependency tracking that can be build up to a full service-to-service correlation model.
 
 ## Installation
@@ -17,7 +17,7 @@ PM> Install-Package Arcus.EventGrid.Core
 > **⚠ Publishing events used to be in the package called `Arcus.EventGrid.Publishing`. Please make sure that you migrate towards `Arcus.EventGrid.Core` as it's not being actively maintained beyond v3.2.**
 
 ## Usage
-Adding simple Azure EventGrid publishing to your application only required the following registration.
+Adding simple Azure EventGrid publishing to your application only requires the following registration.
 > ⚠ Note that this way of registering requires the [Arcus secrect store](https://security.arcus-azure.net/features/secret-store) to retrieve the necessary authentication secrets to interact with the Azure EventGrid topic.
 > ⚠ Note that this way of registering requires the [Arcus correlation](https://observability.arcus-azure.net/Features/correlation) to retrieve the current application's correlation model to enrich the publishing events.
 
