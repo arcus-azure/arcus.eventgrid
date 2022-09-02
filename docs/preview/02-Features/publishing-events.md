@@ -70,7 +70,7 @@ public class MyService
 }
 ```
 
-For more information on Azure core clients, how they work and how to use them, see [Microsoft's documentation](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/microsoft.extensions.azure-readme-pre).
+For more information on Azure clients, how they work and how to use them, see [Microsoft's documentation](https://docs.microsoft.com/en-us/dotnet/api/overview/azure/microsoft.extensions.azure-readme-pre).
 
 ## Configuration
 The Arcus `EventGridPublisher` builds on top of the existing [`EventGridPublisherClientOptions`](https://docs.microsoft.com/en-us/dotnet/api/azure.messaging.eventgrid.eventgridpublisherclientoptions?view=azure-dotnet) to provide additional options related to corelation and resilience.
