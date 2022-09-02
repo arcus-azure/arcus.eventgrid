@@ -5,7 +5,7 @@ layout: default
 
 # Azure Event Grid publishing
 We provide support for publishing Azure EventGrid, CloudEvents and custom events to a custom Azure Event Grid topics. 
-This event publishing builds on top of the existing [`EventGridPublisherClient`](https://www.nuget.org/packages/Azure.Messaging.EventGrid/) that can either be added to the application's dependency container. The injected Azure clients is a great way to centrilize your Azure interaction in the startup code of your application.
+This event publishing builds on top of the existing [`EventGridPublisherClient`](https://www.nuget.org/packages/Azure.Messaging.EventGrid/) that can either be added to the application's dependency container. The injected Azure client is a great way to centralize your Azure interaction in the startup code of your application.
 Arcus enhances the existing Event Grid publisher with dependency tracking that can be build up to a full service-to-service correlation model.
 
 ## Installation
