@@ -44,8 +44,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             {
                 ReadOnlyMemory<byte> memory = EncodeCloudEvent(cloudEvent);
                 return Task.FromResult(client.SendEncodedCloudEvents(memory));
-            })},
-
+            })}
         };
 
         private static ReadOnlyMemory<byte> EncodeCloudEvent(CloudEvent cloudEvent)

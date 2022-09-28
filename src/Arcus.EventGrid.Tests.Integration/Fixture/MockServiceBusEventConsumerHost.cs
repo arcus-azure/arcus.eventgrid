@@ -176,7 +176,6 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
                 throw new AggregateException("Failed to receive event due to a failure during retrieval", _exceptions);
             }
 
-
             return receivedEvent;
         }
 

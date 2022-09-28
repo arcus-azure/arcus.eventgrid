@@ -39,7 +39,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             {
                 BinaryData data = BinaryData.FromObjectAsJson(eventGridEvent);
                 return Task.FromResult(client.SendEvents(new[] { data }));
-            }) },
+            }) }
         };
 
         /// <summary>
