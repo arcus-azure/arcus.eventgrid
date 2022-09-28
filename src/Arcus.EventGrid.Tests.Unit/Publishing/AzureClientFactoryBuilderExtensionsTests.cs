@@ -25,6 +25,45 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
 
         [Theory]
         [ClassData(typeof(Blanks))]
+        public void AddEventGridPublisherClientUsingManagedIdentity_WithoutTopicEndpoint_Fails(string topicEndpoint)
+        {
+            // Arrange
+            var services = new ServiceCollection();
+
+            // Act / Assert
+            Assert.ThrowsAny<ArgumentException>(
+                () => services.AddAzureClients(
+                    clients => clients.AddEventGridPublisherClientUsingManagedIdentity(topicEndpoint)));
+        }
+
+        [Theory]
+        [ClassData(typeof(Blanks))]
+        public void AddEventGridPublisherClientUsingManagedIdentityWithClientId_WithoutTopicEndpoint_Fails(string topicEndpoint)
+        {
+            // Arrange
+            var services = new ServiceCollection();
+
+            // Act / Assert
+            Assert.ThrowsAny<ArgumentException>(
+                () => services.AddAzureClients(
+                    clients => clients.AddEventGridPublisherClientUsingManagedIdentity(topicEndpoint, clientId: "something", options => { })));
+        }
+
+        [Theory]
+        [ClassData(typeof(Blanks))]
+        public void AddEventGridPublisherClientUsingManagedIdentityWithOptions_WithoutTopicEndpoint_Fails(string topicEndpoint)
+        {
+            // Arrange
+            var services = new ServiceCollection();
+
+            // Act / Assert
+            Assert.ThrowsAny<ArgumentException>(
+                () => services.AddAzureClients(
+                    clients => clients.AddEventGridPublisherClientUsingManagedIdentity(topicEndpoint, options => { })));
+        }
+
+        [Theory]
+        [ClassData(typeof(Blanks))]
         public void AddEventGridPublisherClient_WithoutAuthenticationKeySecretName_Fails(string authenticationKeySecretName)
         {
             // Arrange
@@ -230,6 +269,69 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             EventGridPublisherClient client = factory.CreateClient("Default");
             Assert.NotNull(client);
             Assert.IsType<StubEventGridPublisherClientWithTracking>(client);
+        }
+
+        [Fact]
+        public void AddEventGridPublisherClientUsingManagedIdentity_WithTopicEndpoint_Succeeds()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+            services.AddCorrelation();
+
+            // Act
+            services.AddAzureClients(clients =>
+            {
+                clients.AddEventGridPublisherClientUsingManagedIdentity("https://topic-endpoint");
+            });
+
+            // Assert
+            IServiceProvider provider = services.BuildServiceProvider();
+            var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
+            EventGridPublisherClient client = factory.CreateClient("Default");
+            Assert.NotNull(client);
+            Assert.IsType<EventGridPublisherClientWithTracking>(client);
+        }
+
+        [Fact]
+        public void AddEventGridPublisherClientUsingManagedIdentity_WithTopicEndpointWithClientId_Succeeds()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+            services.AddCorrelation();
+
+            // Act
+            services.AddAzureClients(clients =>
+            {
+                clients.AddEventGridPublisherClientUsingManagedIdentity("https://topic-endpoint", clientId: "something", options => { });
+            });
+
+            // Assert
+            IServiceProvider provider = services.BuildServiceProvider();
+            var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
+            EventGridPublisherClient client = factory.CreateClient("Default");
+            Assert.NotNull(client);
+            Assert.IsType<EventGridPublisherClientWithTracking>(client);
+        }
+
+        [Fact]
+        public void AddEventGridPublisherClientUsingManagedIdentity_WithTopicEndpointAndOptions_Succeeds()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+            services.AddCorrelation();
+
+            // Act
+            services.AddAzureClients(clients =>
+            {
+                clients.AddEventGridPublisherClientUsingManagedIdentity("https://topic-endpoint", options => { });
+            });
+
+            // Assert
+            IServiceProvider provider = services.BuildServiceProvider();
+            var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
+            EventGridPublisherClient client = factory.CreateClient("Default");
+            Assert.NotNull(client);
+            Assert.IsType<EventGridPublisherClientWithTracking>(client);
         }
     }
 }

@@ -23,12 +23,12 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
     public abstract class EventGridPublisherClientWithTrackingTests
     {
         private readonly string _transactionId = $"transaction-{Guid.NewGuid()}";
-        private readonly TestConfig _config = TestConfig.Create();
         private readonly ITestOutputHelper _testOutput;
 
         private readonly EventSchema _eventSchema;
         private readonly InMemoryLogger _spyLogger;
 
+        private EventOptionsFixture _optionsFixture;
         private Action<ProcessMessageEventArgs> _customAssertOperationParentIdProperty, _customAssertTransactionIdProperty;
 
         private static readonly Regex DependencyIdRegex = new Regex(@"ID [a-z0-9]{8}\-[a-z0-9]{4}\-[a-z0-9]{4}\-[a-z0-9]{4}\-[a-z0-9]{12}", RegexOptions.Compiled);
@@ -46,9 +46,11 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             _spyLogger = new InMemoryLogger();
         }
 
+        protected TestConfig Configuration { get; } = TestConfig.Create();
+
         protected async Task<EventGridTopicEndpoint> CreateEventConsumerHostWithTrackingAsync()
         {
-            return await EventGridTopicEndpoint.CreateAsync(_eventSchema, _config, _testOutput, options =>
+            return await EventGridTopicEndpoint.CreateAsync(_eventSchema, Configuration, _testOutput, options =>
             {
                 options.AddMessageAssertion(message =>
                 {
@@ -78,28 +80,50 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             });
         }
 
-        protected EventGridPublisherClient CreateRegisteredClientWithCustomOptions(string dependencyId, Action<EventGridPublisherClientWithTrackingOptions> configureOptions)
+        protected EventGridPublisherClient CreateRegisteredClientWithCustomOptions()
+        {
+            _optionsFixture = new EventOptionsFixture();
+            SetupCustomCorrelationAssertions(_optionsFixture.DependencyId);
+            return CreateRegisteredClient(options =>
+            {
+                ApplyCustomOptions(_optionsFixture.DependencyId, options);
+                _optionsFixture.ApplyOptions(options);
+            });
+        }
+
+        protected EventGridPublisherClient CreateRegisteredClientUsingManagedIdentityWithCustomOptions()
+        {
+            _optionsFixture = new EventOptionsFixture();
+            SetupCustomCorrelationAssertions(_optionsFixture.DependencyId);
+            return CreateRegisteredClientUsingManagedIdentity(options =>
+            {
+                ApplyCustomOptions(_optionsFixture.DependencyId, options);
+                _optionsFixture.ApplyOptions(options);
+            });
+        }
+
+        private static void ApplyCustomOptions(string dependencyId, EventGridPublisherClientWithTrackingOptions options)
+        {
+            options.UpstreamServicePropertyName = "customOperationParentId";
+            options.TransactionIdEventDataPropertyName = "customTransactionId";
+            options.GenerateDependencyId = () => dependencyId;
+        }
+
+        private void SetupCustomCorrelationAssertions(string dependencyId)
         {
             _customAssertOperationParentIdProperty = message =>
             {
-                var operationParentId = (string) Assert.Contains("Custom-Operation-Parent-Id", message.Message.ApplicationProperties);
+                var operationParentId =
+                    (string)Assert.Contains("Custom-Operation-Parent-Id", message.Message.ApplicationProperties);
                 Assert.False(string.IsNullOrWhiteSpace(operationParentId), "Should contain non-blank operation parent ID");
                 Assert.Equal(dependencyId, operationParentId);
             };
             _customAssertTransactionIdProperty = eventArgs =>
             {
-                var transactionId = (string) Assert.Contains("Custom-Transaction-Id", eventArgs.Message.ApplicationProperties);
+                var transactionId = (string)Assert.Contains("Custom-Transaction-Id", eventArgs.Message.ApplicationProperties);
                 Assert.False(string.IsNullOrWhiteSpace(transactionId), "Should contain non-blank transaction ID");
                 Assert.Equal(_transactionId, transactionId);
             };
-
-            return CreateRegisteredClient(options =>
-            {
-                options.UpstreamServicePropertyName = "customOperationParentId";
-                options.TransactionIdEventDataPropertyName = "customTransactionId";
-                options.GenerateDependencyId = () => dependencyId;
-                configureOptions(options);
-            });
         }
 
         protected EventGridPublisherClient CreateRegisteredClient(
@@ -108,6 +132,15 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             return CreateRegisteredClient((clients, topicEndpoint, authenticationKeySecretName) =>
             {
                 clients.AddEventGridPublisherClient(topicEndpoint, authenticationKeySecretName, configureOptions);
+            });
+        }
+
+        protected EventGridPublisherClient CreateRegisteredClientUsingManagedIdentity(
+            Action<EventGridPublisherClientWithTrackingOptions> configureOptions = null)
+        {
+            return CreateRegisteredClient((clients, topicEndpoint, _) =>
+            {
+                clients.AddEventGridPublisherClientUsingManagedIdentity(topicEndpoint, configureOptions);
             });
         }
 
@@ -147,8 +180,8 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             services.AddCorrelation();
             services.AddLogging(logging => logging.AddProvider(new CustomLoggerProvider(_spyLogger)));
 
-            string topicEndpoint = _config.GetEventGridTopicEndpoint(_eventSchema);
-            string authenticationKey = _config.GetEventGridEndpointKey(_eventSchema);
+            string topicEndpoint = Configuration.GetEventGridTopicEndpoint(_eventSchema);
+            string authenticationKey = Configuration.GetEventGridEndpointKey(_eventSchema);
             string authenticationKeySecretName = "Arcus_EventGrid_AuthenticationKey";
             
             services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, authenticationKey));
@@ -163,23 +196,23 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             return client;
         }
 
-        protected string AssertDependencyTracking(string dependencyId = null)
+        protected void AssertDependencyTracking()
         {
             string logMessage = Assert.Single(_spyLogger.Messages, msg => msg.Contains("Azure Event Grid"));
-            string topicEndpoint = _config.GetEventGridTopicEndpoint(_eventSchema);
+            string topicEndpoint = Configuration.GetEventGridTopicEndpoint(_eventSchema);
 
             Assert.Matches($"{_eventSchema}|Custom", logMessage);
             Assert.Contains(topicEndpoint, logMessage);
-            if (dependencyId is null)
+            if (_optionsFixture?.DependencyId is null)
             {
                 Assert.Matches(DependencyIdRegex, logMessage);
             }
             else
             {
-                Assert.Contains(dependencyId, logMessage);
+                Assert.Contains(_optionsFixture?.DependencyId, logMessage);
             }
 
-            return logMessage;
+            _optionsFixture?.AssertTelemetry(logMessage);
         }
     }
 }

@@ -18,7 +18,7 @@ PM> Install-Package Arcus.EventGrid.Core
 
 ## Usage
 Adding simple Azure EventGrid publishing to your application only requires the following registration.
-> ⚠ Note that this way of registering requires the [Arcus secrect store](https://security.arcus-azure.net/features/secret-store) to retrieve the necessary authentication secrets to interact with the Azure EventGrid topic.
+> ⚠ Note that registering using non-managed identity authentication requires the [Arcus secrect store](https://security.arcus-azure.net/features/secret-store) to retrieve the necessary authentication secrets to interact with the Azure EventGrid topic.
 > ⚠ Note that this way of registering requires the [Arcus correlation](https://observability.arcus-azure.net/Features/correlation) to retrieve the current application's correlation model to enrich the publishing events.
 
 ```csharp
@@ -26,7 +26,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public void ConfigureServices(IServiceCollection services)
 {
-    // Requires Arcus secret store, for more information, see: https://security.arcus-azure.net/features/secret-store
+    // Requires Arcus secret store if not using managed identity, for more information, see: https://security.arcus-azure.net/features/secret-store
     services.AddSecretStore(stores => ...);
 
     // Requires Arcus correation, for more information, see: https://observability.arcus-azure.net/Features/correlation
@@ -38,6 +38,10 @@ public void ConfigureServices(IServiceCollection services)
     // Registers an `EventGridPublisherClient` to your application to a custom topic.
     services.AddAzureClients(clients =>
     {
+        clients.AddEventGridPublisherClientUsingManagedIdentity(
+            // Custom Azure Even Grid topic endpoint:
+            "https://my-eventgrid-topic-endpoint");
+
         clients.AddEventGridPublisherClient(
             // Custom Azure Even Grid topic endpoint:
             "https://my-eventgrid-topic-endpoint", 

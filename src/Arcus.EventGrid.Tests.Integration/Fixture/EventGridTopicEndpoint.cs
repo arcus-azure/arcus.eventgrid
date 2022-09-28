@@ -27,13 +27,24 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
 
             _eventSchema = eventSchema;
             _configuration = config;
+
             ServiceBusEventConsumerHost = serviceBusEventConsumerHost;
+            if (serviceBusEventConsumerHost is MockServiceBusEventConsumerHost consumerHost)
+            {
+                ConsumerHost = consumerHost;
+            }
         }
 
         /// <summary>
         /// Gets the consumer host on the current topic endpoint.
         /// </summary>
+        [Obsolete("Use the " + nameof(ConsumerHost) + " instead")]
         public EventConsumerHost ServiceBusEventConsumerHost { get; }
+
+        /// <summary>
+        /// Gets the consumer host on the current topic endpoint.
+        /// </summary>
+        public MockServiceBusEventConsumerHost ConsumerHost { get; }
 
         /// <summary>
         /// Creates a <see cref="EventGridTopicEndpoint"/> implementation that uses CloudEvent's as input event schema.
