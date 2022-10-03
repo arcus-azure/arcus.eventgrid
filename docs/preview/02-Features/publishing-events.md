@@ -18,7 +18,11 @@ PM> Install-Package Arcus.EventGrid.Core
 
 ## Usage
 Adding simple Azure EventGrid publishing to your application only requires the following registration.
+
+🥇 [Managed identity authentication](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) is the recommended approach to interact with Azure EventGrid.
+
 > ⚠ Note that registering using non-managed identity authentication requires the [Arcus secrect store](https://security.arcus-azure.net/features/secret-store) to retrieve the necessary authentication secrets to interact with the Azure EventGrid topic.
+
 > ⚠ Note that this way of registering requires the [Arcus correlation](https://observability.arcus-azure.net/Features/correlation) to retrieve the current application's correlation model to enrich the publishing events.
 
 ```csharp
