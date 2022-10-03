@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Arcus.Observability.Correlation;
 using Arcus.Observability.Telemetry.Core;
 using Arcus.Security.Core;
+using Azure.Core;
 using GuardNet;
 using Microsoft.Extensions.Logging;
 
@@ -58,6 +59,24 @@ namespace Azure.Messaging.EventGrid
             _authenticationKeySecretName = authenticationKeySecretName;
             _secretProvider = secretProvider;
         
+            CorrelationAccessor = correlationAccessor;
+            Options = options;
+            Logger = logger;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventGridPublisherClientWithTracking" /> class.
+        /// </summary>
+        public EventGridPublisherClientWithTracking(
+            string topicEndpoint,
+            TokenCredential tokenCredential,
+            ICorrelationInfoAccessor correlationAccessor,
+            EventGridPublisherClientWithTrackingOptions options,
+            ILogger<EventGridPublisherClient> logger)
+        {
+            _topicEndpoint = topicEndpoint;
+            _publisher = new EventGridPublisherClient(new Uri(topicEndpoint), tokenCredential, options);
+
             CorrelationAccessor = correlationAccessor;
             Options = options;
             Logger = logger;

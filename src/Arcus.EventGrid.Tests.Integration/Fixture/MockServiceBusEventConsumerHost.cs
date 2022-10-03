@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
@@ -7,6 +10,7 @@ using Azure.Messaging.ServiceBus.Administration;
 using GuardNet;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Xunit.Sdk;
 
 namespace Arcus.EventGrid.Tests.Integration.Fixture
 {
@@ -20,6 +24,7 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         private readonly ServiceBusAdministrationClient _managementClient;
         private readonly IDisposable _loggingScope;
         private readonly SubscriptionBehavior _subscriptionBehavior;
+        private readonly ICollection<Exception> _exceptions = new Collection<Exception>();
 
         private MockServiceBusEventConsumerHost(
             MockServiceBusEventConsumerHostOptions consumerHostOptions, 
@@ -134,6 +139,7 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
             catch (Exception exception)
             {
                 Logger.LogError(exception, "Failed to persist raw events with exception '{exceptionMessage}'. Payload: {rawEventsPayload}", exception.Message, rawReceivedEvents);
+                _exceptions.Add(exception);
             }
             finally
             {
@@ -145,6 +151,32 @@ namespace Arcus.EventGrid.Tests.Integration.Fixture
         {
             Logger.LogCritical(eventArgs.Exception, "Failed to process Azure Service Bus message due to an exception '{Message}'", eventArgs.Exception.Message);
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Gets the event envelope that includes a requested event (uses exponential back-off) or fail when a failure occurred during retrieval.
+        /// </summary>
+        /// <param name="eventId">The vent ID for requested event.</param>
+        /// <returns>
+        ///     The raw received event contents with the given <paramref name="eventId"/>.
+        /// </returns>
+        /// <exception cref="ArgumentException">Thrown when the <paramref name="eventId"/> is blank.</exception>
+        /// <exception cref="XunitException">Thrown when a single assertion failure occurred during retrieval.</exception>
+        /// <exception cref="AggregateException">Thrown when multiple failures happened during retrieval.</exception>
+        public string GetReceivedEventOrFail(string eventId)
+        {
+            string receivedEvent = GetReceivedEvent(eventId);
+            if (_exceptions.Count == 1)
+            {
+                throw _exceptions.ElementAt(0);
+            }
+
+            if (_exceptions.Count > 1)
+            {
+                throw new AggregateException("Failed to receive event due to a failure during retrieval", _exceptions);
+            }
+
+            return receivedEvent;
         }
 
         /// <summary>
