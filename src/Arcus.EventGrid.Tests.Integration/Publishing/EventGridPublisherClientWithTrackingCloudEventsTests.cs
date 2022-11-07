@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
+using Arcus.EventGrid.Core;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Azure;
 using Azure.Messaging;
@@ -16,10 +17,8 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 {
     [Trait("Category", "Integration")]
     [Collection(TestCollections.Integration)]
-    public class EventGridPublisherClientWithTrackingCloudEventsTests : EventGridPublisherClientWithTrackingTests, IAsyncLifetime
+    public class EventGridPublisherClientWithTrackingCloudEventsTests : EventGridPublisherClientWithTrackingTests
     {
-        private EventGridTopicEndpoint _cloudEventEndpoint;
-
         public EventGridPublisherClientWithTrackingCloudEventsTests(ITestOutputHelper testOutput) 
             : base(EventSchema.CloudEvent, testOutput)
         {
@@ -55,66 +54,82 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             return memory;
         }
 
-        /// <summary>
-        /// Called immediately after the class has been created, before it is used.
-        /// </summary>
-        public async Task InitializeAsync()
-        {
-            _cloudEventEndpoint = await CreateEventConsumerHostWithTrackingAsync();
-        }
-
         [Theory]
         [MemberData(nameof(SendCloudEventOverloads))]
         public async Task SendCloudEventAsync_WithoutOptions_Succeeds(SendCloudEventAsync usePublisherAsync)
         {
-            EventGridPublisherClient client = CreateRegisteredClient();
-            await TestSendCloudEventAsync(client, usePublisherAsync);
+            await TestWithEventConsumerHostWithTrackingAsync(async (format, endpoint) =>
+            {
+                EventGridPublisherClient client = CreateRegisteredClient(format);
+                await TestSendCloudEventAsync(client, usePublisherAsync, endpoint);
+            });
         }
 
         [Theory]
         [MemberData(nameof(SendCloudEventOverloads))]
         public async Task SendCloudEventAsync_WithOptions_Succeeds(SendCloudEventAsync usePublisherAsync)
         {
-            // Arrange
-            EventGridPublisherClient client = CreateRegisteredClientWithCustomOptions();
-            await TestSendCloudEventAsync(client, usePublisherAsync);
+            await TestWithEventConsumerHostWithTrackingAsync(async (format, endpoint) =>
+            {
+                EventGridPublisherClient client = CreateRegisteredClientWithCustomOptions(format);
+                await TestSendCloudEventAsync(client, usePublisherAsync, endpoint);
+            });
         }
 
         [Theory]
         [MemberData(nameof(SendCloudEventOverloads))]
         public async Task SendCloudEventAsync_WithCustomImplementation_Succeeds(SendCloudEventAsync usePublisherAsync)
         {
-            // Arrange
-            EventGridPublisherClient client = CreateRegisteredClientWithCustomImplementation();
-            await TestSendCloudEventAsync(client, usePublisherAsync);
+            await TestWithEventConsumerHostWithTrackingAsync(async (format, endpoint) =>
+            {
+                EventGridPublisherClient client = CreateRegisteredClientWithCustomImplementation(format);
+                await TestSendCloudEventAsync(client, usePublisherAsync, endpoint);
+            });
         }
 
         [Theory]
         [MemberData(nameof(SendCloudEventOverloads))]
         public async Task SendCloudEventAsyncUsingManagedIdentity_WithoutOptions_Succeeds(SendCloudEventAsync usePublisherAsync)
         {
-            using (TemporaryManagedIdentityConnection.Create(Configuration))
+            await TestWithEventConsumerHostWithTrackingAsync(async (format, endpoint) =>
             {
-                EventGridPublisherClient client = CreateRegisteredClientUsingManagedIdentity();
-                await TestSendCloudEventAsync(client, usePublisherAsync);
-            }
+                using (TemporaryManagedIdentityConnection.Create(Configuration))
+                {
+                    EventGridPublisherClient client = CreateRegisteredClientUsingManagedIdentity(format);
+                    await TestSendCloudEventAsync(client, usePublisherAsync, endpoint);
+                }
+            });
         }
 
         [Theory]
         [MemberData(nameof(SendCloudEventOverloads))]
         public async Task SendCloudEventAsyncUsingManagedIdentity_WithOptions_Succeeds(SendCloudEventAsync usePublisherAsync)
         {
-            using (TemporaryManagedIdentityConnection.Create(Configuration))
+            await TestWithEventConsumerHostWithTrackingAsync(async (format, endpoint) =>
             {
-                // Arrange
-                EventGridPublisherClient client = CreateRegisteredClientUsingManagedIdentityWithCustomOptions();
-                await TestSendCloudEventAsync(client, usePublisherAsync);
+                using (TemporaryManagedIdentityConnection.Create(Configuration))
+                {
+                    EventGridPublisherClient client = CreateRegisteredClientUsingManagedIdentityWithCustomOptions(format);
+                    await TestSendCloudEventAsync(client, usePublisherAsync, endpoint);
+                }
+            });
+        }
+
+        private async Task TestWithEventConsumerHostWithTrackingAsync(Func<EventCorrelationFormat, EventGridTopicEndpoint, Task> testBody)
+        {
+            foreach (var format in new [] { EventCorrelationFormat.Hierarchical, EventCorrelationFormat.W3C })
+            {
+                await using (EventGridTopicEndpoint endpoint = await CreateEventConsumerHostWithTrackingAsync(format))
+                {
+                    await testBody(format, endpoint);
+                }
             }
         }
 
         private async Task TestSendCloudEventAsync(
             EventGridPublisherClient client,
-            SendCloudEventAsync usePublisherAsync)
+            SendCloudEventAsync usePublisherAsync,
+            EventGridTopicEndpoint endpoint)
         {
             CloudEvent cloudEvent = CreateCloudEvent();
 
@@ -126,7 +141,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
             // Assert
             AssertDependencyTracking();
-            AssertCloudEventForData(cloudEvent);
+            AssertCloudEventForData(cloudEvent, endpoint);
         }
 
         private static CloudEvent CreateCloudEvent()
@@ -143,61 +158,55 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             return cloudEvent;
         }
 
-        private void AssertCloudEventForData(CloudEvent cloudEvent)
+        private void AssertCloudEventForData(CloudEvent cloudEvent, EventGridTopicEndpoint endpoint)
         {
             Assert.NotNull(cloudEvent.Data);
             var eventData = cloudEvent.Data.ToObjectFromJson<CarEventData>();
 
-            string receivedEvent = _cloudEventEndpoint.ConsumerHost.GetReceivedEventOrFail(cloudEvent.Id);
+            string receivedEvent = endpoint.ConsumerHost.GetReceivedEventOrFail(cloudEvent.Id);
             ArcusAssert.ReceivedNewCarRegisteredEvent(cloudEvent.Id, cloudEvent.Type, cloudEvent.Subject, eventData.LicensePlate, receivedEvent);
         }
 
-        [Fact]
-        public async Task SendCloudEventAsync_Single_FailWhenEventDataIsNotJson()
+        [Theory]
+        [InlineData(EventCorrelationFormat.Hierarchical)]
+        [InlineData(EventCorrelationFormat.W3C)]
+        public async Task SendCloudEventAsync_Single_FailWhenEventDataIsNotJson(EventCorrelationFormat format)
         {
             // Arrange
             var data = BinaryData.FromBytes(BogusGenerator.Random.Bytes(100));
             var cloudEvent = new CloudEvent("source", "type", data, "text/plain");
-            EventGridPublisherClient client = CreateRegisteredClient();
+            EventGridPublisherClient client = CreateRegisteredClient(format);
 
             // Act / Assert
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEventAsync(cloudEvent));
         }
 
-        [Fact]
-        public async Task SendCloudEventAsync_ManyEncoded_FailWhenEventsAreNoCloudEvents()
+        [Theory]
+        [InlineData(EventCorrelationFormat.Hierarchical)]
+        [InlineData(EventCorrelationFormat.W3C)]
+        public async Task SendCloudEventAsync_ManyEncoded_FailWhenEventsAreNoCloudEvents(EventCorrelationFormat format)
         {
             // Arrange
             var data = BogusGenerator.Random.Bytes(100);
             var memory = new ReadOnlyMemory<byte>(data);
-            EventGridPublisherClient client = CreateRegisteredClient();
+            EventGridPublisherClient client = CreateRegisteredClient(format);
 
             // Act / Assert
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEncodedCloudEventsAsync(memory));
         }
 
-        [Fact]
-        public void SendCloudEventSync_ManyEncoded_FailWhenEventsAreNoCloudEvents()
+        [Theory]
+        [InlineData(EventCorrelationFormat.Hierarchical)]
+        [InlineData(EventCorrelationFormat.W3C)]
+        public void SendCloudEventSync_ManyEncoded_FailWhenEventsAreNoCloudEvents(EventCorrelationFormat format)
         {
             // Arrange
             var data = BogusGenerator.Random.Bytes(100);
             var memory = new ReadOnlyMemory<byte>(data);
-            EventGridPublisherClient client = CreateRegisteredClient();
+            EventGridPublisherClient client = CreateRegisteredClient(format);
 
             // Act / Assert
             Assert.ThrowsAny<InvalidOperationException>(() => client.SendEncodedCloudEvents(memory));
-        }
-
-        /// <summary>
-        /// Called when an object is no longer needed. Called just before <see cref="M:System.IDisposable.Dispose" />
-        /// if the class also implements that.
-        /// </summary>
-        public async Task DisposeAsync()
-        {
-            if (_cloudEventEndpoint != null)
-            {
-                await _cloudEventEndpoint.StopAsync();
-            }
         }
     }
 }

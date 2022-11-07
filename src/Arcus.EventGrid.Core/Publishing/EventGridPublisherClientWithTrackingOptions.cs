@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Arcus.EventGrid.Core;
 using GuardNet;
 using Microsoft.Extensions.Azure;
 using Polly;
@@ -16,14 +17,37 @@ namespace Azure.Messaging.EventGrid
     /// </summary>
     public class EventGridPublisherClientWithTrackingOptions : EventGridPublisherClientOptions
     {
-        private string _upstreamServicePropertyName = "operationParentId", _transactionIdPropertyName = "transactionId";
+        private string _upstreamServicePropertyName = "operationParentId", _transactionIdPropertyName = "transactionId", _traceParentPropertyName = "traceparent";
         private Func<string> _generateDependencyId = () => Guid.NewGuid().ToString();
+
+        /// <summary>
+        /// Gets or sets the format of the used event correlation when publishing events to an Azure EventGrid subscription (default: W3C).
+        /// </summary>
+        public EventCorrelationFormat Format { get; set; } = EventCorrelationFormat.W3C;
+
+        /// <summary>
+        /// Gets or sets the name of the JSON property that represents the 'traceparent' that will be added to the event data of the published event (default: traceparent(.
+        /// The 'traceparent' will be available as 'data.traceparent' (if default configured) and can be added as dynamic event delivery property: <a href="https://docs.microsoft.com/en-us/azure/event-grid/delivery-properties" />.
+        /// </summary>
+        /// <remarks>
+        ///     Only used when the <see cref="Format"/> is set to <see cref="EventCorrelationFormat.W3C"/>.
+        /// </remarks>
+        public string TraceParentPropertyName
+        {
+            get => _traceParentPropertyName;
+            set
+            {
+                Guard.NotNullOrWhitespace(value, nameof(value), "Requires a non-blank JSON property name to add the 'traceparent' to the event data of the published event");
+                _traceParentPropertyName = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the name of the JSON property that represents the transaction ID that will be added to the event data of the published event (default: transactionId).
         /// The transaction ID will be available as 'data.transactionId' (if default configured) and can be used as dynamic event delivery property: <a href="https://docs.microsoft.com/en-us/azure/event-grid/delivery-properties" />.
         /// </summary>
         /// <remarks>
+        ///     Only used when <see cref="Format"/> is set to <see cref="EventCorrelationFormat.Hierarchical"/>.
         ///     Make sure that the system processing the event (Azure Service Bus, web hook, etc.) can retrieve this property so that the correlation holds.
         ///     When using Arcus' messaging, the event header name for the dynamic event delivery property should be: 'Transaction-Id'.
         /// </remarks>
@@ -43,6 +67,7 @@ namespace Azure.Messaging.EventGrid
         /// The operation parent ID will be available as 'data.operationParentId' (if default configured) and can be used as dynamic event delivery property: <a href="https://docs.microsoft.com/en-us/azure/event-grid/delivery-properties" />.
         /// </summary>
         /// <remarks>
+        ///     Only used when <see cref="Format"/> is set to <see cref="EventCorrelationFormat.Hierarchical"/>.
         ///     Make sure that the system processing the event (Azure Service Bus, web hook, etc.) can retrieve this property so that the correlation holds.
         ///     When using Arcus' messaging, the event header name for the dynamic event delivery property should be: 'Operation-Parent-Id'.
         /// </remarks>
@@ -61,6 +86,9 @@ namespace Azure.Messaging.EventGrid
         /// Gets or sets the function to generate the dependency ID used when tracking the event publishing.
         /// This value corresponds with the operation parent ID on the receiver side, and is called the dependency ID on this side (sender).
         /// </summary>
+        /// <remarks>
+        ///     Can only be used when the <see cref="Format"/> is set to <see cref="EventCorrelationFormat.Hierarchical"/> as Microsoft dependencies are usually automatically tracked.
+        /// </remarks>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="value"/> is <c>null</c>.</exception>
         public Func<string> GenerateDependencyId
         {
@@ -80,6 +108,9 @@ namespace Azure.Messaging.EventGrid
         /// <summary>
         /// Adds a telemetry context while tracking the Azure Event Grid dependency.
         /// </summary>
+        /// <remarks>
+        ///     Can only be used when the <see cref="Format"/> is set to <see cref="EventCorrelationFormat.Hierarchical"/> as Microsoft dependencies are usually automatically tracked.
+        /// </remarks>
         /// <param name="telemetryContext">The dictionary with the contextual information about the event publishing dependency tracking.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="telemetryContext"/> is <c>null</c>.</exception>
         public void AddTelemetryContext(Dictionary<string, object> telemetryContext)
@@ -92,9 +123,13 @@ namespace Azure.Messaging.EventGrid
         }
 
         /// <summary>
-        /// <para>Gets or sets the flag indicating whether or not the <see cref="EventGridPublisherClient"/> should track the Azure Event Grid topic dependency.</para>
+        /// <para>Gets or sets the flag indicating whether or not the <see cref="EventGridPublisherClient"/> should track the Azure Event Grid topic dependency (default: <c>false</c>).</para>
         /// <para>For more information about dependency tracking <see href="https://observability.arcus-azure.net/features/writing-different-telemetry-types#dependencies"/>.</para>
         /// </summary>
+        /// <remarks>
+        ///     Note that Microsoft dependencies are automatically tracked when using the default Application Insights telemetry services.
+        ///     Consider using this only when <see cref="Format"/> is set to <see cref="EventCorrelationFormat.Hierarchical"/>.
+        /// </remarks>
         public bool EnableDependencyTracking { get; set; } = true;
 
         /// <summary>
