@@ -172,7 +172,7 @@ public void ConfigureServices(IServiceCollection services)
 
 ### Correlation tracking
 The library also provides several ways to influence the correlation tracking during the event publishing. 
-By default, each event that gets published will be enriched with the `traceparent`. This property should be configured as a [custom delivery property](https://docs.microsoft.com/en-us/azure/event-grid/delivery-properties) in Azure Event Grid so that the event processor can easily access them and continue to correlate the message.
+By default, each event that gets published will be enriched with the `traceparent` correlation property. This property should be configured as a [custom delivery property](https://docs.microsoft.com/en-us/azure/event-grid/delivery-properties) in Azure Event Grid so that the event processor can easily access them and continue to correlate the message.
 
 > ⚠ The Arcus `EventGridPublisherClient` assumes that every event published is an JSON event with `data` JSON node.
 
