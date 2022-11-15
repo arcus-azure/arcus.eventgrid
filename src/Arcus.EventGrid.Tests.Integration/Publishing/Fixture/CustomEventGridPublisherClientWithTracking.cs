@@ -55,6 +55,11 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing.Fixture
                 return "customOperationParentId";
             }
 
+            if (propertyName == "traceparent")
+            {
+                return "customTraceparent";
+            }
+
             throw new InvalidOperationException($"Unknown property name: '{propertyName}'");
         }
     }

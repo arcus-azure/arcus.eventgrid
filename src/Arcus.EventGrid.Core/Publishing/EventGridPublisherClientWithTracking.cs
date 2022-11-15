@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Arcus.EventGrid.Core;
 using Arcus.Observability.Correlation;
 using Arcus.Observability.Telemetry.Core;
 using Arcus.Security.Core;
@@ -350,6 +351,7 @@ namespace Azure.Messaging.EventGrid
 
             string dependencyId = Options.GenerateDependencyId();
             string transactionId = CorrelationAccessor.GetCorrelationInfo()?.TransactionId;
+
             oneOrManyEvents = SetCorrelationPropertiesInEvent(oneOrManyEvents, dependencyId, transactionId);
 
             bool isSuccessful = false;
@@ -410,47 +412,55 @@ namespace Azure.Messaging.EventGrid
 
         private object SetCorrelationPropertiesInEvent(object @event, string dependencyId, string transactionId)
         {
-            if (!Options.EnableDependencyTracking)
+            if (Options.Format is EventCorrelationFormat.Hierarchical 
+                && !Options.EnableDependencyTracking)
             {
                 return @event;
             }
 
-            string upstreamServicePropertyName = Options.UpstreamServicePropertyName;
-            string transactionIdPropertyName = Options.TransactionIdEventDataPropertyName;
-
-            switch (@event)
+            var properties = new Collection<(string propertyName, string propertyValue)>();
+            if (Options.Format is EventCorrelationFormat.Hierarchical)
             {
-                case BinaryData data:
-                    data = SetCorrelationPropertyInCustomEvent(data, upstreamServicePropertyName, dependencyId);
-                    data = SetCorrelationPropertyInCustomEvent(data, transactionIdPropertyName, transactionId);
-                    return data;
-                case IEnumerable<BinaryData> datas:
-                    datas = SetCorrelationPropertyInCustomEvents(datas, upstreamServicePropertyName, dependencyId);
-                    datas = SetCorrelationPropertyInCustomEvents(datas, transactionIdPropertyName, transactionId);
-                    return datas;
-                case EventGridEvent ev:
-                    ev = SetCorrelationPropertyInEventGridEvent(ev, upstreamServicePropertyName, dependencyId);
-                    ev = SetCorrelationPropertyInEventGridEvent(ev, transactionIdPropertyName, transactionId);
-                    return ev;
-                case IEnumerable<EventGridEvent> events:
-                    events = SetCorrelationPropertyInEventGridEvents(events, upstreamServicePropertyName, dependencyId);
-                    events = SetCorrelationPropertyInEventGridEvents(events, transactionIdPropertyName, transactionId);
-                    return events;
-                case CloudEvent ev:
-                    ev = SetCorrelationPropertyInCloudEvent(ev, upstreamServicePropertyName, dependencyId);
-                    ev = SetCorrelationPropertyInCloudEvent(ev, transactionIdPropertyName, transactionId);
-                    return ev;
-                case IEnumerable<CloudEvent> events:
-                    events = SetCorrelationPropertyInCloudEvents(events, upstreamServicePropertyName, dependencyId);
-                    events = SetCorrelationPropertyInCloudEvents(events, transactionIdPropertyName, transactionId);
-                    return events;
-                case ReadOnlyMemory<byte> encodedCloudEvents:
-                    encodedCloudEvents = SetCorrelationPropertyInEncodedCloudEvents(encodedCloudEvents, upstreamServicePropertyName, dependencyId);
-                    encodedCloudEvents = SetCorrelationPropertyInEncodedCloudEvents(encodedCloudEvents, transactionIdPropertyName, transactionId);
-                    return encodedCloudEvents;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(@event), @event, "Unknown event type");
+                properties.Add((Options.TransactionIdEventDataPropertyName, transactionId));
+                properties.Add((Options.UpstreamServicePropertyName, dependencyId));
             }
+
+            if (Options.Format is EventCorrelationFormat.W3C)
+            {
+                properties.Add((Options.TraceParentPropertyName, $"00-{transactionId}-{dependencyId}-00"));
+            }
+
+            foreach ((string propertyName, string propertyValue) in properties)
+            {
+                switch (@event)
+                {
+                    case BinaryData data:
+                        @event = SetCorrelationPropertyInCustomEvent(data, propertyName, propertyValue);
+                        break;
+                    case IEnumerable<BinaryData> datas:
+                        @event = SetCorrelationPropertyInCustomEvents(datas, propertyName, propertyValue);
+                        break;
+                    case EventGridEvent ev:
+                        @event = SetCorrelationPropertyInEventGridEvent(ev, propertyName, propertyValue);
+                        break;
+                    case IEnumerable<EventGridEvent> events:
+                        @event = SetCorrelationPropertyInEventGridEvents(events, propertyName, propertyValue);
+                        break;
+                    case CloudEvent ev:
+                        @event = SetCorrelationPropertyInCloudEvent(ev, propertyName, propertyValue);
+                        break;
+                    case IEnumerable<CloudEvent> events:
+                        @event = SetCorrelationPropertyInCloudEvents(events, propertyName, propertyValue);
+                        break;
+                    case ReadOnlyMemory<byte> encodedCloudEvents:
+                        @event = SetCorrelationPropertyInEncodedCloudEvents(encodedCloudEvents, propertyName, propertyValue);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(@event), @event, "Unknown event type");
+                }
+            }
+
+            return @event;
         }
 
         private IEnumerable<EventGridEvent> SetCorrelationPropertyInEventGridEvents(IEnumerable<EventGridEvent> eventGridEvents, string propertyName, string dependencyId)
@@ -632,7 +642,8 @@ namespace Azure.Messaging.EventGrid
 
         private void LogEventGridDependency(string eventType, bool isSuccessful, DurationMeasurement measurement, string dependencyId)
         {
-            if (Options.EnableDependencyTracking)
+            if (Options.Format is EventCorrelationFormat.Hierarchical 
+                && Options.EnableDependencyTracking)
             {
                 Logger.LogDependency(
                     dependencyType: "Azure Event Grid",
