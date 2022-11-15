@@ -172,7 +172,7 @@ public void ConfigureServices(IServiceCollection services)
 
 ### Correlation tracking
 The library also provides several ways to influence the correlation tracking during the event publishing. 
-By default, each event that gets published will be enriched with two correlation properties: transaction ID and the operation parent ID. These two properties should be configured as [custom delivery properties](https://docs.microsoft.com/en-us/azure/event-grid/delivery-properties) in Azure Event Grid so that the event processor can easily access them and continue to correlate the message.
+By default, each event that gets published will be enriched with the `traceparent` correlation property. This property should be configured as a [custom delivery property](https://docs.microsoft.com/en-us/azure/event-grid/delivery-properties) in Azure Event Grid so that the event processor can easily access them and continue to correlate the message.
 
 > ⚠ The Arcus `EventGridPublisherClient` assumes that every event published is an JSON event with `data` JSON node.
 
@@ -224,17 +224,18 @@ Then the Arcus `EventGridPublisherClient` will alter the event data as follows:
         "storageDiagnostics": {
             "batchId": "681fe319-3006-00a8-0022-9e7cde000000"
         },
-        "transactionId": "<your-transaction-id>",
-        "operationParentId": "<your-dependency-id>"
+        "traceparent": "00-<your-transaction-id>-<your-parent-id>-00"
     }
 }
 ```
 
-These properties can be accessed with `data.transactionId` and `data.operationParentId` in your Azure Event Grid custom delivery properties of your event subscription.
-The example shows how these properties are transfered to application properties `Transaction-Id` and `Operation-Parent-Id`. These are the default correlation properties of the [Arcus message pump](https://messaging.arcus-azure.net/).
+This property can be accessed with `data.traceparent` in your Azure Event Grid custom delivery properties of your event subscription.
+The example shows how this property is transfered to an application property `Diagnostic-Id`. This is the default correlation property of the [Arcus message pump](https://messaging.arcus-azure.net/) using the W3C message correlation.
 Use the correct correlation properties of your event processor system to correctly correlate the event.
 
-![Azure Event Grid custom delivery properties](/media/event-grid-delivery-properties.png)
+![Azure Event Grid custom delivery properties](/media/event-grid-traceparent-delivery-properties.png)
+
+> ⚡ We also support Hierarchical event correlation, where the the event has a `data.transactionId` and `data.operationParentId` instead of a `data.traceparent` property. This can be configured using the `Format` option described below.
 
 Several other options related to correlation can be configured on the client:
 ```csharp
@@ -253,15 +254,24 @@ public void ConfigureServices(IServiceCollection services)
             "<my-authentication-secret-name>",
             options =>
             {
+                // The function to generate the dependency ID used when tracking the event publishing.
+                // This value corresponds with the operation parent ID on the receiver side, and is called the dependency ID on this side (sender).
+                options.GenerateDependencyId = () => $"custom-dependency-id-{Guid.NewGuid()}";
+
+                // W3C event correlation
+                // ---------------------
+
+                // The name of the JSON property that represents the 'traceparent' that will be added to the event data of the published event (default: traceparent).
+                options.TraceParentEventPropertyName = "customTraceParent";
+
+                // Hierarhical event correlation
+                // -----------------------------
+
                 // The name of the JSON property that represents the transaction ID that will be added to the event data of the published event (default: transactionId).
                 options.TransactionIdEventDataPropertyName = "customTransactionId";
 
                 // The name of the JSON property that represents the operation parent ID that will be added to the event data of the published event (default: operationParentId).
                 options.UpstreamServicePropertyName = "customOperationParentId";
-
-                // The function to generate the dependency ID used when tracking the event publishing.
-                // This value corresponds with the operation parent ID on the receiver side, and is called the dependency ID on this side (sender).
-                options.GenerateDependencyId = () => $"custom-dependency-id-{Guid.NewGuid()}";
 
                 // Adds a telemetry context while tracking the Azure Event Grid dependency.
                 options.AddTelemetryContext(new Dictionary<string, object>

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
+using Arcus.EventGrid.Core;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using Arcus.EventGrid.Tests.Integration.Publishing.Fixture;
 using Arcus.Observability.Correlation;
@@ -22,14 +24,14 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 {
     public abstract class EventGridPublisherClientWithTrackingTests
     {
-        private readonly string _transactionId = $"transaction-{Guid.NewGuid()}";
+        private readonly string _transactionId = ActivityTraceId.CreateRandom().ToHexString();
         private readonly ITestOutputHelper _testOutput;
 
         private readonly EventSchema _eventSchema;
         private readonly InMemoryLogger _spyLogger;
 
         private EventOptionsFixture _optionsFixture;
-        private Action<ProcessMessageEventArgs> _customAssertOperationParentIdProperty, _customAssertTransactionIdProperty;
+        private Action<ProcessMessageEventArgs> _customAssertOperationParentIdProperty, _customAssertTransactionIdProperty, _customAssertTraceParentProperty;
 
         private static readonly Regex DependencyIdRegex = new Regex(@"ID [a-z0-9]{8}\-[a-z0-9]{4}\-[a-z0-9]{4}\-[a-z0-9]{4}\-[a-z0-9]{12}", RegexOptions.Compiled);
         protected static readonly Faker BogusGenerator = new Faker();
@@ -48,54 +50,71 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
 
         protected TestConfig Configuration { get; } = TestConfig.Create();
 
-        protected async Task<EventGridTopicEndpoint> CreateEventConsumerHostWithTrackingAsync()
+        protected async Task<EventGridTopicEndpoint> CreateEventConsumerHostWithTrackingAsync(EventCorrelationFormat format)
         {
+            _testOutput.WriteLine("Create EventGrid subscription endpoint (Correlation: {0})", format);
             return await EventGridTopicEndpoint.CreateAsync(_eventSchema, Configuration, _testOutput, options =>
             {
-                options.AddMessageAssertion(message =>
+                if (format is EventCorrelationFormat.Hierarchical)
                 {
-                    if (_customAssertOperationParentIdProperty is null)
+                    options.AddMessageAssertion(message =>
                     {
-                        var operationParentId = (string) Assert.Contains("Operation-Parent-Id", message.Message.ApplicationProperties);
-                        Assert.False(string.IsNullOrWhiteSpace(operationParentId), "Should contain non-blank operation parent ID");
-                    }
-                    else
+                        if (_customAssertOperationParentIdProperty is null)
+                        {
+                            var operationParentId = (string) Assert.Contains("Operation-Parent-Id", message.Message.ApplicationProperties);
+                            Assert.False(string.IsNullOrWhiteSpace(operationParentId), "Should contain non-blank operation parent ID");
+                        }
+                        else
+                        {
+                            _customAssertOperationParentIdProperty(message);
+                        }
+                    });
+                    options.AddMessageAssertion(message =>
                     {
-                        _customAssertOperationParentIdProperty(message);
-                    }
-                });
-                options.AddMessageAssertion(message =>
+                        if (_customAssertTransactionIdProperty is null)
+                        {
+                            var transactionId = (string) Assert.Contains("Transaction-Id", message.Message.ApplicationProperties);
+                            Assert.False(string.IsNullOrWhiteSpace(transactionId), "Should contain non-blank transaction ID");
+                            Assert.Equal(_transactionId, transactionId);
+                        }
+                        else
+                        {
+                            _customAssertTransactionIdProperty(message);
+                        }
+                    });
+                }
+
+                if (format is EventCorrelationFormat.W3C)
                 {
-                    if (_customAssertTransactionIdProperty is null)
+                    options.AddMessageAssertion(message =>
                     {
-                        var transactionId = (string) Assert.Contains("Transaction-Id", message.Message.ApplicationProperties);
-                        Assert.False(string.IsNullOrWhiteSpace(transactionId), "Should contain non-blank transaction ID");
-                        Assert.Equal(_transactionId, transactionId);
-                    }
-                    else
-                    {
-                        _customAssertTransactionIdProperty(message);
-                    }
-                });
+                        if (_customAssertTraceParentProperty is null)
+                        {
+                            var traceParent = (string) Assert.Contains("Diagnostic-Id", message.Message.ApplicationProperties);
+                            Assert.False(string.IsNullOrWhiteSpace(traceParent), "Should contain non-blank 'traceparent'");
+                            Assert.Contains(_transactionId, traceParent);
+                        }
+                    });
+                }
             });
         }
 
-        protected EventGridPublisherClient CreateRegisteredClientWithCustomOptions()
+        protected EventGridPublisherClient CreateRegisteredClientWithCustomOptions(EventCorrelationFormat format)
         {
             _optionsFixture = new EventOptionsFixture();
-            SetupCustomCorrelationAssertions(_optionsFixture.DependencyId);
-            return CreateRegisteredClient(options =>
+            SetupCustomCorrelationAssertions(_optionsFixture.DependencyId, format);
+            return CreateRegisteredClient(format, options =>
             {
                 ApplyCustomOptions(_optionsFixture.DependencyId, options);
                 _optionsFixture.ApplyOptions(options);
             });
         }
 
-        protected EventGridPublisherClient CreateRegisteredClientUsingManagedIdentityWithCustomOptions()
+        protected EventGridPublisherClient CreateRegisteredClientUsingManagedIdentityWithCustomOptions(EventCorrelationFormat format)
         {
             _optionsFixture = new EventOptionsFixture();
-            SetupCustomCorrelationAssertions(_optionsFixture.DependencyId);
-            return CreateRegisteredClientUsingManagedIdentity(options =>
+            SetupCustomCorrelationAssertions(_optionsFixture.DependencyId, format);
+            return CreateRegisteredClientUsingManagedIdentity(format, options =>
             {
                 ApplyCustomOptions(_optionsFixture.DependencyId, options);
                 _optionsFixture.ApplyOptions(options);
@@ -106,57 +125,93 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         {
             options.UpstreamServicePropertyName = "customOperationParentId";
             options.TransactionIdEventDataPropertyName = "customTransactionId";
+            options.TraceParentPropertyName = "customTraceparent";
             options.GenerateDependencyId = () => dependencyId;
         }
 
-        private void SetupCustomCorrelationAssertions(string dependencyId)
+        private void SetupCustomCorrelationAssertions(string dependencyId, EventCorrelationFormat format)
         {
-            _customAssertOperationParentIdProperty = message =>
+            if (format is EventCorrelationFormat.Hierarchical)
             {
-                var operationParentId =
-                    (string)Assert.Contains("Custom-Operation-Parent-Id", message.Message.ApplicationProperties);
-                Assert.False(string.IsNullOrWhiteSpace(operationParentId), "Should contain non-blank operation parent ID");
-                Assert.Equal(dependencyId, operationParentId);
-            };
-            _customAssertTransactionIdProperty = eventArgs =>
+                _customAssertOperationParentIdProperty = message =>
+                {
+                    var operationParentId = (string) Assert.Contains("Custom-Operation-Parent-Id", message.Message.ApplicationProperties);
+                    Assert.False(string.IsNullOrWhiteSpace(operationParentId), "Should contain non-blank operation parent ID");
+                    Assert.Equal(dependencyId, operationParentId);
+                };
+                _customAssertTransactionIdProperty = eventArgs =>
+                {
+                    var transactionId = (string) Assert.Contains("Custom-Transaction-Id", eventArgs.Message.ApplicationProperties);
+                    Assert.False(string.IsNullOrWhiteSpace(transactionId), "Should contain non-blank transaction ID");
+                    Assert.Equal(_transactionId, transactionId);
+                };
+            }
+
+            if (format is EventCorrelationFormat.W3C)
             {
-                var transactionId = (string)Assert.Contains("Custom-Transaction-Id", eventArgs.Message.ApplicationProperties);
-                Assert.False(string.IsNullOrWhiteSpace(transactionId), "Should contain non-blank transaction ID");
-                Assert.Equal(_transactionId, transactionId);
-            };
+                _customAssertTraceParentProperty = message =>
+                {
+                    var traceParent = (string) Assert.Contains("Custom-Diagnostic-Id", message.Message.ApplicationProperties);
+                    Assert.False(string.IsNullOrWhiteSpace(traceParent), "Should contain non-blank 'traceparent'");
+                    Assert.Equal($"00-{_transactionId}-{dependencyId}-00", traceParent);
+                };
+            }
         }
 
         protected EventGridPublisherClient CreateRegisteredClient(
+            EventCorrelationFormat format,
             Action<EventGridPublisherClientWithTrackingOptions> configureOptions = null)
         {
             return CreateRegisteredClient((clients, topicEndpoint, authenticationKeySecretName) =>
             {
-                clients.AddEventGridPublisherClient(topicEndpoint, authenticationKeySecretName, configureOptions);
+                clients.AddEventGridPublisherClient(topicEndpoint, authenticationKeySecretName, options =>
+                {
+                    options.Format = format;
+                    configureOptions?.Invoke(options);
+                });
             });
         }
 
         protected EventGridPublisherClient CreateRegisteredClientUsingManagedIdentity(
+            EventCorrelationFormat format,
             Action<EventGridPublisherClientWithTrackingOptions> configureOptions = null)
         {
             return CreateRegisteredClient((clients, topicEndpoint, _) =>
             {
-                clients.AddEventGridPublisherClientUsingManagedIdentity(topicEndpoint, configureOptions);
+                clients.AddEventGridPublisherClientUsingManagedIdentity(topicEndpoint, options =>
+                {
+                    options.Format = format;
+                    configureOptions?.Invoke(options);
+                });
             });
         }
 
-        protected EventGridPublisherClient CreateRegisteredClientWithCustomImplementation()
+        protected EventGridPublisherClient CreateRegisteredClientWithCustomImplementation(EventCorrelationFormat format)
         {
-            _customAssertOperationParentIdProperty = message =>
+            if (format is EventCorrelationFormat.Hierarchical)
             {
-                var operationParentId = (string) Assert.Contains("Custom-Operation-Parent-Id", message.Message.ApplicationProperties);
-                Assert.False(string.IsNullOrWhiteSpace(operationParentId), "Should contain non-blank operation parent ID");
-            };
-            _customAssertTransactionIdProperty = eventArgs =>
+                _customAssertOperationParentIdProperty = message =>
+                {
+                    var operationParentId = (string)Assert.Contains("Custom-Operation-Parent-Id", message.Message.ApplicationProperties);
+                    Assert.False(string.IsNullOrWhiteSpace(operationParentId), "Should contain non-blank operation parent ID");
+                };
+                _customAssertTransactionIdProperty = eventArgs =>
+                {
+                    var transactionId = (string)Assert.Contains("Custom-Transaction-Id", eventArgs.Message.ApplicationProperties);
+                    Assert.False(string.IsNullOrWhiteSpace(transactionId), "Should contain non-blank transaction ID");
+                    Assert.Equal(_transactionId, transactionId);
+                }; 
+            }
+
+            if (format is EventCorrelationFormat.W3C)
             {
-                var transactionId = (string) Assert.Contains("Custom-Transaction-Id", eventArgs.Message.ApplicationProperties);
-                Assert.False(string.IsNullOrWhiteSpace(transactionId), "Should contain non-blank transaction ID");
-                Assert.Equal(_transactionId, transactionId);
-            };
+                _customAssertTraceParentProperty = message =>
+                {
+                    var traceParent = (string)Assert.Contains("Custom-Diagnostic-Id", message.Message.ApplicationProperties);
+                    Assert.False(string.IsNullOrWhiteSpace(traceParent), "Should contain non-blank 'traceparent'");
+                    Assert.Contains(_transactionId, traceParent);
+                };
+            }
 
             return CreateRegisteredClient((clients, topicEndpoint, authenticationKeySecretName) =>
             {
@@ -167,7 +222,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                         authenticationKeySecretName,
                         provider.GetRequiredService<ISecretProvider>(),
                         provider.GetRequiredService<ICorrelationInfoAccessor>(),
-                        new EventGridPublisherClientWithTrackingOptions(),
+                        new EventGridPublisherClientWithTrackingOptions { Format = format },
                         provider.GetRequiredService<ILogger<EventGridPublisherClient>>());
                 });
             });
@@ -196,8 +251,13 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             return client;
         }
 
-        protected void AssertDependencyTracking()
+        protected void AssertDependencyTracking(EventCorrelationFormat format = EventCorrelationFormat.W3C)
         {
+            if (format is EventCorrelationFormat.W3C)
+            {
+                return;
+            }
+
             string logMessage = Assert.Single(_spyLogger.Messages, msg => msg.Contains("Azure Event Grid"));
             string topicEndpoint = Configuration.GetEventGridTopicEndpoint(_eventSchema);
 
