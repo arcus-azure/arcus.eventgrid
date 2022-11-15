@@ -80,7 +80,6 @@ namespace Microsoft.Extensions.Azure
                     throw new InvalidOperationException(
                         "Requires an Arcus correlation registration to retrieve the current correlation model to enrich the send out event to Azure Event Grid, "
                         + "please use 'services.AddCorrelation()' (https://observability.arcus-azure.net/Features/correlation) or 'services.AddHttpCorrelation()' for web API applications (https://webapi.arcus-azure.net/features/correlation)");
-
                 }
 
                 ILogger<EventGridPublisherClient> logger =
