@@ -70,7 +70,7 @@ namespace Microsoft.Extensions.Azure
                 if (secretProvider is null)
                 {
                     throw new InvalidOperationException(
-                        "Requires an Arcus correlation registration to retrieve the current correlation model to enrich the send out event to Azure Event Grid, "
+                        "Requires an Arcus secret store registration to retrieve the authentication key to authenticate with Azure Event Grid while creating an Event Grid publisher instance," 
                         + "please use the 'services.AddSecretStore(...)' or 'host.ConfigureSecretStore(...)' (https://security.arcus-azure.net/features/secret-store)");
                 }
 
@@ -78,7 +78,7 @@ namespace Microsoft.Extensions.Azure
                 if (correlationAccessor is null)
                 {
                     throw new InvalidOperationException(
-                        "Requires an Arcus secret store registration to retrieve the authentication key to authenticate with Azure Event Grid while creating an Event Grid publisher instance," 
+                        "Requires an Arcus correlation registration to retrieve the current correlation model to enrich the send out event to Azure Event Grid, "
                         + "please use 'services.AddCorrelation()' (https://observability.arcus-azure.net/Features/correlation) or 'services.AddHttpCorrelation()' for web API applications (https://webapi.arcus-azure.net/features/correlation)");
                 }
 
@@ -167,7 +167,7 @@ namespace Microsoft.Extensions.Azure
                 if (correlationAccessor is null)
                 {
                     throw new InvalidOperationException(
-                        "Requires an Arcus secret store registration to retrieve the authentication key to authenticate with Azure Event Grid while creating an Event Grid publisher instance," 
+                        "Requires an Arcus correlation registration to retrieve the current correlation model to enrich the send out event to Azure Event Grid, "
                         + "please use 'services.AddCorrelation()' (https://observability.arcus-azure.net/Features/correlation) or 'services.AddHttpCorrelation()' for web API applications (https://webapi.arcus-azure.net/features/correlation)");
                 }
 
