@@ -7,17 +7,6 @@ layout: default
 
 We provide support for endpoint validation, when implementing your own custom web hook.
 
-- [Endpoint validation](#endpoint-validation)
-  - [Installation](#installation)
-  - [Azure Event Grid authorization](#azure-event-grid-authorization)
-    - [Enforce authorization globally](#enforce-authorization-globally)
-      - [Configuration](#configuration)
-    - [Enforce authorization per controller or operation](#enforce-authorization-per-controller-or-operation)
-      - [Configuration](#configuration-1)
-  - [Azure Event Grid subscription validation](#azure-event-grid-subscription-validation)
-    - [Enforce subscription validation per controller or operation](#enforce-subscription-validation-per-controller-or-operation)
-    - [Use subscription validation in Azure Functions](#use-subscription-validation-in-azure-functions)
-
 ## Installation
 
 The features described here require the following package:

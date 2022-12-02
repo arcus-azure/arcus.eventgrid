@@ -9,12 +9,6 @@ The `Arcus.EventGrid` package provides several ways to deserializing events.
 
 Following paragraphs describe each supported way to deserialize an event.
 
-- [Deserializing Events](#deserializing-events)
-  - [Deserializing Built-In Azure Events](#deserializing-built-in-azure-events)
-  - [Deserializing CloudEvent Events](#deserializing-cloudevent-events)
-  - [Deserializing Event Grid Events](#deserializing-event-grid-events)
-  - [Deserializing Custom Events](#deserializing-custom-events)
-
 ### Deserializing Built-In Azure Events
 
 When using official Azure events, you can use `.ParseFromData<>` to deserialize then those based on the built-in types as shown in the example:

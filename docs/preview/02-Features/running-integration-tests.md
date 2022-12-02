@@ -7,21 +7,12 @@ layout: default
 
 We provide some minimal testing infrastructure that allows you to run integration tests on top of Azure Event Grid.
 
-Easy to start:
+## Installation
+The features described here require the following package:
+
 ```shell
 > Install-Package Arcus.EventGrid.Testing
 ```
-
-Here is what this article will cover:
-
-- [Running integration tests with Arcus](#running-integration-tests-with-arcus)
-  - [Receiving events in your tests](#receiving-events-in-your-tests)
-    - [Azure Service Bus test example](#azure-service-bus-test-example)
-    - [Available functionality for receiving events](#available-functionality-for-receiving-events)
-  - [Azure infrastructure](#azure-infrastructure)
-  - [Troubleshooting tests](#troubleshooting-tests)
-    - [Use logging](#use-logging)
-    - [Keeping a test subscription on the topic](#keeping-a-test-subscription-on-the-topic)
 
 ### Receiving events in your tests
 By using the `ServiceBusEventConsumerHost` you can subscribe to Azure Event Grid events on a custom topic and consume them in your tests.
