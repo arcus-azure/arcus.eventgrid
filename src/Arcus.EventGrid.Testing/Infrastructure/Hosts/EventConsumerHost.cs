@@ -46,7 +46,6 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// </summary>
         protected ILogger Logger { get; }
 
-
         /// <summary>
         /// Handles new received events into the event consumer that can later be retrieved.
         /// </summary>
@@ -164,7 +163,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <param name="cloudEventFilter">The custom event filter to select a specific <see cref="NewCloudEvent "/> event.</param>
         /// <param name="timeout">The time period in which the event should be consumed.</param>
         /// <returns>
-        ///     The deserialized <see cref="CloudEvent"/> event that matches the specified <paramref name="cloudEventFilter"/>.
+        ///     The deserialized <see cref="NewCloudEvent"/> event that matches the specified <paramref name="cloudEventFilter"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="cloudEventFilter"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="timeout"/> is a negative time range.</exception>
@@ -181,7 +180,11 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             PolicyResult<NewCloudEvent> result =
                 timeoutPolicy.ExecuteAndCapture(() =>
-                    TryGetReceivedEvent(ev => cloudEventFilter(ev)));
+                {
+                    return TryGetReceivedEvent(
+                        received => NewCloudEvent.Parse(BinaryData.FromString(received)),
+                        cloudEventFilter);
+                });
 
             if (result.Outcome is OutcomeType.Failure)
             {
@@ -204,7 +207,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <param name="cloudEventFilter">The custom event filter to select a specific <see cref="OldCloudEvent"/> event.</param>
         /// <param name="timeout">The time period in which the event should be consumed.</param>
         /// <returns>
-        ///     The deserialized <see cref="CloudEvent"/> event that matches the specified <paramref name="cloudEventFilter"/>.
+        ///     The deserialized <see cref="OldCloudEvent"/> event that matches the specified <paramref name="cloudEventFilter"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="cloudEventFilter"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="timeout"/> is a negative time range.</exception>
@@ -224,7 +227,8 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             
             PolicyResult<OldCloudEvent> result =
                 timeoutPolicy.ExecuteAndCapture(() => 
-                    TryGetReceivedEvent(ev => cloudEventFilter(ev)));
+                    TryGetReceivedEvent(
+                        ev => cloudEventFilter(ev)));
 
             if (result.Outcome is OutcomeType.Failure)
             {
@@ -264,7 +268,11 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             PolicyResult<NewEventGridEvent> result =
                 timeoutPolicy.ExecuteAndCapture(() =>
-                    TryGetReceivedEvent(ev => eventGridEventFilter(ev)));
+                {
+                    return TryGetReceivedEvent(
+                        received => NewEventGridEvent.Parse(BinaryData.FromString(received)),
+                        eventGridEventFilter);
+                });
 
             if (result.Outcome is OutcomeType.Failure)
             {
@@ -287,7 +295,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <param name="eventGridEventFilter">The custom event filter to select a specific <see cref="OldEventGridEvent"/> event.</param>
         /// <param name="timeout">The time period in which the event should be consumed.</param>
         /// <returns>
-        ///     The deserialized <see cref="EventGridEvent"/> event that matches the specified <paramref name="eventGridEventFilter"/>.
+        ///     The deserialized <see cref="OldEventGridEvent"/> event that matches the specified <paramref name="eventGridEventFilter"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="eventGridEventFilter"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="timeout"/> is a negative time range.</exception>
@@ -394,7 +402,10 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         }
 
  #if NET6_0
-        private NewCloudEvent TryGetReceivedEvent(Func<NewCloudEvent, bool> eventFilter)
+        private TEvent TryGetReceivedEvent<TEvent>(
+            Func<string, TEvent> eventParser,
+            Func<TEvent, bool> eventFilter)
+            where TEvent : class
         {
             if (_newEvents.IsEmpty)
             {
@@ -408,53 +419,16 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                 {
                     try
                     {
-                        var data = BinaryData.FromString(received.Value);
-                        var parsed = NewCloudEvent.Parse(data);
-
+                        TEvent parsed = eventParser(received.Value);
                         if (parsed != null && eventFilter(parsed))
                         {
-                            Logger.LogInformation("Found received event with ID: {EventId}", parsed.Id);
+                            Logger.LogInformation("Found received event with ID: {EventId}", received.Key);
                             return parsed;
                         }
                     }
                     catch (Exception exception)
                     {
-                        Logger.LogTrace(exception, "Could not parse event as CloudEvent: {EventId}", received.Key);
-                    }
-                }
-
-                Logger.LogInformation("None of the received events matches the event filter: {ReceivedEvents}", string.Join(Environment.NewLine, _newEvents.Keys));
-            }
-
-            return null;
-        }
-
-        private NewEventGridEvent TryGetReceivedEvent(Func<NewEventGridEvent, bool> eventFilter)
-        {
-            if (_newEvents.IsEmpty)
-            {
-                Logger.LogTrace("No received events found");
-            }
-            else
-            {
-                Logger.LogTrace("Current received event batches are: {ReceivedEvents}", string.Join(", ", _newEvents.Keys));
-
-                foreach (KeyValuePair<string, string> received in _newEvents)
-                {
-                    try
-                    {
-                        var data = BinaryData.FromString(received.Value);
-                        var parsed = NewEventGridEvent.Parse(data);
-
-                        if (parsed != null && eventFilter(parsed))
-                        {
-                            Logger.LogInformation("Found received event with ID: {EventId}", parsed.Id);
-                            return parsed;
-                        }
-                    }
-                    catch (Exception exception)
-                    {
-                        Logger.LogTrace(exception, "Could not parse event as EventGridEvent: {EventId}", received.Key);
+                        Logger.LogTrace(exception, "Could not parse event as {EventType}: {EventId}", typeof(TEvent).Name, received.Key);
                     }
                 }
 
