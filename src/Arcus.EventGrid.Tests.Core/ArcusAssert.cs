@@ -7,7 +7,6 @@ using Arcus.EventGrid.Tests.Core.Events.Data;
 using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Core
@@ -57,7 +56,6 @@ namespace Arcus.EventGrid.Tests.Core
             Assert.Equal(licensePlate, eventData.LicensePlate);
         }
 
-        
         /// <summary>
         /// Asserts the <see cref="CarEventData"/> event payload model of an <see cref="NewCarRegistered"/> event.
         /// </summary>
