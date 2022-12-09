@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Text;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Core.Events.Data;
+using Azure.Messaging;
+using Azure.Messaging.EventGrid;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -48,6 +51,33 @@ namespace Arcus.EventGrid.Tests.Core
         {
             Assert.NotNull(deserializedEvent.Data);
             var eventData = deserializedEvent.GetPayload<CarEventData>();
+            Assert.NotNull(eventData);
+            Assert.Equal(JsonConvert.DeserializeObject<CarEventData>(deserializedEvent.Data.ToString()), eventData);
+            Assert.Equal(licensePlate, eventData.LicensePlate);
+        }
+
+        /// <summary>
+        /// Asserts the <see cref="CarEventData"/> event payload model of an <see cref="NewCarRegistered"/> event.
+        /// </summary>
+        /// <param name="licensePlate">The expected license plate number of the event's payload.</param>
+        /// <param name="deserializedEvent">The actual deserialized event to be asserted.</param>
+        public static void ReceivedNewCarRegisteredPayload(string licensePlate, CloudEvent deserializedEvent)
+        {
+            Assert.NotNull(deserializedEvent.Data);
+            var eventData = deserializedEvent.Data.ToObjectFromJson<CarEventData>();
+            Assert.NotNull(eventData);
+            Assert.Equal(licensePlate, eventData.LicensePlate);
+        }
+
+        /// <summary>
+        /// Asserts the <see cref="CarEventData"/> event payload model of an <see cref="NewCarRegistered"/> event.
+        /// </summary>
+        /// <param name="licensePlate">The expected license plate number of the event's payload.</param>
+        /// <param name="deserializedEvent">The actual deserialized event to be asserted.</param>
+        public static void ReceivedNewCarRegisteredPayload(string licensePlate, EventGridEvent deserializedEvent)
+        {
+            Assert.NotNull(deserializedEvent.Data);
+            var eventData = deserializedEvent.Data.ToObjectFromJson<CarEventData>();
             Assert.NotNull(eventData);
             Assert.Equal(JsonConvert.DeserializeObject<CarEventData>(deserializedEvent.Data.ToString()), eventData);
             Assert.Equal(licensePlate, eventData.LicensePlate);
