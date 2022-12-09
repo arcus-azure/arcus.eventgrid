@@ -8,6 +8,7 @@ using Arcus.EventGrid.Tests.Core;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using Azure;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using CloudNative.CloudEvents;
 using Microsoft.Extensions.Azure;
@@ -16,6 +17,10 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
+#if NET6_0
+using NewCloudEvent = Azure.Messaging.CloudEvent;
+#endif
+using OldCloudEvent = CloudNative.CloudEvents.CloudEvent;
 
 namespace Arcus.EventGrid.Tests.Integration.Publishing
 {
@@ -50,7 +55,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             const string eventSubject = "integration-test";
             const string licensePlate = "1-TOM-337";
             var eventId = Guid.NewGuid().ToString();
-            var @event = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), eventSubject, eventId)
+            var @event = new OldCloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), eventSubject, eventId)
             {
                 Data = new CarEventData(licensePlate),
                 DataContentType = new ContentType("application/json")
@@ -65,6 +70,20 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             string receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.Type, eventSubject, licensePlate, receivedEvent);
+
+            NewCloudEvent receivedEventAsNew = 
+                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (NewCloudEvent ev) =>
+                    {
+                        _testOutput.WriteLine("Filter on event ID: {0} = {1}", eventId, ev.Id);
+                        return ev.Id == eventId;
+                    }, 
+                    TimeSpan.FromSeconds(40));
+            
+            Assert.Equal(eventId, receivedEventAsNew.Id);
+            Assert.Equal(@event.Subject, receivedEventAsNew.Subject);
+            Assert.Equal(@event.Type, receivedEventAsNew.Type);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, receivedEventAsNew);
         }
 
         [Fact]
@@ -74,18 +93,18 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             const string eventSubject = "integration-test";
             const string licensePlate = "1-TOM-337";
             var firstEventId = Guid.NewGuid().ToString();
-            var firstEvent = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), eventSubject, firstEventId)
+            var firstEvent = new OldCloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), eventSubject, firstEventId)
             {
                 Data = new CarEventData(licensePlate),
                 DataContentType = new ContentType("application/json")
             };
             var secondEventId = Guid.NewGuid().ToString();
-            var secondEvent = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), eventSubject, secondEventId)
+            var secondEvent = new OldCloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), eventSubject, secondEventId)
             {
                 Data = new CarEventData(licensePlate),
                 DataContentType = new ContentType("application/json")
             };
-            CloudEvent[] cloudEvents = { firstEvent, secondEvent };
+            OldCloudEvent[] cloudEvents = { firstEvent, secondEvent };
 
             IEventGridPublisher publisher = EventPublisherFactory.CreateCloudEventPublisher(_config);
 
@@ -96,7 +115,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             Assert.All(cloudEvents, cloudEvent => AssertReceivedNewCarRegisteredEventWithTimeout(cloudEvent, licensePlate));
         }
 
-        private void AssertReceivedNewCarRegisteredEventWithTimeout(CloudEvent @event, string licensePlate)
+        private void AssertReceivedNewCarRegisteredEventWithTimeout(OldCloudEvent @event, string licensePlate)
         {
             TracePublishedEvent(@event.Id, @event);
             string receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(@event.Id, timeout: TimeSpan.FromSeconds(30));
@@ -112,7 +131,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var eventId = Guid.NewGuid().ToString();
             var data = new CarEventData(licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(data);
-            var cloudEvent = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), subject: expectedSubject, id: eventId)
+            var cloudEvent = new OldCloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), subject: expectedSubject, id: eventId)
             {
                 Data = data,
                 DataContentType = new ContentType("application/json")
@@ -138,7 +157,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var eventId = Guid.NewGuid().ToString();
             var data = new CarEventData(licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(data);
-            var cloudEvent = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), subject: expectedSubject, id: eventId, DateTime.UtcNow)
+            var cloudEvent = new OldCloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), subject: expectedSubject, id: eventId, DateTime.UtcNow)
             {
                 Data = data,
                 DataContentType = new ContentType("application/json")
@@ -159,23 +178,23 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             TracePublishedEvent(eventId, cloudEvent);
 
             // Assert
-            CloudEvent receivedEvent = 
+            OldCloudEvent receivedEventAsOld = 
                 _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (CloudEvent ev) =>
+                    (OldCloudEvent ev) =>
                     {
                         _testOutput.WriteLine("Filter on event ID: {0} = {1}", eventId, ev.Id);
                         return ev.Id == eventId;
                     }, 
                     TimeSpan.FromSeconds(40));
             
-            Assert.Equal(eventId, receivedEvent.Id);
-            Assert.Equal(cloudEvent.Subject, receivedEvent.Subject);
-            Assert.Equal(cloudEvent.Type, receivedEvent.Type);
-            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, receivedEvent);
+            Assert.Equal(eventId, receivedEventAsOld.Id);
+            Assert.Equal(cloudEvent.Subject, receivedEventAsOld.Subject);
+            Assert.Equal(cloudEvent.Type, receivedEventAsOld.Type);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, receivedEventAsOld);
         }
 
         [Fact]
-        public async Task PublishSingleRawEventWithDetailedInfo_WithBuilder_ValidParameters_Succeeds()
+        public async Task PublishSingleRawOldEventWithDetailedInfo_WithBuilder_ValidParameters_Succeeds()
         {
             // Arrange
             const string licensePlate = "1-TOM-337";
@@ -183,7 +202,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             var eventId = Guid.NewGuid().ToString();
             var data = new CarEventData(licensePlate);
             var rawEventBody = JsonConvert.SerializeObject(data);
-            var cloudEvent = new CloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), subject: expectedSubject, id: eventId, DateTime.UtcNow)
+            var cloudEvent = new OldCloudEvent(CloudEventsSpecVersion.V1_0, "NewCarRegistered", new Uri("http://test-host"), subject: expectedSubject, id: eventId, DateTime.UtcNow)
             {
                 Data = data,
                 DataContentType = new ContentType("application/json")
@@ -208,11 +227,20 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
-        public void PublishSingleCloudEvent_WithInvalidRetrieval_TimesOut()
+        public void PublishSingleOldCloudEvent_WithInvalidRetrieval_TimesOut()
         {
             Assert.Throws<TimeoutException>(
                 () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (CloudEvent cloudEvent) => cloudEvent.Id == "not existing ID", 
+                    (OldCloudEvent cloudEvent) => cloudEvent.Id == "not existing ID", 
+                    timeout: TimeSpan.FromSeconds(5)));
+        }
+
+        [Fact]
+        public void PublishSingleNewCloudEvent_WithInvalidRetrieval_TimesOut()
+        {
+            Assert.Throws<TimeoutException>(
+                () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (NewCloudEvent cloudEvent) => cloudEvent.Id == "not existing ID", 
                     timeout: TimeSpan.FromSeconds(5)));
         }
 

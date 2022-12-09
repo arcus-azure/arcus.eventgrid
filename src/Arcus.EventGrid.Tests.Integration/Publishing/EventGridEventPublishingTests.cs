@@ -13,6 +13,12 @@ using Microsoft.Azure.EventGrid.Models;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
+#if NET6_0
+using NewCloudEvent = Azure.Messaging.CloudEvent;
+using NewEventGridEvent = Azure.Messaging.EventGrid.EventGridEvent; 
+#endif
+using OldCloudEvent = CloudNative.CloudEvents.CloudEvent;
+using OldEventGridEvent = Microsoft.Azure.EventGrid.Models.EventGridEvent;
 
 namespace Arcus.EventGrid.Tests.Integration.Publishing
 {
@@ -56,6 +62,15 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             // Assert
             var receivedEvent = _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(eventId);
             ArcusAssert.ReceivedNewCarRegisteredEvent(eventId, @event.EventType, eventSubject, licensePlate, receivedEvent);
+
+            NewEventGridEvent actualNew = 
+                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (NewEventGridEvent eventGridEvent) => eventGridEvent.Id == eventId, 
+                    TimeSpan.FromSeconds(30));
+
+            Assert.Equal(@event.Id, actualNew.Id);
+            Assert.Equal(@event.EventType, actualNew.EventType);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actualNew);
         }
 
         [Fact]
@@ -130,14 +145,23 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             TracePublishedEvent(eventId, @event);
 
             // Assert
-            EventGridEvent actual = 
+            OldEventGridEvent actualOld = 
                 _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
                     (EventGridEvent eventGridEvent) => eventGridEvent.Id == eventId, 
                     TimeSpan.FromSeconds(30));
 
-            Assert.Equal(@event.Id, actual.Id);
-            Assert.Equal(@event.EventType, actual.EventType);
-            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actual);
+            Assert.Equal(@event.Id, actualOld.Id);
+            Assert.Equal(@event.EventType, actualOld.EventType);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actualOld);
+            
+            NewEventGridEvent actualNew = 
+                _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (NewEventGridEvent eventGridEvent) => eventGridEvent.Id == eventId, 
+                    TimeSpan.FromSeconds(30));
+
+            Assert.Equal(@event.Id, actualNew.Id);
+            Assert.Equal(@event.EventType, actualNew.EventType);
+            ArcusAssert.ReceivedNewCarRegisteredPayload(licensePlate, actualNew);
         }
 
         [Fact]
@@ -183,11 +207,20 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
         }
 
         [Fact]
-        public void PublishSingleEventGridEvent_WithInvalidRetrieval_TimesOut()
+        public void PublishSingleOldEventGridEvent_WithInvalidRetrieval_TimesOut()
         {
             Assert.Throws<TimeoutException>(
                 () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
-                    (EventGridEvent eventGridEvent) => eventGridEvent.Id == "not existing ID",
+                    (OldEventGridEvent eventGridEvent) => eventGridEvent.Id == "not existing ID",
+                    timeout: TimeSpan.FromSeconds(5)));
+        }
+
+        [Fact]
+        public void PublishSingleNewEventGridEvent_WithInvalidRetrieval_TimesOut()
+        {
+            Assert.Throws<TimeoutException>(
+                () => _endpoint.ServiceBusEventConsumerHost.GetReceivedEvent(
+                    (NewEventGridEvent eventGridEvent) => eventGridEvent.Id == "not existing ID",
                     timeout: TimeSpan.FromSeconds(5)));
         }
 
