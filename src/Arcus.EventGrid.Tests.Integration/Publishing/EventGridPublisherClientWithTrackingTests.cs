@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Core;
+using Arcus.EventGrid.Tests.Core.Security;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using Arcus.EventGrid.Tests.Integration.Publishing.Fixture;
 using Arcus.Observability.Correlation;
@@ -239,7 +240,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             string authenticationKey = Configuration.GetEventGridEndpointKey(_eventSchema);
             string authenticationKeySecretName = "Arcus_EventGrid_AuthenticationKey";
             
-            services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, authenticationKey));
+            services.AddSecretStore(stores => stores.AddProvider(new StaticInMemorySecretProvider(authenticationKeySecretName, authenticationKey)));
             services.AddAzureClients(clients => registration(clients, topicEndpoint, authenticationKeySecretName));
 
             IServiceProvider provider = services.BuildServiceProvider();

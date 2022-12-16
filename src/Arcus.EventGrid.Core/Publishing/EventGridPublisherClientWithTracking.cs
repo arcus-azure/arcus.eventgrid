@@ -32,6 +32,39 @@ namespace Azure.Messaging.EventGrid
         /// Initializes a new instance of the <see cref="EventGridPublisherClientWithTracking" /> class.
         /// </summary>
         /// <param name="topicEndpoint">The Azure Event Grid topic endpoint to where the events should be published.</param>
+        /// <param name="publisher">The inner Azure EventGrid publisher client to which the correlated events will be delegated.</param>
+        /// <param name="correlationAccessor">The correlation accessor implementation to retrieve the current correlation model when enriching the publishing events</param>
+        /// <param name="options">The additional options to influence the correlation tracking and internal HTTP request which represents the publishing event.</param>
+        /// <param name="logger">The logger instance to track the Azure Event Grid dependency with correlation information.</param>
+        /// <exception cref="ArgumentException">Thrown when the <paramref name="topicEndpoint"/> is blank.</exception>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when the <paramref name="publisher"/>, <paramref name="correlationAccessor"/>, <paramref name="options"/>, or the <paramref name="logger"/> is <c>null</c>.
+        /// </exception>
+        public EventGridPublisherClientWithTracking(
+            string topicEndpoint,
+            EventGridPublisherClient publisher,
+            ICorrelationInfoAccessor correlationAccessor,
+            EventGridPublisherClientWithTrackingOptions options,
+            ILogger<EventGridPublisherClient> logger)
+        {
+            Guard.NotNullOrWhitespace(topicEndpoint, nameof(topicEndpoint), "Requires a non-blank Azure Event Grid topic endpoint to register the Azure Event Grid publisher with built-in correlation tracking");
+            Guard.NotNull(publisher, nameof(publisher), "Requires an Azure EventGrid publisher client to publish correlated events");
+            Guard.NotNull(correlationAccessor, nameof(correlationAccessor), "Requires an correlation accessor implementation to retrieve the current correlation model when enriching the publishing event");
+            Guard.NotNull(options, nameof(options), "Requires a set of additional options to influence the correlation tracking and internal HTTP request which represents the publishing event");
+            Guard.NotNull(logger, nameof(logger), "Requires a logger instance to track the Azure Event Grid dependency with correlation information");
+
+            _topicEndpoint = topicEndpoint;
+            _publisher = publisher;
+
+            CorrelationAccessor = correlationAccessor;
+            Options = options;
+            Logger = logger;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventGridPublisherClientWithTracking" /> class.
+        /// </summary>
+        /// <param name="topicEndpoint">The Azure Event Grid topic endpoint to where the events should be published.</param>
         /// <param name="authenticationKeySecretName">The secret name where the authentication key to initiate Azure Event Grid interaction is stored in the Arcus secret store.</param>
         /// <param name="secretProvider">The Arcus secret store implementation to retrieve the authentication key from the <paramref name="authenticationKeySecretName"/>.</param>
         /// <param name="correlationAccessor">The correlation accessor implementation to retrieve the current correlation model when enriching the publishing events</param>
@@ -41,6 +74,7 @@ namespace Azure.Messaging.EventGrid
         /// <exception cref="ArgumentNullException">
         ///     Thrown when the <paramref name="secretProvider"/>, <paramref name="correlationAccessor"/>, <paramref name="options"/>, or the <paramref name="logger"/> is <c>null</c>.
         /// </exception>
+        [Obsolete("Use the constructor overload that takes in the Azure EventGrid publisher directly instead of doing late-initialization via this constructor")]
         public EventGridPublisherClientWithTracking(
             string topicEndpoint,
             string authenticationKeySecretName,
@@ -68,6 +102,7 @@ namespace Azure.Messaging.EventGrid
         /// <summary>
         /// Initializes a new instance of the <see cref="EventGridPublisherClientWithTracking" /> class.
         /// </summary>
+        [Obsolete("Use the constructor overload that takes in the Azure EventGrid publisher directly instead of doing late-initialization via this constructor")]
         public EventGridPublisherClientWithTracking(
             string topicEndpoint,
             TokenCredential tokenCredential,
@@ -507,7 +542,7 @@ namespace Azure.Messaging.EventGrid
                 Logger.LogError(exception, "Cannot enrich event grid event with correlation property '{PropertyName}' because the event's data doesn't have the correct JSON format", propertyName);
                 
                 throw new InvalidOperationException(
-                    $"Cannot publish event grid event(s) because the correlation property '{propertyName}' could not be set, " 
+                    $"Cannot publish event grid event(s) to '{_topicEndpoint}' because the correlation property '{propertyName}' could not be set, " 
                     + "please make sure that the event's data represents a JSON model where the correlation information can be set", 
                     exception);
             }
@@ -530,7 +565,7 @@ namespace Azure.Messaging.EventGrid
                 Logger.LogError(exception, "Cannot enrich encoded cloud event with correlation property '{PropertyName}' because the event's data doesn't have the correct JSON format", propertyName);
                 
                 throw new InvalidOperationException(
-                    $"Cannot publish encoded cloud events because the correlation property '{propertyName}' could not be set, " 
+                    $"Cannot publish encoded cloud events to '{_topicEndpoint}' because the correlation property '{propertyName}' could not be set, " 
                     + "please make sure that the event's data represents a JSON model where the correlation information can be set", 
                     exception);
             }
@@ -580,7 +615,7 @@ namespace Azure.Messaging.EventGrid
                 Logger.LogError(exception, "Cannot enrich cloud event with correlation property '{PropertyName}' because the event's data doesn't have the correct JSON format", propertyName);
                 
                 throw new InvalidOperationException(
-                    $"Cannot publish cloud event(s) because the correlation property '{propertyName}' could not be set, " 
+                    $"Cannot publish cloud event(s) to '{_topicEndpoint}' because the correlation property '{propertyName}' could not be set, " 
                     + "please make sure that the event's data represents a JSON model where the correlation information can be set", 
                     exception);
             }
@@ -634,7 +669,7 @@ namespace Azure.Messaging.EventGrid
                 Logger.LogError(exception, "Cannot enrich custom event with correlation property '{PropertyName}' because the custom event doesn't have the correct JSON format", propertyName);
                 
                 throw new InvalidOperationException(
-                    $"Cannot publish custom event(s) because the correlation property '{propertyName}' could not be set, " 
+                    $"Cannot publish custom event(s) to '{_topicEndpoint}' because the correlation property '{propertyName}' could not be set, " 
                     + "please make sure that the custom event represents a JSON model with a 'data' property where the correlation information can be set", 
                     exception);
             }
