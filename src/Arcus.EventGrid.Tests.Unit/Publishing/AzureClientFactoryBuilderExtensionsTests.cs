@@ -1,4 +1,5 @@
 ﻿using System;
+using Arcus.EventGrid.Tests.Core.Security;
 using Arcus.EventGrid.Tests.Unit.Publishing.Fixtures;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Azure;
@@ -109,27 +110,7 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             Assert.ThrowsAny<InvalidOperationException>(() => factory.CreateClient("Default"));
         }
 
-        [Fact]
-        public void AddEventGridPublisherClient_WithTopicEndpointAndAuthenticationKeySecretNameWithSecretStoreWithCorrelation_Succeeds()
-        {
-            // Arrange
-            var services = new ServiceCollection();
-            services.AddCorrelation();
-            services.AddSecretStore(stores => stores.AddInMemory());
-
-            // Act
-            services.AddAzureClients(
-                clients => clients.AddEventGridPublisherClient("<topic-endpoint>", "<authentication-key>"));
-
-            // Assert
-            IServiceProvider provider = services.BuildServiceProvider();
-            var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
-            EventGridPublisherClient client = factory.CreateClient("Default");
-            Assert.NotNull(client);
-            Assert.IsType<EventGridPublisherClientWithTracking>(client);
-        }
-
-         [Theory]
+        [Theory]
         [ClassData(typeof(Blanks))]
         public void AddEventGridPublisherClientWithOptions_WithoutTopicEndpoint_Fails(string topicEndpoint)
         {
@@ -187,26 +168,6 @@ namespace Arcus.EventGrid.Tests.Unit.Publishing
             IServiceProvider provider = services.BuildServiceProvider();
             var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
             Assert.ThrowsAny<InvalidOperationException>(() => factory.CreateClient("Default"));
-        }
-
-        [Fact]
-        public void AddEventGridPublisherClientWithOptions_WithTopicEndpointAndAuthenticationKeySecretNameWithSecretStoreWithCorrelation_Succeeds()
-        {
-            // Arrange
-            var services = new ServiceCollection();
-            services.AddCorrelation();
-            services.AddSecretStore(stores => stores.AddInMemory());
-
-            // Act
-            services.AddAzureClients(
-                clients => clients.AddEventGridPublisherClient("<topic-endpoint>", "<authentication-key>", options => { }));
-
-            // Assert
-            IServiceProvider provider = services.BuildServiceProvider();
-            var factory = provider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
-            EventGridPublisherClient client = factory.CreateClient("Default");
-            Assert.NotNull(client);
-            Assert.IsType<EventGridPublisherClientWithTracking>(client);
         }
 
         [Fact]
