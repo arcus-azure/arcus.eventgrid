@@ -122,9 +122,9 @@ stages:
             parameters:
               repositoryName: 'arcus-azure/arcus.eventgrid'
               releaseNotes: |
-                Install the $(Project) packages that you need via NuGet, for instance [$(Project).Publishing](https://www.nuget.org/packages/$(Project).Publishing/$(Build.BuildNumber)):
+                Install the $(Project) packages that you need via NuGet, for instance [$(Project).Core](https://www.nuget.org/packages/$(Project).Core/$(Build.BuildNumber)):
                 ```shell
-                PM > Install-Package $(Project).Publishing --Version $(Build.BuildNumber)
+                PM > Install-Package $(Project).Core --Version $(Build.BuildNumber)
                 ```
                 For a complete list of all $(Project) packages see the [documentation](https://eventgrid.arcus-azure.net/).
                 ## What's new?
