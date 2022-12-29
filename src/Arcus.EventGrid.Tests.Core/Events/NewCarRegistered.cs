@@ -7,7 +7,7 @@ namespace Arcus.EventGrid.Tests.Core.Events
     public class NewCarRegistered : EventGridEvent<CarEventData>
     {
         private const string DefaultDataVersion = "1", 
-            DefaultEventType = "Arcus.Samples.Cars.NewCarRegistered";
+                             DefaultEventType = "Arcus.Samples.Cars.NewCarRegistered";
 
 
         private NewCarRegistered()
