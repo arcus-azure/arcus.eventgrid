@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
@@ -67,14 +68,13 @@ namespace Arcus.EventGrid.Security.Core.Validation
             Guard.NotNull(request, nameof(request), "Requires a HTTP request to validate the Azure EventGrid subscription event");
 
             BinaryData data = await BinaryData.FromStreamAsync(request.Body);
-            EventGridEvent subscriptionEvent = EventGridEvent.Parse(data);
-            if (subscriptionEvent is null)
+            if (!TryParseEventGridEvent(data, out EventGridEvent subscriptionEvent))
             {
                 _logger.LogError("Cannot validate Azure Event Grid subscription in the HTTP request body because the request has no body");
                 return new BadRequestObjectResult("Cannot validate Azure Event Grid subscription in the HTTP request body because the request has no body");
             }
 
-            var validationEventData = subscriptionEvent.Data.ToObjectFromJson<SubscriptionValidationEventData>();
+            var validationEventData = subscriptionEvent.Data?.ToObjectFromJson<SubscriptionValidationEventData>();
             if (validationEventData?.ValidationCode is null)
             {
                 _logger.LogTrace("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an Event Grid subscription validation event data");
@@ -86,6 +86,22 @@ namespace Arcus.EventGrid.Security.Core.Validation
                 ValidationResponse = validationEventData.ValidationCode
             };
             return new OkObjectResult(response);
+        }
+
+        private bool TryParseEventGridEvent(BinaryData data, out EventGridEvent subscriptionEvent)
+        {
+            try
+            {
+                subscriptionEvent = EventGridEvent.Parse(data);
+                return true;
+            }
+            catch (Exception exception) when (exception is JsonException || exception is ArgumentException)
+            {
+                _logger.LogError(exception, "Failed to correctly parse HTTP request body to a valid JSON Azure Event Grid subscription event");
+            }
+
+            subscriptionEvent = null;
+            return false;
         }
     }
 }
