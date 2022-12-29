@@ -116,13 +116,7 @@ public class EventPublishingTests
 
 ### Azure infrastructure
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Farcus-azure%2Farcus.eventgrid%2Fmaster%2Fdeploy%2Farm%2Ftesting-infrastructure%2Fazuredeploy.json" target="_blank">
-    <img src="https://azuredeploy.net/deploybutton.png"/>
-</a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Farcus-azure%2Farcus.eventgrid%2Fmaster%2Fdeploy%2Farm%2Ftesting-infrastructure%2Fazuredeploy.json" target="_blank">
-    <img src="./../media/logos/armviz.png"/>
-</a>
-
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Farcus-azure%2Farcus.eventgrid%2Fmain%2Fdeploy%2Farm%2Ftesting-infrastructure%2Fazuredeploy.json)
 
 When running integration tests with Azure, Arcus needs to be one of the consumers of your custom Azure Event Grid Topic. By doing this, it will send all received events to an [Azure Service Bus Topics](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview#topics) on which every test run will create a subscription to poll for new events.
 
