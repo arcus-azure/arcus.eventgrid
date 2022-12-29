@@ -10,7 +10,6 @@ using Azure.Messaging.EventGrid;
 using Bogus;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Integration.Publishing

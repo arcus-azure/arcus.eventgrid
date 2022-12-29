@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Arcus.EventGrid.Core\Arcus.EventGrid.Core.csproj" />
-    <ProjectReference Include="..\Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Tests.Core\Arcus.EventGrid.Tests.Core.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Testing\Arcus.EventGrid.Testing.csproj" />
     <ProjectReference Include="..\Arcus.EventGrid.Security.WebApi\Arcus.EventGrid.Security.WebApi.csproj" />

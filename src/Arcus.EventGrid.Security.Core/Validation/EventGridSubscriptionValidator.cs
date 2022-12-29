@@ -1,13 +1,10 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.Parsers;
+using Azure.Messaging.EventGrid;
+using Azure.Messaging.EventGrid.SystemEvents;
 using GuardNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
@@ -69,44 +66,26 @@ namespace Arcus.EventGrid.Security.Core.Validation
         {
             Guard.NotNull(request, nameof(request), "Requires a HTTP request to validate the Azure EventGrid subscription event");
 
-            string json = await ReadRequestBodyAsync(request);
-            if (string.IsNullOrWhiteSpace(json))
+            BinaryData data = await BinaryData.FromStreamAsync(request.Body);
+            EventGridEvent subscriptionEvent = EventGridEvent.Parse(data);
+            if (subscriptionEvent is null)
             {
                 _logger.LogError("Cannot validate Azure Event Grid subscription in the HTTP request body because the request has no body");
                 return new BadRequestObjectResult("Cannot validate Azure Event Grid subscription in the HTTP request body because the request has no body");
             }
 
-            EventBatch<Event> eventBatch = EventParser.Parse(json);
-
-            // TODO: configurable event count: allow multiple events?
-            // TODO: overridable for custom validation.
-            if (eventBatch.Events.Count != 1)
-            {
-                _logger.LogError("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contains an single Event Grid event, but {EventCount} events", eventBatch.Events.Count);
-                return new BadRequestObjectResult("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an single Event Grid event");
-            }
-
-            Event subscriptionEvent = eventBatch.Events.Single();
-            var validationEventData = subscriptionEvent.GetPayload<SubscriptionValidationEventData>();
-
+            var validationEventData = subscriptionEvent.Data.ToObjectFromJson<SubscriptionValidationEventData>();
             if (validationEventData?.ValidationCode is null)
             {
                 _logger.LogTrace("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an Event Grid subscription validation event data");
                 return new BadRequestObjectResult("Cannot validate Azure Event Grid subscription because the HTTP request doesn't contain an Event Grid subscription validation data");
             }
 
-            var response = new SubscriptionValidationResponse(validationEventData.ValidationCode);
-            return new OkObjectResult(response);
-        }
-
-        private static async Task<string> ReadRequestBodyAsync(HttpRequest request)
-        {
-            using (var reader = new StreamReader(request.Body))
+            var response = new SubscriptionValidationResponse()
             {
-                // TODO: use max buffer size option.
-                string json = await reader.ReadToEndAsync();
-                return json;
-            }
+                ValidationResponse = validationEventData.ValidationCode
+            };
+            return new OkObjectResult(response);
         }
     }
 }

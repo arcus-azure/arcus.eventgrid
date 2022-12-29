@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Arcus.EventGrid.Contracts;
+using Arcus.EventGrid.Tests.Integration.Publishing.Fixture;
 using GuardNet;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;

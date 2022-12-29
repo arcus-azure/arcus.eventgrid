@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid", "Arcus.EventGrid\Arcus.EventGrid.csproj", "{D934DF77-120F-4B90-A036-8A74E3A50B41}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Publishing", "Arcus.EventGrid.Publishing\Arcus.EventGrid.Publishing.csproj", "{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9A28129D-EE46-43AB-BA44-E1F546F3B3DA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Tests.Integration", "Arcus.EventGrid.Tests.Integration\Arcus.EventGrid.Tests.Integration.csproj", "{2D4D4863-F92A-4639-91AE-9EC5FC43F8A1}"
@@ -23,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Security.Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Security.AzureFunctions", "Arcus.EventGrid.Security.AzureFunctions\Arcus.EventGrid.Security.AzureFunctions.csproj", "{94589506-186C-4FBA-989C-9F57743E2381}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arcus.EventGrid.Core", "Arcus.EventGrid.Core\Arcus.EventGrid.Core.csproj", "{2816A759-E0CB-4CEF-863E-695D3E6D678F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid.Core", "Arcus.EventGrid.Core\Arcus.EventGrid.Core.csproj", "{2816A759-E0CB-4CEF-863E-695D3E6D678F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arcus.EventGrid", "Arcus.EventGrid\Arcus.EventGrid.csproj", "{A1E16C1C-40C2-40D3-A1DD-C3CFCA883D34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,14 +29,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D934DF77-120F-4B90-A036-8A74E3A50B41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D934DF77-120F-4B90-A036-8A74E3A50B41}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D934DF77-120F-4B90-A036-8A74E3A50B41}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D934DF77-120F-4B90-A036-8A74E3A50B41}.Release|Any CPU.Build.0 = Release|Any CPU
-		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55FE7CF6-8831-48EA-A53F-4C25E845B9F2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2D4D4863-F92A-4639-91AE-9EC5FC43F8A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D4D4863-F92A-4639-91AE-9EC5FC43F8A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D4D4863-F92A-4639-91AE-9EC5FC43F8A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -71,6 +61,10 @@ Global
 		{2816A759-E0CB-4CEF-863E-695D3E6D678F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2816A759-E0CB-4CEF-863E-695D3E6D678F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2816A759-E0CB-4CEF-863E-695D3E6D678F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1E16C1C-40C2-40D3-A1DD-C3CFCA883D34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1E16C1C-40C2-40D3-A1DD-C3CFCA883D34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1E16C1C-40C2-40D3-A1DD-C3CFCA883D34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1E16C1C-40C2-40D3-A1DD-C3CFCA883D34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
