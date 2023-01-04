@@ -33,12 +33,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Deprecated packages -->
+    <PackageReference Include="Arcus.EventGrid" Version="3.3.0" />
+    <!-- End of deprecated packages -->
     <PackageReference Include="Azure.Messaging.EventGrid" Version="4.11.0" />
     <PackageReference Include="Polly" Version="7.2.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Arcus.EventGrid\Arcus.EventGrid.csproj" />
   </ItemGroup>
 
 </Project>
