@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Azure;
 using Azure.Messaging.EventGrid;
@@ -9,6 +8,7 @@ using Arcus.EventGrid.Tests.Core;
 using Xunit.Abstractions;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using System.Collections.Generic;
+using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Core;
 using SendEventGridEventAsync = System.Func<Azure.Messaging.EventGrid.EventGridPublisherClient, Azure.Messaging.EventGrid.EventGridEvent, System.Threading.Tasks.Task<Azure.Response>>;
 
@@ -118,13 +118,11 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             return eventGridEvent;
         }
 
-        private void AssertEventGridEventForData(EventGridEvent eventGridEvent, EventGridTopicEndpoint endpoint)
+        private static void AssertEventGridEventForData(EventGridEvent expected, EventGridTopicEndpoint endpoint)
         {
-            Assert.NotNull(eventGridEvent.Data);
-            var eventData = eventGridEvent.Data.ToObjectFromJson<CarEventData>();
-
-            string receivedEvent = endpoint.ConsumerHost.GetReceivedEventOrFail(eventGridEvent.Id);
-            ArcusAssert.ReceivedNewCarRegisteredEvent(eventGridEvent.Id, eventGridEvent.EventType, eventGridEvent.Subject, eventData.LicensePlate, receivedEvent);
+            Assert.NotNull(expected.Data);
+            string actual = endpoint.ConsumerHost.GetReceivedEventOrFail(expected.Id);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(expected, actual);
         }
 
         [Theory]

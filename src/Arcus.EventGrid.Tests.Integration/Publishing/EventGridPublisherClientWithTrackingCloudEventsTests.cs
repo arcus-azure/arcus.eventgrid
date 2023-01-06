@@ -158,13 +158,11 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             return cloudEvent;
         }
 
-        private void AssertCloudEventForData(CloudEvent cloudEvent, EventGridTopicEndpoint endpoint)
+        private static void AssertCloudEventForData(CloudEvent expected, EventGridTopicEndpoint endpoint)
         {
-            Assert.NotNull(cloudEvent.Data);
-            var eventData = cloudEvent.Data.ToObjectFromJson<CarEventData>();
-
-            string receivedEvent = endpoint.ConsumerHost.GetReceivedEventOrFail(cloudEvent.Id);
-            ArcusAssert.ReceivedNewCarRegisteredEvent(cloudEvent.Id, cloudEvent.Type, cloudEvent.Subject, eventData.LicensePlate, receivedEvent);
+            Assert.NotNull(expected.Data);
+            string actual = endpoint.ConsumerHost.GetReceivedEventOrFail(expected.Id);
+            ArcusAssert.ReceivedNewCarRegisteredEvent(expected, actual);
         }
 
         [Theory]

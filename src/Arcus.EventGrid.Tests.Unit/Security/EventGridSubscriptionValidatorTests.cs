@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Xunit;
+using SubscriptionValidationResponse = Azure.Messaging.EventGrid.SystemEvents.SubscriptionValidationResponse;
 
 namespace Arcus.EventGrid.Tests.Unit.Security
 {
@@ -37,7 +38,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             // Assert
             Assert.NotNull(result);
             Assert.IsType<OkResult>(result);
-            Assert.Contains(new StringValues(expectedRequestOrigin), context.Response.Headers["WebHook-Allowed-Origin"]);
+            Assert.Contains(expectedRequestOrigin, (string) context.Response.Headers["WebHook-Allowed-Origin"]);
         }
 
         [Fact]
@@ -56,7 +57,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security
         }
 
         [Fact]
-        public async Task ValidateEventGridSubscriptionRequest_WithSubscritionValidationCodeInHttpRequestBody_Succeeds()
+        public async Task ValidateEventGridSubscriptionRequest_WithSubscriptionValidationCodeInHttpRequestBody_Succeeds()
         {
             // Arrange
             var validator = new EventGridSubscriptionValidator(NullLogger);
@@ -82,7 +83,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security
         }
 
         [Fact]
-        public async Task ValidateEventGridSubscriptionRequest_WithoutSubscritionValidationCodeInHttpRequestBody_Fails()
+        public async Task ValidateEventGridSubscriptionRequest_WithoutSubscriptionValidationCodeInHttpRequestBody_Fails()
         {
             // Arrange
             var validator = new EventGridSubscriptionValidator(NullLogger);
@@ -148,9 +149,9 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             EventBatch<Event> iotDeviceDeletedEvent = EventParser.Parse(Artifacts.EventSamples.IoTDeviceDeleteEvent);
             EventGridEvent[] events = 
                 blobCreatedEvent.Events
-                    .Concat(iotDeviceDeletedEvent.Events)
-                    .Select(ev => ev.AsEventGridEvent())
-                    .ToArray();
+                                .Concat(iotDeviceDeletedEvent.Events)
+                                .Select(ev => ev.AsEventGridEvent())
+                                .ToArray();
             
             string requestBody = JsonConvert.SerializeObject(events);
             context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestBody));
