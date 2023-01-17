@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Tests.Core.Events.Data;
-using Arcus.EventGrid.Tests.Core.Security;
 using Arcus.EventGrid.Tests.Integration.Publishing.Fixture;
 using Arcus.Observability.Correlation;
 using Azure;
@@ -10,6 +9,7 @@ using Azure.Messaging.EventGrid;
 using Bogus;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Arcus.EventGrid.Tests.Integration.Publishing
@@ -29,7 +29,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 var authenticationKeySecretName = "My-Auth-Key";
                 var retryCount = BogusGenerator.Random.Int(min: 1, max: 3);
                 var services = new ServiceCollection();
-                services.AddSecretStore(stores => stores.AddProvider(new StaticInMemorySecretProvider(authenticationKeySecretName, "some super secret auth key")));
+                services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, "some super secret auth key"));
                 services.AddCorrelation();
                 services.AddAzureClients(clients =>
                 {
@@ -81,7 +81,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 var authenticationKeySecretName = "My-Auth-Key";
                 var exceptionsAllowedBeforeBreaking = BogusGenerator.Random.Int(min: 1, max: 3);
                 var services = new ServiceCollection();
-                services.AddSecretStore(stores => stores.AddProvider(new StaticInMemorySecretProvider(authenticationKeySecretName, "some super secret auth key")));
+                services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, "some super secret auth key"));
                 services.AddCorrelation();
                 services.AddAzureClients(clients =>
                 {
@@ -115,7 +115,7 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
                 var retryCount = BogusGenerator.Random.Int(min: 1, max: 3);
                 var exceptionsAllowedBeforeBreaking = BogusGenerator.Random.Int(min: 1, max: 3);
                 var services = new ServiceCollection();
-                services.AddSecretStore(stores => stores.AddProvider(new StaticInMemorySecretProvider(authenticationKeySecretName, "some super secret auth key")));
+                services.AddSecretStore(stores => stores.AddInMemory(authenticationKeySecretName, "some super secret auth key"));
                 services.AddCorrelation();
                 services.AddAzureClients(clients =>
                 {

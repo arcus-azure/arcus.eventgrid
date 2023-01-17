@@ -1,5 +1,4 @@
 ﻿using System;
-using Arcus.EventGrid.Tests.Core.Security;
 using Arcus.EventGrid.Tests.Unit.Publishing.Fixtures;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Azure;
