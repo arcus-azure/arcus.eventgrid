@@ -5,13 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arcus.Security.Core" Version="1.9.0" />
     <PackageReference Include="xunit.assert" Version="2.4.0" />
     <PackageReference Include="Azure.Messaging.EventGrid" Version="4.11.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Security\" />
   </ItemGroup>
 
 </Project>
