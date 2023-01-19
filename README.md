@@ -1,5 +1,5 @@
 # Arcus - Azure Event Grid
-[![Build Status](https://dev.azure.com/codit/Arcus/_apis/build/status/Commit%20builds/CI%20-%20Arcus.EventGrid?branchName=master)](https://dev.azure.com/codit/Arcus/_build/latest?definitionId=734&branchName=master)
+[![Build Status](https://dev.azure.com/codit/Arcus/_apis/build/status/Commit%20builds/CI%20-%20Arcus.EventGrid?branchName=main)](https://dev.azure.com/codit/Arcus/_build/latest?definitionId=734&branchName=main)
 [![NuGet Badge](https://buildstats.info/nuget/Arcus.EventGrid?includePreReleases=true)](https://www.nuget.org/packages/Arcus.EventGrid/)
 
 Azure Event Grid development in a breeze.
