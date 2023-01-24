@@ -8,6 +8,14 @@
   <ItemGroup>
     <PackageReference Include="Arcus.Testing.Security.Providers.InMemory" Version="0.5.0" />
     <PackageReference Include="Bogus" Version="29.0.2" />
+    <PackageReference Include="coverlet.collector" Version="3.2.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
     <PackageReference Include="Moq" Version="4.18.2" />
     <PackageReference Include="System.Configuration.Abstractions" Version="2.0.2.45" />
