@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Arcus.Testing.Logging" Version="0.5.0" />
     <PackageReference Include="Arcus.Testing.Security.Providers.InMemory" Version="0.5.0" />
     <PackageReference Include="Bogus" Version="29.0.2" />
     <PackageReference Include="coverlet.collector" Version="3.2.0">

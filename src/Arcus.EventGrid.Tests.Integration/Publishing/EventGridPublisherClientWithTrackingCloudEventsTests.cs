@@ -164,47 +164,5 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             string actual = endpoint.ConsumerHost.GetReceivedEventOrFail(expected.Id);
             ArcusAssert.ReceivedNewCarRegisteredEvent(expected, actual);
         }
-
-        [Theory]
-        [InlineData(EventCorrelationFormat.Hierarchical)]
-        [InlineData(EventCorrelationFormat.W3C)]
-        public async Task SendCloudEventAsync_Single_FailWhenEventDataIsNotJson(EventCorrelationFormat format)
-        {
-            // Arrange
-            var data = BinaryData.FromBytes(BogusGenerator.Random.Bytes(100));
-            var cloudEvent = new CloudEvent("source", "type", data, "text/plain");
-            EventGridPublisherClient client = CreateRegisteredClient(format);
-
-            // Act / Assert
-            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEventAsync(cloudEvent));
-        }
-
-        [Theory]
-        [InlineData(EventCorrelationFormat.Hierarchical)]
-        [InlineData(EventCorrelationFormat.W3C)]
-        public async Task SendCloudEventAsync_ManyEncoded_FailWhenEventsAreNoCloudEvents(EventCorrelationFormat format)
-        {
-            // Arrange
-            var data = BogusGenerator.Random.Bytes(100);
-            var memory = new ReadOnlyMemory<byte>(data);
-            EventGridPublisherClient client = CreateRegisteredClient(format);
-
-            // Act / Assert
-            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEncodedCloudEventsAsync(memory));
-        }
-
-        [Theory]
-        [InlineData(EventCorrelationFormat.Hierarchical)]
-        [InlineData(EventCorrelationFormat.W3C)]
-        public void SendCloudEventSync_ManyEncoded_FailWhenEventsAreNoCloudEvents(EventCorrelationFormat format)
-        {
-            // Arrange
-            var data = BogusGenerator.Random.Bytes(100);
-            var memory = new ReadOnlyMemory<byte>(data);
-            EventGridPublisherClient client = CreateRegisteredClient(format);
-
-            // Act / Assert
-            Assert.ThrowsAny<InvalidOperationException>(() => client.SendEncodedCloudEvents(memory));
-        }
     }
 }

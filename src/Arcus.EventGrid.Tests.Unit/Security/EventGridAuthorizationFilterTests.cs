@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security
 {
     public class EventGridAuthorizationFilterTests
     {
-        private readonly Faker _bogusGenerator = new Faker();
+        private static readonly Faker BogusGenerator = new Faker();
 
         [Fact]
         public async Task AuthorizeRequestWithHeader_WithMatchingSecret_Succeeds()
@@ -28,21 +29,12 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             string secretName = $"MySecret-{Guid.NewGuid()};";
             string secretValue = $"secret-{Guid.NewGuid()}";
 
-            IServiceProvider serviceProvider = 
-                new ServiceCollection()
-                    .AddSecretStore(stores => stores.AddInMemory(secretName, secretValue))
-                    .BuildServiceProvider();
-
-            var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers.Add(inputName, secretValue);
-            httpContext.RequestServices = serviceProvider;
+            HttpContext httpContext = CreateHttpContext(
+                configureHeaders: headers => headers.Add(inputName, secretValue),
+                configureServices: services => services.AddSecretStore(stores => stores.AddInMemory(secretName, secretValue)));
             
-            var authorizationContext = new AuthorizationFilterContext(
-                new ActionContext(httpContext, new RouteData(), new ActionDescriptor()),
-                new List<IFilterMetadata>());
-            
-            var options = new EventGridAuthorizationOptions();
-            var filter = new EventGridAuthorizationFilter(HttpRequestProperty.Header, inputName, secretName, options);
+            AuthorizationFilterContext authorizationContext = CreateAuthContext(httpContext);
+            EventGridAuthorizationFilter filter = CreateAuthFilter(HttpRequestProperty.Header, inputName, secretName);
             
             // Act
             await filter.OnAuthorizationAsync(authorizationContext);
@@ -61,24 +53,12 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             string secretName = $"MySecret-{Guid.NewGuid()};";
             string secretValue = $"secret-{Guid.NewGuid()}";
 
-            IServiceProvider serviceProvider = 
-                new ServiceCollection()
-                    .AddSecretStore(stores => stores.AddInMemory(secretName, secretValue))
-                    .BuildServiceProvider();
+            HttpContext httpContext = CreateHttpContext(
+                configureQuery: para => para.Add(inputName, secretValue),
+                configureServices: services => services.AddSecretStore(stores => stores.AddInMemory(secretName, secretValue)));
 
-            var httpContext = new DefaultHttpContext();
-            httpContext.Request.Query = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                [inputName] = secretValue
-            });
-            httpContext.RequestServices = serviceProvider;
-            
-            var authorizationContext = new AuthorizationFilterContext(
-                new ActionContext(httpContext, new RouteData(), new ActionDescriptor()),
-                new List<IFilterMetadata>());
-            
-            var options = new EventGridAuthorizationOptions();
-            var filter = new EventGridAuthorizationFilter(HttpRequestProperty.Query, inputName, secretName, options);
+            AuthorizationFilterContext authorizationContext = CreateAuthContext(httpContext);
+            EventGridAuthorizationFilter filter = CreateAuthFilter(HttpRequestProperty.Query, inputName, secretName);
             
             // Act
             await filter.OnAuthorizationAsync(authorizationContext);
@@ -88,14 +68,158 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             var principal = Assert.IsType<GenericPrincipal>(authorizationContext.HttpContext.User);
             Assert.Equal("EventGrid", principal.Identity.Name);
         }
-        
+
+        [Fact]
+        public async Task AuthorizeRequestWithHeader_WithoutHeaderValue_Fails()
+        {
+            // Arrange
+            string inputName = BogusGenerator.Lorem.Word();
+            string secretName = BogusGenerator.Lorem.Word();
+            string secretValue = BogusGenerator.Random.AlphaNumeric(10);
+
+            HttpContext httpContext = CreateHttpContext(
+                configureServices: services => services.AddSecretStore(stores => stores.AddInMemory(secretName, secretValue)));
+
+            AuthorizationFilterContext authorizationContext = CreateAuthContext(httpContext);
+            EventGridAuthorizationFilter filter = CreateAuthFilter(HttpRequestProperty.Header, inputName, secretName);
+
+            // Act
+            await filter.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.IsType<UnauthorizedObjectResult>(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async Task AuthorizeRequestWithHeader_WithInvalidHeaderValue_Fails()
+        {
+            // Arrange
+            string inputName = BogusGenerator.Lorem.Word();
+            string secretName = BogusGenerator.Lorem.Word();
+            string secretValue = BogusGenerator.Random.AlphaNumeric(10);
+            string invalidValue = BogusGenerator.Random.AlphaNumeric(12);
+
+            HttpContext httpContext = CreateHttpContext(
+                configureHeaders: headers => headers.Add(inputName, invalidValue),
+                configureServices: services => services.AddSecretStore(stores => stores.AddInMemory(secretName, secretValue)));
+
+            AuthorizationFilterContext authorizationContext = CreateAuthContext(httpContext);
+            EventGridAuthorizationFilter filter = CreateAuthFilter(HttpRequestProperty.Header, inputName, secretName);
+
+            // Act
+            await filter.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.IsType<UnauthorizedObjectResult>(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async Task AuthorizeRequestWithQuery_WithoutHeaderValue_Fails()
+        {
+            // Arrange
+            string inputName = BogusGenerator.Lorem.Word();
+            string secretName = BogusGenerator.Lorem.Word();
+            string secretValue = BogusGenerator.Random.AlphaNumeric(10);
+
+            HttpContext httpContext = CreateHttpContext(
+                configureServices: services => services.AddSecretStore(stores => stores.AddInMemory(secretName, secretValue)));
+
+            AuthorizationFilterContext authorizationContext = CreateAuthContext(httpContext);
+            EventGridAuthorizationFilter filter = CreateAuthFilter(HttpRequestProperty.Query, inputName, secretName);
+
+            // Act
+            await filter.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.IsType<UnauthorizedObjectResult>(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async Task AuthorizeRequestWithQuery_WithWrongQueryValue_Fails()
+        {
+            // Arrange
+            string inputName = BogusGenerator.Lorem.Word();
+            string secretName = BogusGenerator.Lorem.Word();
+            string secretValue = BogusGenerator.Random.AlphaNumeric(10);
+            string invalidValue = BogusGenerator.Random.AlphaNumeric(12);
+
+            HttpContext httpContext = CreateHttpContext(
+                configureQuery: para => para.Add(inputName, invalidValue),
+                configureServices: services => services.AddSecretStore(stores => stores.AddInMemory(secretName, secretValue)));
+
+            AuthorizationFilterContext authorizationContext = CreateAuthContext(httpContext);
+            EventGridAuthorizationFilter filter = CreateAuthFilter(HttpRequestProperty.Query, inputName, secretName);
+
+            // Act
+            await filter.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.IsType<UnauthorizedObjectResult>(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async Task AuthorizeRequest_WithoutSecretStore_Fails()
+        {
+            // Arrange
+            HttpContext httpContext = CreateHttpContext();
+            AuthorizationFilterContext authorizationContext = CreateAuthContext(httpContext);
+
+            var requestProperty = BogusGenerator.PickRandom<HttpRequestProperty>();
+            string inputName = BogusGenerator.Lorem.Word();
+            string secretName = BogusGenerator.Lorem.Word();
+            EventGridAuthorizationFilter filter = CreateAuthFilter(requestProperty, inputName, secretName);
+
+            // Act / Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => filter.OnAuthorizationAsync(authorizationContext));
+        }
+
+        private static HttpContext CreateHttpContext(
+            Action<IHeaderDictionary> configureHeaders = null,
+            Action<IDictionary<string, StringValues>> configureQuery = null,
+            Action<IServiceCollection> configureServices = null)
+        {
+            var services = new ServiceCollection();
+            configureServices?.Invoke(services);
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            var parameters = new Dictionary<string, StringValues>();
+            configureQuery?.Invoke(parameters);
+
+            var httpContext = new DefaultHttpContext
+            {
+                RequestServices = serviceProvider,
+                Request = { Query = new QueryCollection(parameters) }
+            };
+            configureHeaders?.Invoke(httpContext.Request.Headers);
+
+            return httpContext;
+        }
+
+        private static EventGridAuthorizationFilter CreateAuthFilter(HttpRequestProperty requestProperty, string inputName, string secretName)
+        {
+            var options = new EventGridAuthorizationOptions
+            {
+                EmitSecurityEvents = BogusGenerator.Random.Bool()
+            };
+            return new EventGridAuthorizationFilter(requestProperty, inputName, secretName, options);
+        }
+
+        private static AuthorizationFilterContext CreateAuthContext(HttpContext httpContext)
+        {
+            var authorizationContext = new AuthorizationFilterContext(
+                new ActionContext(httpContext, new RouteData(), new ActionDescriptor()),
+                new List<IFilterMetadata>());
+
+            return authorizationContext;
+        }
+
         [Theory]
         [ClassData(typeof(Blanks))]
         public void CreateFilter_WithoutSecretName_Fails(string secretName)
         {
             // Arrange
-            var property = _bogusGenerator.Random.Enum<HttpRequestProperty>();
-            string inputName = _bogusGenerator.Name.FirstName();
+            var property = BogusGenerator.Random.Enum<HttpRequestProperty>();
+            string inputName = BogusGenerator.Name.FirstName();
             var options = new EventGridAuthorizationOptions();
             
             // Act / Assert
@@ -107,8 +231,8 @@ namespace Arcus.EventGrid.Tests.Unit.Security
         public void CreateFilter_WithoutInputName_Fails(string inputName)
         {
             // Arrange
-            var property = _bogusGenerator.Random.Enum<HttpRequestProperty>();
-            string secretName = _bogusGenerator.Name.FirstName();
+            var property = BogusGenerator.Random.Enum<HttpRequestProperty>();
+            string secretName = BogusGenerator.Name.FirstName();
             var options = new EventGridAuthorizationOptions();
             
             // Act / Assert
@@ -121,24 +245,21 @@ namespace Arcus.EventGrid.Tests.Unit.Security
         public void CreateFilter_WithRequestFlags_Succeeds(HttpRequestProperty property)
         {
             // Arrange
-            string inputName = _bogusGenerator.Name.FirstName();
-            string secretName = _bogusGenerator.Name.FirstName();
+            string inputName = BogusGenerator.Name.FirstName();
+            string secretName = BogusGenerator.Name.FirstName();
             var options = new EventGridAuthorizationOptions();
             
             // Act / Assert
             var filter = new EventGridAuthorizationFilter(property, inputName, secretName, options);
         }
-        
-        [Theory]
-        [InlineData((HttpRequestProperty) 4)]
-        [InlineData((HttpRequestProperty) 5)]
-        [InlineData((HttpRequestProperty) 15)]
-        [InlineData(HttpRequestProperty.Query | HttpRequestProperty.Header)]
-        public void CreateFilter_WithInvalidRequestFlags_Succeeds(HttpRequestProperty property)
+
+        [Fact]
+        public void CreateFilter_WithInvalidRequestFlags_Succeeds()
         {
             // Arrange
-            string inputName = _bogusGenerator.Name.FirstName();
-            string secretName = _bogusGenerator.Name.FirstName();
+            string inputName = BogusGenerator.Name.FirstName();
+            string secretName = BogusGenerator.Name.FirstName();
+            var property = (HttpRequestProperty) BogusGenerator.Random.Int(min: 3);
             var options = new EventGridAuthorizationOptions();
             
             // Act / Assert
@@ -149,9 +270,9 @@ namespace Arcus.EventGrid.Tests.Unit.Security
         public void CreateFilter_WithoutOptions_Fails()
         {
             // Arrange
-            var property = _bogusGenerator.Random.Enum<HttpRequestProperty>();
-            string inputName = _bogusGenerator.Name.FirstName();
-            string secretName = _bogusGenerator.Name.FirstName();
+            var property = BogusGenerator.Random.Enum<HttpRequestProperty>();
+            string inputName = BogusGenerator.Name.FirstName();
+            string secretName = BogusGenerator.Name.FirstName();
             
             // Act / Assert
             Assert.ThrowsAny<ArgumentException>(() =>
