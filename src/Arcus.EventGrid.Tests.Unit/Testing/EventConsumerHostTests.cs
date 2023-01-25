@@ -1,15 +1,19 @@
 ﻿using System;
+using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts;
 using Arcus.EventGrid.Testing.Logging;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Unit.Testing.Fixture;
 using Arcus.Testing.Logging;
-using Azure.Messaging;
 using Azure.Messaging.EventGrid;
+using Azure.Messaging.EventGrid.SystemEvents;
 using Bogus;
+using CloudNative.CloudEvents;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using Xunit.Abstractions;
+using CloudEvent = Azure.Messaging.CloudEvent;
 
 namespace Arcus.EventGrid.Tests.Unit.Testing
 {
@@ -122,6 +126,21 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
         }
 
         [Fact]
+        public void GetReceivedEventByCloudEventFilter_WithInvalidFilter_Fails()
+        {
+            // Arrange
+            CloudEvent expected = GenerateCloudEvent();
+            var host = new InMemoryEventConsumerHost(_logger);
+            host.ReceiveEvent(expected);
+
+            // Act / Assert
+            Assert.Throws<TimeoutException>(
+                () => host.GetReceivedEvent(
+                    (CloudEvent ev) => throw new InvalidOperationException("Sabotage this event filter"), 
+                    timeout: TimeSpan.FromMilliseconds(100)));
+        }
+
+        [Fact]
         public void GetReceivedEventByCloudEventFilter_WithoutAvailableEvent_Fails()
         {
             // Arrange
@@ -155,6 +174,21 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
             var expectedData = expected.Data.ToObjectFromJson<CarEventData>();
             var actualData = actual.Data.ToObjectFromJson<CarEventData>();
             Assert.Equal(expectedData.LicensePlate, actualData.LicensePlate);
+        }
+
+        [Fact]
+        public void GetReceivedEventByEventGridEventFilter_WithInvalidFilter_Fails()
+        {
+            // Arrange
+            EventGridEvent expected = GenerateEventGridEvent();
+            var host = new InMemoryEventConsumerHost(_logger);
+            host.ReceiveEvent(expected);
+
+            // Act / Assert
+            Assert.Throws<TimeoutException>(
+                () => host.GetReceivedEvent(
+                    (EventGridEvent ev) => throw new InvalidOperationException("Sabotage this event filter"), 
+                    timeout: TimeSpan.FromMilliseconds(100)));
         }
 
         [Fact]
@@ -201,11 +235,72 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
         public void GetReceivedEvent_WithNegativeOrZeroTimeRange_FailsWithArgumentOutOfRangeException(string timeout)
         {
             // Arrange
-            var consumer = new EventConsumerHost(new ConsoleLogger());
+            var consumer = new EventConsumerHost(_logger);
 
             // Act / Assert
             Assert.Throws<ArgumentOutOfRangeException>(
                 () => consumer.GetReceivedEvent(eventId: Guid.NewGuid().ToString(), timeout: TimeSpan.Parse(timeout)));
+        }
+
+        [Fact]
+        public void GetReceivedEvent_WithFailedEventFormat_Fails()
+        {
+            // Arrange
+            var host = new InMemoryEventConsumerHost(_logger);
+            host.ReceiveEvent("{ \"Id\": 123, \"eventType\": \"something\", \"data\": {  }, \"eventTime\": \"2023-02-01\" }");
+
+            // Act
+            Assert.Throws<TimeoutException>(
+                () => host.GetReceivedEvent(Guid.NewGuid().ToString(), timeout: TimeSpan.FromMilliseconds(100)));
+        }
+
+        [Fact]
+        public void GetReceivedEvent_WithCloudEvent_Succeeds()
+        {
+            // Arrange
+            var host = new InMemoryEventConsumerHost(_logger);
+            var eventId = Guid.NewGuid().ToString();
+            CloudEvent expected = GenerateCloudEvent(eventId);
+            
+            // Act
+            host.ReceiveEvent(expected);
+
+            // Assert
+            Event actualFromGeneric = host.GetReceivedEvent<CarEventData>(
+                data => data.LicensePlate != null,
+                timeout: TimeSpan.FromMilliseconds(100));
+
+            Assert.NotNull(actualFromGeneric);
+            Assert.Equal(expected.Id, actualFromGeneric.Id);
+            Assert.Equal(expected.Subject, actualFromGeneric.Subject);
+            Assert.Equal(expected.Type, actualFromGeneric.EventType);
+
+            var expectedData = expected.Data.ToObjectFromJson<CarEventData>();
+            var actualDataFromGeneric = actualFromGeneric.GetPayload<CarEventData>();
+            Assert.Equal(expectedData.LicensePlate, actualDataFromGeneric.LicensePlate);
+
+            CloudNative.CloudEvents.CloudEvent actualFromFilter = host.GetReceivedEvent(
+                (CloudNative.CloudEvents.CloudEvent ev) => ev.Id == expected.Id, 
+                timeout: TimeSpan.FromMilliseconds(100));
+
+            Assert.NotNull(actualFromFilter);
+            Assert.Equal(expected.Id, actualFromFilter.Id);
+            Assert.Equal(expected.Subject, actualFromFilter.Subject);
+            Assert.Equal(expected.Type, actualFromFilter.Type);
+
+            var actualDataFromFilter = actualFromFilter.GetPayload<CarEventData>();
+            Assert.Equal(expectedData.LicensePlate, actualDataFromFilter.LicensePlate);
+        }
+
+        [Fact]
+        public void GetReceivedEvent_WithoutEvents_Fails()
+        {
+            // Arrange
+            var host = new InMemoryEventConsumerHost(_logger);
+
+            // Act / Assert
+            Assert.Throws<TimeoutException>(
+                () => host.GetReceivedEvent<CarEventData>(data => true, timeout: TimeSpan.FromMilliseconds(100)));
         }
     }
 }

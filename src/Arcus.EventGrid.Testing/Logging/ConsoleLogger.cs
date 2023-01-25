@@ -6,6 +6,7 @@ namespace Arcus.EventGrid.Testing.Logging
     /// <summary>
     /// Represents an <see cref="ILogger"/> model that writes log messages towards the standard console output.
     /// </summary>
+    [Obsolete("Use our xUnit test logger 'XunitTestLogger' in the 'Arcus.Testing.Logging' package to delegate diagnostic information to the test output")]
     public class ConsoleLogger : ILogger
     {
         /// <summary>

@@ -28,5 +28,10 @@ namespace Arcus.EventGrid.Tests.Unit.Testing.Fixture
             string rawReceivedEvents = JsonSerializer.Serialize(eventGridEvent);
             EventsReceived(rawReceivedEvents);
         }
+
+        public void ReceiveEvent(string raw)
+        {
+            EventsReceived(raw);
+        }
     }
 }
