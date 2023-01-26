@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Arcus.EventGrid.Contracts;
@@ -347,7 +348,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         ///     whose event payload matches the given <paramref name="eventPayloadFilter"/>.
         /// </exception>
 #if NET6_0
-        [Obsolete("Use either 'CloudEvent' or 'EventGridEvent' overloads")] 
+        [Obsolete("Use either 'CloudEvent' or 'EventGridEvent' overloads")]
 #endif
         public Event GetReceivedEvent<TEventPayload>(Func<TEventPayload, bool> eventPayloadFilter, TimeSpan timeout)
         {

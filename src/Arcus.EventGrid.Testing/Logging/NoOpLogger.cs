@@ -1,11 +1,13 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Arcus.EventGrid.Testing.Logging
 {
     /// <summary>
     /// Represents an <see cref="ILogger"/> model without any implementation.
     /// </summary>
+    [Obsolete("Unused logger implementation with the same functionality as " + nameof(NullLogger) + " will be removed in future major")]
     public class NoOpLogger : ILogger
     {
         /// <summary>

@@ -9,7 +9,42 @@ namespace Arcus.EventGrid.Tests.Unit.Security.Extensions
     public class FilterCollectionExtensionsTests
     {
         private static readonly Faker BogusGenerator = new Faker();
-        
+
+        [Fact]
+        public void AddFilter_WithoutOptions_Succeeds()
+        {
+            // Arrange
+            var filters = new FilterCollection();
+            var requestProperty = BogusGenerator.Random.Enum<HttpRequestProperty>();
+            var propertyName = BogusGenerator.Random.AlphaNumeric(10);
+            string secretName = BogusGenerator.Random.AlphaNumeric(10);
+            
+            // Act
+            filters.AddEventGridAuthorization(requestProperty, propertyName, secretName);
+
+            // Assert
+            IFilterMetadata filter = Assert.Single(filters);
+            Assert.IsType<EventGridAuthorizationFilter>(filter);
+        }
+
+        [Fact]
+        public void AddFilter_WithOptions_Succeeds()
+        {
+            // Arrange
+            var filters = new FilterCollection();
+            var requestProperty = BogusGenerator.Random.Enum<HttpRequestProperty>();
+            var propertyName = BogusGenerator.Random.AlphaNumeric(10);
+            string secretName = BogusGenerator.Random.AlphaNumeric(10);
+            bool emitSecurityEvents = BogusGenerator.Random.Bool();
+
+            // Act
+            filters.AddEventGridAuthorization(requestProperty, propertyName, secretName, opt => opt.EmitSecurityEvents = emitSecurityEvents);
+
+            // Assert
+            IFilterMetadata filter = Assert.Single(filters);
+            Assert.IsType<EventGridAuthorizationFilter>(filter);
+        }
+
         [Theory]
         [ClassData(typeof(Blanks))]
         public void AddFilter_WithoutPropertyName_Fails(string propertyName)

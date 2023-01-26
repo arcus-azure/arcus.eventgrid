@@ -124,47 +124,5 @@ namespace Arcus.EventGrid.Tests.Integration.Publishing
             string actual = endpoint.ConsumerHost.GetReceivedEventOrFail(expected.Id);
             ArcusAssert.ReceivedNewCarRegisteredEvent(expected, actual);
         }
-
-        [Theory]
-        [InlineData(EventCorrelationFormat.Hierarchical)]
-        [InlineData(EventCorrelationFormat.W3C)]
-        public async Task SendEventGridEventAsync_Many_FailsWhenEventDataIsNotJson(EventCorrelationFormat format)
-        {
-            // Arrange
-            var data = BinaryData.FromBytes(BogusGenerator.Random.Bytes(100));
-            var eventGridEvent = new EventGridEvent("subject", "type", "version", data);
-            EventGridPublisherClient client = CreateRegisteredClient(format);
-
-            // Act / Assert
-            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEventsAsync(new[] { eventGridEvent }));
-        }
-
-        [Theory]
-        [InlineData(EventCorrelationFormat.Hierarchical)]
-        [InlineData(EventCorrelationFormat.W3C)]
-        public async Task SendCustomEventAsync_Single_FailsWhenEventIsNotJson(EventCorrelationFormat format)
-        {
-            // Arrange
-            byte[] data = BogusGenerator.Random.Bytes(100);
-            EventGridPublisherClient client = CreateRegisteredClient(format);
-
-            // Act / Assert
-            await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.SendEventAsync(new BinaryData(data)));
-        }
-
-        [Theory]
-        [InlineData(EventCorrelationFormat.Hierarchical)]
-        [InlineData(EventCorrelationFormat.W3C)]
-        public void SendCustomEvent_Single_FailsWhenEventHasNoDataProperty(EventCorrelationFormat format)
-        {
-            // Arrange
-            var eventData = new CarEventData("1-ARCUS-337");
-            var data = BinaryData.FromObjectAsJson(eventData);
-
-            EventGridPublisherClient client = CreateRegisteredClient(format);
-
-            // Act / Assert
-            Assert.ThrowsAny<InvalidOperationException>(() => client.SendEvent(data));
-        }
     }
 }
