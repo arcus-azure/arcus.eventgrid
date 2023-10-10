@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netcoreapp3.1;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net8.0;net6.0;netstandard2.1</TargetFrameworks>
     <Authors>Arcus</Authors>
     <Company>Arcus</Company>
     <PackageProjectUrl>https://eventgrid.arcus-azure.net/</PackageProjectUrl>
@@ -17,20 +17,25 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Temporary disable preview package usage warning as we are building our preview Arcus .NET 8 package, will be removed once we have a new major Arcus package -->
+    <NoWarn>NU5104</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
     <None Include="..\..\docs\static\img\icon.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net6.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
     <PackageReference Include="System.Text.Json" Version="6.0.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arcus.Observability.Correlation" Version="[2.5.0,3.0.0)" />
-    <PackageReference Include="Arcus.Observability.Telemetry.Core" Version="[2.5.0,3.0.0)" />
-    <PackageReference Include="Arcus.Security.Core" Version="[1.9.0,2.0.0)" />
+    <PackageReference Include="Arcus.Observability.Correlation" Version="[3.0.0-preview-1-net8.0,4.0.0)" />
+    <PackageReference Include="Arcus.Observability.Telemetry.Core" Version="[3.0.0-preview-1-net8.0,4.0.0)" />
+    <PackageReference Include="Arcus.Security.Core" Version="[2.0.0-preview-1-net8.0,3.0.0)" />
     <PackageReference Include="Azure.Messaging.EventGrid" Version="4.11.0" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.3.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />

@@ -45,8 +45,8 @@ namespace Arcus.EventGrid.Security.Core.Validation
             if (request.Headers.TryGetValue(headerName, out StringValues requestOrigins))
             {
                 // TODO: configurable rate?
-                request.HttpContext.Response.Headers.Add("WebHook-Allowed-Rate", "*");
-                request.HttpContext.Response.Headers.Add("WebHook-Allowed-Origin", requestOrigins);
+                request.HttpContext.Response.Headers["WebHook-Allowed-Rate"] = "*";
+                request.HttpContext.Response.Headers["WebHook-Allowed-Origin"] = requestOrigins;
 
                 return new OkResult();
             }

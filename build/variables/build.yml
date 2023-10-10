@@ -1,5 +1,5 @@
 variables:
-  DotNet.Sdk.Version: '6.0.100'
-  DotNet.Sdk.VersionBC: '3.1.201'
+  DotNet.Sdk.Version: '8.0.x'
+  DotNet.Sdk.VersionBC: '6.0.100'
   Project: 'Arcus.EventGrid'
   Vm.Image: 'ubuntu-latest'

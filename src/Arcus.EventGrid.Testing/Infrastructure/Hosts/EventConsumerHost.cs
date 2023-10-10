@@ -13,10 +13,8 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Timeout;
-#if NET6_0
 using NewCloudEvent = Azure.Messaging.CloudEvent;
 using NewEventGridEvent = Azure.Messaging.EventGrid.EventGridEvent; 
-#endif
 using OldCloudEvent = CloudNative.CloudEvents.CloudEvent;
 using OldEventGridEvent = Microsoft.Azure.EventGrid.Models.EventGridEvent;
 
@@ -157,7 +155,6 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             return result.Result;
         }
 
-#if NET6_0
         /// <summary>
         /// Gets the event envelope that includes a requested event (uses timeout).
         /// </summary>
@@ -200,7 +197,6 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             return result.Result;
         } 
-#endif
 
         /// <summary>
         /// Gets the event envelope that includes a requested event (uses timeout).
@@ -215,9 +211,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <exception cref="TimeoutException">
         ///     Thrown when no event could be received within the specified <paramref name="timeout"/> time range that matches the given <paramref name="cloudEventFilter"/>.
         /// </exception>
-#if NET6_0
         [Obsolete("Use 'CloudEvent' overload from 'Azure.Messaging.EventGrid' package")] 
-#endif
         public OldCloudEvent GetReceivedEvent(Func<OldCloudEvent, bool> cloudEventFilter, TimeSpan timeout)
         {
             Guard.NotNull(cloudEventFilter, nameof(cloudEventFilter), "Requires a function to filter out received CloudEvent events");
@@ -245,7 +239,6 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             return result.Result;
         }
 
-#if NET6_0
         /// <summary>
         /// Gets the event envelope that includes a requested event (uses timeout).
         /// </summary>
@@ -287,8 +280,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             }
 
             return result.Result;
-        } 
-#endif
+        }
 
         /// <summary>
         /// Gets the event envelope that includes a requested event (uses timeout).
@@ -303,9 +295,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <exception cref="TimeoutException">
         ///     Thrown when no event could be received within the specified <paramref name="timeout"/> time range that matches the given <paramref name="eventGridEventFilter"/>.
         /// </exception>
-#if NET6_0
         [Obsolete("Use 'EventGridEvent' overload from 'Azure.Messaging.EventGrid' package")] 
-#endif
         public OldEventGridEvent GetReceivedEvent(Func<OldEventGridEvent, bool> eventGridEventFilter, TimeSpan timeout)
         {
             Guard.NotNull(eventGridEventFilter, nameof(eventGridEventFilter), "Requires a function to filter out received CloudEvent events");
@@ -347,9 +337,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         ///     Thrown when no event could be retrieved within the specified <paramref name="timeout"/> time range
         ///     whose event payload matches the given <paramref name="eventPayloadFilter"/>.
         /// </exception>
-#if NET6_0
         [Obsolete("Use either 'CloudEvent' or 'EventGridEvent' overloads")]
-#endif
         public Event GetReceivedEvent<TEventPayload>(Func<TEventPayload, bool> eventPayloadFilter, TimeSpan timeout)
         {
             Guard.NotNull(eventPayloadFilter, nameof(eventPayloadFilter), "Requires a function to filter out received CloudEvent events");
@@ -402,7 +390,6 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             return timeoutPolicy;
         }
 
- #if NET6_0
         private TEvent TryGetReceivedEvent<TEvent>(
             Func<string, TEvent> eventParser,
             Func<TEvent, bool> eventFilter)
@@ -438,7 +425,6 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
             return null;
         }
-#endif
 
         private Event TryGetReceivedEvent(Func<Event, bool> eventFilter)
         {
