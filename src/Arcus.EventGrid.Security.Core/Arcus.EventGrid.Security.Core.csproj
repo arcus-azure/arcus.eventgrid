@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
     <Copyright>Copyright (c) Arcus</Copyright>
     <PackageProjectUrl>https://eventgrid.arcus-azure.net/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/arcus-azure/arcus.eventgrid</RepositoryUrl>
@@ -22,12 +22,8 @@
     <None Include="..\..\docs\static\img\icon.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Guard.NET" Version="2.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'net6.0'">
-    <PackageReference Include="Guard.NET" Version="1.2.0" />
+  <ItemGroup>
+    <PackageReference Include="Guard.NET" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
