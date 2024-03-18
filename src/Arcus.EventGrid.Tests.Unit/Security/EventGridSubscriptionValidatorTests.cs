@@ -1,19 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.Parsers;
 using Arcus.EventGrid.Security.Core.Validation;
+using Azure.Messaging.EventGrid;
+using Azure.Messaging.EventGrid.SystemEvents;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using SubscriptionValidationResponse = Azure.Messaging.EventGrid.SystemEvents.SubscriptionValidationResponse;
 
@@ -61,16 +60,10 @@ namespace Arcus.EventGrid.Tests.Unit.Security
         {
             // Arrange
             var validator = new EventGridSubscriptionValidator(NullLogger);
-            var context = new DefaultHttpContext();
-            var validationCode = "512d38b6-c7b8-40c8-89fe-f46f9e9622b6";
-            var validationEvent = new EventGridEvent<SubscriptionValidationEventData>(
-                id: "2d1781af-3a4c-4d7c-bd0c-e34b19da4e66",
-                subject: "Sample.Event",
-                data: new SubscriptionValidationEventData(validationCode),
-                dataVersion: "1",
-                eventType: "Microsoft.EventGrid.SubscriptionValidationEvent");
-            string json = JsonConvert.SerializeObject(validationEvent);
-            context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            var context = new DefaultHttpContext
+            {
+                Request = { Body = new MemoryStream(Encoding.UTF8.GetBytes(Artifacts.EventSamples.SubscriptionValidationEvent)) }
+            };
 
             // Act
             IActionResult result = await validator.ValidateEventGridSubscriptionEventRequestAsync(context.Request);
@@ -79,7 +72,7 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             Assert.NotNull(result);
             var responseBody = Assert.IsType<OkObjectResult>(result).Value;
             var subscriptionValidationResponse = Assert.IsType<SubscriptionValidationResponse>(responseBody);
-            Assert.Equal(validationCode, subscriptionValidationResponse.ValidationResponse);
+            Assert.Equal("512d38b6-c7b8-40c8-89fe-f46f9e9622b6", subscriptionValidationResponse.ValidationResponse);
         }
 
         [Fact]
@@ -88,12 +81,14 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             // Arrange
             var validator = new EventGridSubscriptionValidator(NullLogger);
             var context = new DefaultHttpContext();
-            var validationEvent = new EventGridEvent<SubscriptionValidationEventData>(
-                id: "2d1781af-3a4c-4d7c-bd0c-e34b19da4e66",
+            var validationEvent = new EventGridEvent(
                 subject: "Sample.Event",
-                data: new SubscriptionValidationEventData(validationCode: null),
+                data: JObject.Parse($"{{ \"validationCode\": null }}"),
                 dataVersion: "1",
-                eventType: "Microsoft.EventGrid.SubscriptionValidationEvent");
+                eventType: "Microsoft.EventGrid.SubscriptionValidationEvent")
+            {
+                Id = "2d1781af-3a4c-4d7c-bd0c-e34b19da4e66"
+            };
             string json = JsonConvert.SerializeObject(validationEvent);
             context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
@@ -145,13 +140,9 @@ namespace Arcus.EventGrid.Tests.Unit.Security
             // Arrange
             var validator = new EventGridSubscriptionValidator(NullLogger);
             var context = new DefaultHttpContext();
-            EventBatch<Event> blobCreatedEvent = EventParser.Parse(Artifacts.EventSamples.BlobCreateEvent);
-            EventBatch<Event> iotDeviceDeletedEvent = EventParser.Parse(Artifacts.EventSamples.IoTDeviceDeleteEvent);
-            EventGridEvent[] events = 
-                blobCreatedEvent.Events
-                                .Concat(iotDeviceDeletedEvent.Events)
-                                .Select(ev => ev.AsEventGridEvent())
-                                .ToArray();
+            EventGridEvent[] blobCreatedEvent = EventGridEvent.ParseMany(BinaryData.FromString(Artifacts.EventSamples.BlobCreateEvent));
+            EventGridEvent[] iotDeviceDeletedEvent = EventGridEvent.ParseMany(BinaryData.FromString(Artifacts.EventSamples.IoTDeviceDeleteEvent));
+            EventGridEvent[] events = blobCreatedEvent.Concat(iotDeviceDeletedEvent).ToArray();
             
             string requestBody = JsonConvert.SerializeObject(events);
             context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestBody));

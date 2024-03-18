@@ -150,10 +150,9 @@ namespace Arcus.EventGrid.Tests.Unit.Artifacts {
         ///                    &quot;subject&quot;: &quot;Sample.Subject&quot;,
         ///                    &quot;data&quot;: {
         ///                        &quot;validationCode&quot;: &quot;512d38b6-c7b8-40c8-89fe-f46f9e9622b6&quot;
-        ///                    },
+        ///                    }, &quot;dataVersion&quot;: &quot;&quot;,
         ///                    &quot;eventType&quot;: &quot;Microsoft.EventGrid.SubscriptionValidationEvent&quot;,
-        ///                    &quot;eventTime&quot;: &quot;2017-08-06T22:09:30.740323Z&quot;
-        /// [rest of string was truncated]&quot;;.
+        ///                    &quot;eventTime&quot;: &quot;2017-08-06T [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string SubscriptionValidationEvent {
             get {

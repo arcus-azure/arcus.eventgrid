@@ -1,16 +1,11 @@
 ﻿using System;
-using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts;
-using Arcus.EventGrid.Testing.Logging;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Unit.Testing.Fixture;
 using Arcus.Testing.Logging;
 using Azure.Messaging.EventGrid;
-using Azure.Messaging.EventGrid.SystemEvents;
 using Bogus;
-using CloudNative.CloudEvents;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using Xunit.Abstractions;
 using CloudEvent = Azure.Messaging.CloudEvent;
@@ -255,44 +250,6 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
         }
 
         [Fact]
-        public void GetReceivedEvent_WithCloudEvent_Succeeds()
-        {
-            // Arrange
-            var host = new InMemoryEventConsumerHost(_logger);
-            var eventId = Guid.NewGuid().ToString();
-            CloudEvent expected = GenerateCloudEvent(eventId);
-            
-            // Act
-            host.ReceiveEvent(expected);
-
-            // Assert
-            Event actualFromGeneric = host.GetReceivedEvent<CarEventData>(
-                data => data.LicensePlate != null,
-                timeout: TimeSpan.FromMilliseconds(100));
-
-            Assert.NotNull(actualFromGeneric);
-            Assert.Equal(expected.Id, actualFromGeneric.Id);
-            Assert.Equal(expected.Subject, actualFromGeneric.Subject);
-            Assert.Equal(expected.Type, actualFromGeneric.EventType);
-
-            var expectedData = expected.Data.ToObjectFromJson<CarEventData>();
-            var actualDataFromGeneric = actualFromGeneric.GetPayload<CarEventData>();
-            Assert.Equal(expectedData.LicensePlate, actualDataFromGeneric.LicensePlate);
-
-            CloudNative.CloudEvents.CloudEvent actualFromFilter = host.GetReceivedEvent(
-                (CloudNative.CloudEvents.CloudEvent ev) => ev.Id == expected.Id, 
-                timeout: TimeSpan.FromMilliseconds(100));
-
-            Assert.NotNull(actualFromFilter);
-            Assert.Equal(expected.Id, actualFromFilter.Id);
-            Assert.Equal(expected.Subject, actualFromFilter.Subject);
-            Assert.Equal(expected.Type, actualFromFilter.Type);
-
-            var actualDataFromFilter = actualFromFilter.GetPayload<CarEventData>();
-            Assert.Equal(expectedData.LicensePlate, actualDataFromFilter.LicensePlate);
-        }
-
-        [Fact]
         public void GetReceivedEvent_WithoutEvents_Fails()
         {
             // Arrange
@@ -300,7 +257,7 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
 
             // Act / Assert
             Assert.Throws<TimeoutException>(
-                () => host.GetReceivedEvent<CarEventData>(data => true, timeout: TimeSpan.FromMilliseconds(100)));
+                () => host.GetReceivedEvent((CloudEvent data) => true, timeout: TimeSpan.FromMilliseconds(100)));
         }
     }
 }

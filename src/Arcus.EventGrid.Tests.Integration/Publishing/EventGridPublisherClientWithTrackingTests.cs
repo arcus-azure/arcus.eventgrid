@@ -2,8 +2,8 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Core;
+using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using Arcus.EventGrid.Tests.Integration.Publishing.Fixture;
 using Arcus.Observability.Correlation;

@@ -268,7 +268,7 @@
                     "subject": "Sample.Subject",
                     "data": {
                         "validationCode": "512d38b6-c7b8-40c8-89fe-f46f9e9622b6"
-                    },
+                    }, "dataVersion": "",
                     "eventType": "Microsoft.EventGrid.SubscriptionValidationEvent",
                     "eventTime": "2017-08-06T22:09:30.740323Z"
                   }
