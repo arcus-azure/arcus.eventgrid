@@ -102,16 +102,18 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Security
         {
             // Arrange
             var validationCode = Guid.NewGuid().ToString();
-            var eventGridEvent = new EventGridEvent(
-                subject: "Sample.Subect",
-                data: JObject.Parse($"{{ \"validationCode\": \"{validationCode}\" }}"),
-                eventType: "Microsoft.EventGrid.SubscriptionValidationEvent",
-                dataVersion: "1.0")
-            {
-                Id = Guid.NewGuid().ToString(),
-                EventTime = DateTimeOffset.UtcNow
-            };
-            string json = JsonConvert.SerializeObject(eventGridEvent);
+            string json = $@"[
+              {{
+                ""id"": ""2d1781af-3a4c-4d7c-bd0c-e34b19da4e66"",
+                ""topic"": ""/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"",
+                ""subject"": ""Sample.Subject"",
+                ""data"": {{
+                    ""validationCode"": ""{validationCode}""
+                }}, ""dataVersion"": """",
+                ""eventType"": ""Microsoft.EventGrid.SubscriptionValidationEvent"",
+                ""eventTime"": ""2017-08-06T22:09:30.740323Z""
+              }}
+            ]";
 
             await using (var server = await TestApiServer.StartNewAsync(_logger))
             {
