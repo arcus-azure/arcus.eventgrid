@@ -1,16 +1,12 @@
 ﻿using System;
-using Arcus.EventGrid.Contracts;
+using System.Collections.Generic;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts;
-using Arcus.EventGrid.Testing.Logging;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Arcus.EventGrid.Tests.Unit.Testing.Fixture;
 using Arcus.Testing.Logging;
 using Azure.Messaging.EventGrid;
-using Azure.Messaging.EventGrid.SystemEvents;
 using Bogus;
-using CloudNative.CloudEvents;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using Xunit.Abstractions;
 using CloudEvent = Azure.Messaging.CloudEvent;
@@ -20,7 +16,7 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
     public class EventConsumerHostTests
     {
         private readonly ILogger _logger;
-        private static readonly Faker BogusGenerator = new Faker();
+        private static readonly Faker Bogus = new Faker();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventConsumerHostTests" /> class.
@@ -28,6 +24,25 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
         public EventConsumerHostTests(ITestOutputHelper outputWriter)
         {
             _logger = new XunitTestLogger(outputWriter);
+        }
+
+        [Fact]
+        public void GetReceivedEventByEventId_WithAvailableEvents_Succeeds()
+        {
+            // Arrange
+            IEnumerable<CloudEvent> cloudEvents = Bogus.Make(Bogus.Random.Int(1, 10), () => GenerateCloudEvent());
+            CloudEvent expected = Bogus.PickRandom(cloudEvents);
+
+            var host = new InMemoryEventConsumerHost(_logger);
+            host.ReceiveEvents(cloudEvents);
+
+            // Act
+            string receivedEvent = host.GetReceivedEvent(expected.Id);
+
+            // Assert
+            CloudEvent actual = CloudEvent.Parse(BinaryData.FromString(receivedEvent));
+            Assert.NotNull(actual);
+            Assert.Equal(expected.Id, actual.Id);
         }
 
         [Fact]
@@ -206,9 +221,9 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
         private static CloudEvent GenerateCloudEvent(string eventId = null)
         {
             return new CloudEvent(
-                source: BogusGenerator.Lorem.Word(),
-                type: BogusGenerator.Lorem.Word(),
-                jsonSerializableData: new CarEventData(BogusGenerator.Vehicle.Vin()))
+                source: Bogus.Lorem.Word(),
+                type: Bogus.Lorem.Word(),
+                jsonSerializableData: new CarEventData(Bogus.Vehicle.Vin()))
             {
                 Id = eventId ?? Guid.NewGuid().ToString(),
                 Time = DateTimeOffset.UtcNow
@@ -218,10 +233,10 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
         private static EventGridEvent GenerateEventGridEvent(string eventId = null)
         {
             return new EventGridEvent(
-                subject: BogusGenerator.Lorem.Word(),
-                eventType: BogusGenerator.Lorem.Word(),
-                dataVersion: BogusGenerator.System.Version().ToString(),
-                data: new CarEventData(BogusGenerator.Vehicle.Vin()))
+                subject: Bogus.Lorem.Word(),
+                eventType: Bogus.Lorem.Word(),
+                dataVersion: Bogus.System.Version().ToString(),
+                data: new CarEventData(Bogus.Vehicle.Vin()))
             {
                 Id = eventId ?? Guid.NewGuid().ToString(),
                 EventTime = DateTimeOffset.UtcNow
@@ -255,44 +270,6 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
         }
 
         [Fact]
-        public void GetReceivedEvent_WithCloudEvent_Succeeds()
-        {
-            // Arrange
-            var host = new InMemoryEventConsumerHost(_logger);
-            var eventId = Guid.NewGuid().ToString();
-            CloudEvent expected = GenerateCloudEvent(eventId);
-            
-            // Act
-            host.ReceiveEvent(expected);
-
-            // Assert
-            Event actualFromGeneric = host.GetReceivedEvent<CarEventData>(
-                data => data.LicensePlate != null,
-                timeout: TimeSpan.FromMilliseconds(100));
-
-            Assert.NotNull(actualFromGeneric);
-            Assert.Equal(expected.Id, actualFromGeneric.Id);
-            Assert.Equal(expected.Subject, actualFromGeneric.Subject);
-            Assert.Equal(expected.Type, actualFromGeneric.EventType);
-
-            var expectedData = expected.Data.ToObjectFromJson<CarEventData>();
-            var actualDataFromGeneric = actualFromGeneric.GetPayload<CarEventData>();
-            Assert.Equal(expectedData.LicensePlate, actualDataFromGeneric.LicensePlate);
-
-            CloudNative.CloudEvents.CloudEvent actualFromFilter = host.GetReceivedEvent(
-                (CloudNative.CloudEvents.CloudEvent ev) => ev.Id == expected.Id, 
-                timeout: TimeSpan.FromMilliseconds(100));
-
-            Assert.NotNull(actualFromFilter);
-            Assert.Equal(expected.Id, actualFromFilter.Id);
-            Assert.Equal(expected.Subject, actualFromFilter.Subject);
-            Assert.Equal(expected.Type, actualFromFilter.Type);
-
-            var actualDataFromFilter = actualFromFilter.GetPayload<CarEventData>();
-            Assert.Equal(expectedData.LicensePlate, actualDataFromFilter.LicensePlate);
-        }
-
-        [Fact]
         public void GetReceivedEvent_WithoutEvents_Fails()
         {
             // Arrange
@@ -300,7 +277,7 @@ namespace Arcus.EventGrid.Tests.Unit.Testing
 
             // Act / Assert
             Assert.Throws<TimeoutException>(
-                () => host.GetReceivedEvent<CarEventData>(data => true, timeout: TimeSpan.FromMilliseconds(100)));
+                () => host.GetReceivedEvent((CloudEvent data) => true, timeout: TimeSpan.FromMilliseconds(100)));
         }
     }
 }

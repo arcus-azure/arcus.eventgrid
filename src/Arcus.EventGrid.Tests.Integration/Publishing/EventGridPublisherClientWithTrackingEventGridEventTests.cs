@@ -8,8 +8,8 @@ using Arcus.EventGrid.Tests.Core;
 using Xunit.Abstractions;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using System.Collections.Generic;
-using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Core;
+using Arcus.EventGrid.Tests.Core.Events;
 using SendEventGridEventAsync = System.Func<Azure.Messaging.EventGrid.EventGridPublisherClient, Azure.Messaging.EventGrid.EventGridEvent, System.Threading.Tasks.Task<Azure.Response>>;
 
 namespace Arcus.EventGrid.Tests.Integration.Publishing

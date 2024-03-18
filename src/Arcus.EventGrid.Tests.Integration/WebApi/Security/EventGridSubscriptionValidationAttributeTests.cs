@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Arcus.EventGrid.Tests.Integration.WebApi.Fixture;
 using Arcus.EventGrid.Tests.Integration.WebApi.Security.Controllers;
 using Arcus.Testing.Logging;
+using Azure.Messaging.EventGrid;
+using Azure.Messaging.EventGrid.SystemEvents;
 using Bogus;
-using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -99,15 +101,19 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Security
         public async Task EventGridSubscriptionValidation_WithCorrectRequestValidationData_Succeeds()
         {
             // Arrange
-            var validationEventData = new SubscriptionValidationEventData(validationCode: Guid.NewGuid().ToString());
-            var eventGridEvent = new EventGridEvent(
-                id: Guid.NewGuid().ToString(),
-                subject: "Sample.Subect",
-                data: validationEventData,
-                eventType: "Microsoft.EventGrid.SubscriptionValidationEvent",
-                eventTime: DateTime.Now,
-                dataVersion: "1.0");
-            string json = JsonConvert.SerializeObject(eventGridEvent);
+            var validationCode = Guid.NewGuid().ToString();
+            string json = $@"[
+              {{
+                ""id"": ""2d1781af-3a4c-4d7c-bd0c-e34b19da4e66"",
+                ""topic"": ""/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"",
+                ""subject"": ""Sample.Subject"",
+                ""data"": {{
+                    ""validationCode"": ""{validationCode}""
+                }}, ""dataVersion"": """",
+                ""eventType"": ""Microsoft.EventGrid.SubscriptionValidationEvent"",
+                ""eventTime"": ""2017-08-06T22:09:30.740323Z""
+              }}
+            ]";
 
             await using (var server = await TestApiServer.StartNewAsync(_logger))
             {
@@ -123,7 +129,7 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Security
                     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                     string contents = await response.Content.ReadAsStringAsync();
                     var validationResponse = JsonConvert.DeserializeObject<SubscriptionValidationResponse>(contents);
-                    Assert.Equal(validationEventData.ValidationCode, validationResponse.ValidationResponse);
+                    Assert.Equal(validationCode, validationResponse.ValidationResponse);
                 }
             }
         }
@@ -132,21 +138,25 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Security
         public async Task EventGridSubscriptionValidation_WithMultipleEvents_Fails()
         {
             // Arrange
-            var validationEventData = new SubscriptionValidationEventData(validationCode: Guid.NewGuid().ToString());
+            var validationCode = Guid.NewGuid().ToString();
             var validationEvent = new EventGridEvent(
-                id: Guid.NewGuid().ToString(),
                 subject: "Sample.Subect",
-                data: validationEventData,
+                data: JObject.Parse($"{{ \"validationCode\": \"{validationCode}\" }}"),
                 eventType: "Microsoft.EventGrid.SubscriptionValidationEvent",
-                eventTime: DateTime.Now,
-                dataVersion: "1.0");
+                dataVersion: "1.0")
+            {
+                Id = Guid.NewGuid().ToString(),
+                EventTime = DateTimeOffset.UtcNow
+            };
             var blobCreatedEvent = new EventGridEvent(
-                id: Guid.NewGuid().ToString(),
                 subject: "Sample.Subject",
-                data: new StorageBlobCreatedEventData(),
+                data: JObject.Parse($"{{ \"something\": \"else\" }}"),
                 eventType: "Microsoft.Storage.BlobCreatedEvent",
-                eventTime: DateTime.Now,
-                dataVersion: "1.0");
+                dataVersion: "1.0")
+            {
+                Id = Guid.NewGuid().ToString(),
+                EventTime = DateTimeOffset.UtcNow
+            };
             EventGridEvent[] events = {validationEvent, blobCreatedEvent};
             string json = JsonConvert.SerializeObject(events);
 
@@ -171,12 +181,14 @@ namespace Arcus.EventGrid.Tests.Integration.WebApi.Security
         {
             // Arrange
             var blobCreatedEvent = new EventGridEvent(
-                id: Guid.NewGuid().ToString(),
                 subject: "Sample.Subject",
-                data: new StorageBlobCreatedEventData(),
+                data: JObject.Parse($"{{ \"something\": \"else\" }}"),
                 eventType: "Microsoft.Storage.BlobCreatedEvent",
-                eventTime: DateTime.Now,
-                dataVersion: "1.0");
+                dataVersion: "1.0")
+            {
+                Id = Guid.NewGuid().ToString(),
+                EventTime = DateTimeOffset.UtcNow
+            };
             string json = JsonConvert.SerializeObject(blobCreatedEvent);
 
             await using (var server = await TestApiServer.StartNewAsync(_logger))

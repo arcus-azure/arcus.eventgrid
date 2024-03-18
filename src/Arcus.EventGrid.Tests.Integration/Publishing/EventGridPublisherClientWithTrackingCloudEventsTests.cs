@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Core;
 using Arcus.EventGrid.Tests.Core.Events.Data;
 using Azure;
@@ -9,6 +8,7 @@ using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Xunit;
 using Arcus.EventGrid.Tests.Core;
+using Arcus.EventGrid.Tests.Core.Events;
 using Xunit.Abstractions;
 using Arcus.EventGrid.Tests.Integration.Fixture;
 using SendCloudEventAsync = System.Func<Azure.Messaging.EventGrid.EventGridPublisherClient, Azure.Messaging.CloudEvent, System.Threading.Tasks.Task<Azure.Response>>;

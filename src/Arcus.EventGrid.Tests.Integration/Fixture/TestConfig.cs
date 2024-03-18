@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Arcus.EventGrid.Contracts;
+using Arcus.EventGrid.Tests.Core.Events;
 using GuardNet;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
