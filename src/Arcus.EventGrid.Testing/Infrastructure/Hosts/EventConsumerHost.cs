@@ -1,22 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Contracts;
-using Arcus.EventGrid.Parsers;
-using CloudNative.CloudEvents;
+using Azure.Messaging;
+using Azure.Messaging.EventGrid;
 using GuardNet;
-using Microsoft.Azure.EventGrid.Models;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Polly;
 using Polly.Timeout;
-using NewCloudEvent = Azure.Messaging.CloudEvent;
-using NewEventGridEvent = Azure.Messaging.EventGrid.EventGridEvent; 
-using OldCloudEvent = CloudNative.CloudEvents.CloudEvent;
-using OldEventGridEvent = Microsoft.Azure.EventGrid.Models.EventGridEvent;
 
 namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 {
@@ -25,8 +18,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
     /// </summary>
     public class EventConsumerHost
     {
-        private readonly ConcurrentDictionary<string, (string originalEvent, Event parsedEvent)> _oldEvents = new ConcurrentDictionary<string, (string, Event)>();
-        private readonly ConcurrentDictionary<string, string> _newEvents = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> _events = new ConcurrentDictionary<string, string>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventConsumerHost"/> class.
@@ -50,36 +42,25 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// </summary>
         /// <param name="rawReceivedEvents">The raw payload containing all received events.</param>
         /// <exception cref="ArgumentException">Thrown when the <paramref name="rawReceivedEvents"/> is blank.</exception>
-        /// <exception cref="JsonReaderException">Thrown when the <paramref name="rawReceivedEvents"/> failed to be read as valid JSON.</exception>
         protected void EventsReceived(string rawReceivedEvents)
         {
             Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents), "Requires a non-blank raw event payload containing the serialized received events");
 
-#pragma warning disable CS0618
-            EventsReceived(rawReceivedEvents, Logger);
-#pragma warning restore CS0618
-        }
-
-        /// <summary>
-        /// Handles new received events into the event consumer that can later be retrieved.
-        /// </summary>
-        /// <param name="rawReceivedEvents">The raw payload containing all received events.</param>
-        /// <param name="logger">The logger to use for writing event information of the received events.</param>
-        /// <exception cref="ArgumentException">Thrown when the <paramref name="rawReceivedEvents"/> is blank.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="logger"/> is <c>null</c>.</exception>
-        /// <exception cref="JsonReaderException">Thrown when the <paramref name="rawReceivedEvents"/> failed to be read as valid JSON.</exception>
-        [Obsolete("Use the overload without the logger instead")]
-        protected void EventsReceived(string rawReceivedEvents, ILogger logger)
-        {
-            Guard.NotNullOrWhitespace(rawReceivedEvents, nameof(rawReceivedEvents), "Requires a non-blank raw event payload containing the serialized received events");
-            Guard.NotNull(logger, nameof(logger), "Requires an logger instance to write event information of the received events");
-
-            EventBatch<Event> eventBatch = EventParser.Parse(rawReceivedEvents);
-            foreach (Event receivedEvent in eventBatch.Events)
+            JToken token = JToken.Parse(rawReceivedEvents);
+            JObject[] events = token.Type switch
             {
-                logger.LogTrace("Received event '{EventId}' on event consumer host", receivedEvent.Id);
-                _oldEvents.AddOrUpdate(receivedEvent.Id, (rawReceivedEvents, receivedEvent), (id, ev) => (rawReceivedEvents, receivedEvent));
-                _newEvents.AddOrUpdate(receivedEvent.Id, rawReceivedEvents, (id, ev) => rawReceivedEvents);
+                JTokenType.Array => token.Children<JObject>().ToArray(),
+                JTokenType.Object => new [] { (JObject) token },
+                _ =>  throw new InvalidOperationException(
+                    "Couldn't find a correct JSON structure (array or object) to parse the EventGridEvent/CloudEvents from")
+            };
+
+            foreach (JObject ev in events)
+            {
+                var eventId = ev["id"]?.ToString() ?? Guid.NewGuid().ToString();
+
+                Logger.LogTrace("Received event '{EventId}' on event consumer host", eventId);
+                _events.AddOrUpdate(eventId, ev.ToString(), (id, raw) => ev.ToString());
             }
         }
 
@@ -158,29 +139,29 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
         /// <summary>
         /// Gets the event envelope that includes a requested event (uses timeout).
         /// </summary>
-        /// <param name="cloudEventFilter">The custom event filter to select a specific <see cref="NewCloudEvent "/> event.</param>
+        /// <param name="cloudEventFilter">The custom event filter to select a specific <see cref="CloudEvent "/> event.</param>
         /// <param name="timeout">The time period in which the event should be consumed.</param>
         /// <returns>
-        ///     The deserialized <see cref="NewCloudEvent"/> event that matches the specified <paramref name="cloudEventFilter"/>.
+        ///     The deserialized <see cref="CloudEvent"/> event that matches the specified <paramref name="cloudEventFilter"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="cloudEventFilter"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="timeout"/> is a negative time range.</exception>
         /// <exception cref="TimeoutException">
         ///     Thrown when no event could be received within the specified <paramref name="timeout"/> time range that matches the given <paramref name="cloudEventFilter"/>.
         /// </exception>
-        public NewCloudEvent GetReceivedEvent(Func<NewCloudEvent, bool> cloudEventFilter, TimeSpan timeout)
+        public CloudEvent GetReceivedEvent(Func<CloudEvent, bool> cloudEventFilter, TimeSpan timeout)
         {
             Guard.NotNull(cloudEventFilter, nameof(cloudEventFilter), "Requires a function to filter out received CloudEvent events");
             Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Requires a timeout span representing a positive time range");
 
-            Policy<NewCloudEvent> timeoutPolicy =
-                CreateTimeoutPolicy<NewCloudEvent>(ev => ev is null, timeout);
+            Policy<CloudEvent> timeoutPolicy =
+                CreateTimeoutPolicy<CloudEvent>(ev => ev is null, timeout);
 
-            PolicyResult<NewCloudEvent> result =
+            PolicyResult<CloudEvent> result =
                 timeoutPolicy.ExecuteAndCapture(() =>
                 {
                     return TryGetReceivedEvent(
-                        received => NewCloudEvent.Parse(BinaryData.FromString(received)),
+                        received => CloudEvent.Parse(BinaryData.FromString(received)),
                         cloudEventFilter);
                 });
 
@@ -196,164 +177,37 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             }
 
             return result.Result;
-        } 
-
-        /// <summary>
-        /// Gets the event envelope that includes a requested event (uses timeout).
-        /// </summary>
-        /// <param name="cloudEventFilter">The custom event filter to select a specific <see cref="OldCloudEvent"/> event.</param>
-        /// <param name="timeout">The time period in which the event should be consumed.</param>
-        /// <returns>
-        ///     The deserialized <see cref="OldCloudEvent"/> event that matches the specified <paramref name="cloudEventFilter"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="cloudEventFilter"/> is <c>null</c>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="timeout"/> is a negative time range.</exception>
-        /// <exception cref="TimeoutException">
-        ///     Thrown when no event could be received within the specified <paramref name="timeout"/> time range that matches the given <paramref name="cloudEventFilter"/>.
-        /// </exception>
-        [Obsolete("Use 'CloudEvent' overload from 'Azure.Messaging.EventGrid' package")] 
-        public OldCloudEvent GetReceivedEvent(Func<OldCloudEvent, bool> cloudEventFilter, TimeSpan timeout)
-        {
-            Guard.NotNull(cloudEventFilter, nameof(cloudEventFilter), "Requires a function to filter out received CloudEvent events");
-            Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Requires a timeout span representing a positive time range");
-
-            Policy<OldCloudEvent> timeoutPolicy = 
-                CreateTimeoutPolicy<OldCloudEvent>(ev => ev is null, timeout);
-            
-            PolicyResult<OldCloudEvent> result =
-                timeoutPolicy.ExecuteAndCapture(() => 
-                    TryGetReceivedEvent(
-                        ev => cloudEventFilter(ev)));
-
-            if (result.Outcome is OutcomeType.Failure)
-            {
-                if (result.FinalException is TimeoutRejectedException)
-                {
-                    throw new TimeoutException(
-                        $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
-                }
-
-                throw result.FinalException;
-            }
-
-            return result.Result;
         }
 
         /// <summary>
         /// Gets the event envelope that includes a requested event (uses timeout).
         /// </summary>
-        /// <param name="eventGridEventFilter">The custom event filter to select a specific <see cref="NewEventGridEvent"/> event.</param>
+        /// <param name="eventGridEventFilter">The custom event filter to select a specific <see cref="EventGridEvent"/> event.</param>
         /// <param name="timeout">The time period in which the event should be consumed.</param>
         /// <returns>
-        ///     The deserialized <see cref="NewEventGridEvent"/> event that matches the specified <paramref name="eventGridEventFilter"/>.
+        ///     The deserialized <see cref="EventGridEvent"/> event that matches the specified <paramref name="eventGridEventFilter"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="eventGridEventFilter"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="timeout"/> is a negative time range.</exception>
         /// <exception cref="TimeoutException">
         ///     Thrown when no event could be received within the specified <paramref name="timeout"/> time range that matches the given <paramref name="eventGridEventFilter"/>.
         /// </exception>
-        public NewEventGridEvent GetReceivedEvent(Func<NewEventGridEvent, bool> eventGridEventFilter, TimeSpan timeout)
+        public EventGridEvent GetReceivedEvent(Func<EventGridEvent, bool> eventGridEventFilter, TimeSpan timeout)
         {
             Guard.NotNull(eventGridEventFilter, nameof(eventGridEventFilter), "Requires a function to filter out received CloudEvent events");
             Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Requires a timeout span representing a positive time range");
 
-            Policy<NewEventGridEvent> timeoutPolicy =
-                CreateTimeoutPolicy<NewEventGridEvent>(ev => ev is null, timeout);
+            Policy<EventGridEvent> timeoutPolicy =
+                CreateTimeoutPolicy<EventGridEvent>(ev => ev is null, timeout);
 
-            PolicyResult<NewEventGridEvent> result =
+            PolicyResult<EventGridEvent> result =
                 timeoutPolicy.ExecuteAndCapture(() =>
                 {
                     return TryGetReceivedEvent(
-                        received => NewEventGridEvent.Parse(BinaryData.FromString(received)),
+                        received => EventGridEvent.Parse(BinaryData.FromString(received)),
                         eventGridEventFilter);
                 });
 
-            if (result.Outcome is OutcomeType.Failure)
-            {
-                if (result.FinalException is TimeoutRejectedException)
-                {
-                    throw new TimeoutException(
-                        $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
-                }
-
-                throw result.FinalException;
-            }
-
-            return result.Result;
-        }
-
-        /// <summary>
-        /// Gets the event envelope that includes a requested event (uses timeout).
-        /// </summary>
-        /// <param name="eventGridEventFilter">The custom event filter to select a specific <see cref="OldEventGridEvent"/> event.</param>
-        /// <param name="timeout">The time period in which the event should be consumed.</param>
-        /// <returns>
-        ///     The deserialized <see cref="OldEventGridEvent"/> event that matches the specified <paramref name="eventGridEventFilter"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="eventGridEventFilter"/> is <c>null</c>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="timeout"/> is a negative time range.</exception>
-        /// <exception cref="TimeoutException">
-        ///     Thrown when no event could be received within the specified <paramref name="timeout"/> time range that matches the given <paramref name="eventGridEventFilter"/>.
-        /// </exception>
-        [Obsolete("Use 'EventGridEvent' overload from 'Azure.Messaging.EventGrid' package")] 
-        public OldEventGridEvent GetReceivedEvent(Func<OldEventGridEvent, bool> eventGridEventFilter, TimeSpan timeout)
-        {
-            Guard.NotNull(eventGridEventFilter, nameof(eventGridEventFilter), "Requires a function to filter out received CloudEvent events");
-            Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Requires a timeout span representing a positive time range");
-
-            Policy<OldEventGridEvent> timeoutPolicy = 
-                CreateTimeoutPolicy<OldEventGridEvent>(ev => ev is null, timeout);
-            
-            PolicyResult<OldEventGridEvent> result =
-                timeoutPolicy.ExecuteAndCapture(() => 
-                    TryGetReceivedEvent(ev => eventGridEventFilter(ev)));
-
-            if (result.Outcome is OutcomeType.Failure)
-            {
-                if (result.FinalException is TimeoutRejectedException)
-                {
-                    throw new TimeoutException(
-                        $"Could not in the time available ({timeout:g}) receive an CloudEvent event from Azure Event Grid on the Service Bus topic that matches the given filter");
-                }
-
-                throw result.FinalException;
-            }
-
-            return result.Result;
-        }
-
-        /// <summary>
-        /// Gets the event envelope that includes the requested event (uses timeout).
-        /// </summary>
-        /// <typeparam name="TEventPayload">The custom event payload of the requested consumed event.</typeparam>
-        /// <param name="eventPayloadFilter">The custom event filter to select an <see cref="Event"/> with a specific event payload.</param>
-        /// <param name="timeout">The time period in which the event should be consumed.</param>
-        /// <returns>
-        ///     The deserialized abstract <see cref="Event"/> whose payload matches the specified <paramref name="eventPayloadFilter"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">Thrown when the <paramref name="eventPayloadFilter"/> is <c>null</c>.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when the <paramref name="timeout"/> is a negative time range.</exception>
-        /// <exception cref="TimeoutException">
-        ///     Thrown when no event could be retrieved within the specified <paramref name="timeout"/> time range
-        ///     whose event payload matches the given <paramref name="eventPayloadFilter"/>.
-        /// </exception>
-        [Obsolete("Use either 'CloudEvent' or 'EventGridEvent' overloads")]
-        public Event GetReceivedEvent<TEventPayload>(Func<TEventPayload, bool> eventPayloadFilter, TimeSpan timeout)
-        {
-            Guard.NotNull(eventPayloadFilter, nameof(eventPayloadFilter), "Requires a function to filter out received CloudEvent events");
-            Guard.NotLessThanOrEqualTo(timeout, TimeSpan.Zero, nameof(timeout), "Requires a timeout span representing a positive time range");
-            
-            Policy<Event> timeoutPolicy = 
-                CreateTimeoutPolicy<Event>(ev => ev is null, timeout);
-
-            PolicyResult<Event> result =
-                timeoutPolicy.ExecuteAndCapture(() =>
-                    TryGetReceivedEvent(ev =>
-                    {
-                        var payload = ev.GetPayload<TEventPayload>();
-                        return payload != null && eventPayloadFilter(payload);
-                    }));
-            
             if (result.Outcome is OutcomeType.Failure)
             {
                 if (result.FinalException is TimeoutRejectedException)
@@ -395,15 +249,15 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
             Func<TEvent, bool> eventFilter)
             where TEvent : class
         {
-            if (_newEvents.IsEmpty)
+            if (_events.IsEmpty)
             {
                 Logger.LogTrace("No received events found");
             }
             else
             {
-                Logger.LogTrace("Current received event batches are: {ReceivedEvents}", string.Join(", ", _newEvents.Keys));
+                Logger.LogTrace("Current received event batches are: {ReceivedEvents}", string.Join(", ", _events.Keys));
 
-                foreach (KeyValuePair<string, string> received in _newEvents)
+                foreach (KeyValuePair<string, string> received in _events)
                 {
                     try
                     {
@@ -420,33 +274,7 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
                     }
                 }
 
-                Logger.LogInformation("None of the received events matches the event filter: {ReceivedEvents}", string.Join(Environment.NewLine, _newEvents.Keys));
-            }
-
-            return null;
-        }
-
-        private Event TryGetReceivedEvent(Func<Event, bool> eventFilter)
-        {
-            if (_oldEvents.IsEmpty)
-            {
-                Logger.LogTrace("No received events found");
-            }
-            else
-            {
-                Logger.LogTrace("Current received event batches are: {ReceivedEvents}", String.Join(", ", _oldEvents.Keys));
-
-                (string eventId, (string originalEvent, Event parsedEvent)) = _oldEvents.FirstOrDefault(ev => eventFilter(ev.Value.parsedEvent));
-                if (parsedEvent != null)
-                {
-                    Logger.LogInformation("Found received event with ID: {EventId}", eventId);
-                }
-                else
-                {
-                    Logger.LogInformation("None of the received events matches the event filter: {ReceivedEvents}", String.Join(Environment.NewLine, _oldEvents.Keys));
-                }
-
-                return parsedEvent;
+                Logger.LogInformation("None of the received events matches the event filter: {ReceivedEvents}", string.Join(Environment.NewLine, _events.Keys));
             }
 
             return null;
@@ -454,14 +282,14 @@ namespace Arcus.EventGrid.Testing.Infrastructure.Hosts
 
         private string TryGetReceivedEvent(string eventId)
         {
-            if (_newEvents.IsEmpty)
+            if (_events.IsEmpty)
             {
                 Logger.LogTrace("No received events found with event ID: '{EventId}'", eventId);
             }
             else
             {
-                Logger.LogTrace("Current received events are: {ReceivedEvents}", string.Join(", ", _newEvents.Keys));
-                if (_newEvents.TryGetValue(eventId, out string originalEvent))
+                Logger.LogTrace("Current received events are: {ReceivedEvents}", string.Join(", ", _events.Keys));
+                if (_events.TryGetValue(eventId, out string originalEvent))
                 {
                     Logger.LogInformation("Found received event with ID: {EventId}", eventId);
                     return originalEvent;

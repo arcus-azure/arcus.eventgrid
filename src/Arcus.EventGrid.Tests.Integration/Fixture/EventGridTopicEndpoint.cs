@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Arcus.EventGrid.Contracts;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts;
 using Arcus.EventGrid.Testing.Infrastructure.Hosts.ServiceBus;
+using Arcus.EventGrid.Tests.Core.Events;
 using Arcus.EventGrid.Tests.Integration.Publishing.Fixture;
 using Arcus.Testing.Logging;
 using GuardNet;
